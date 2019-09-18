@@ -1,0 +1,1030 @@
+Записи по видео лекциям
+
+<<<openTransaction или beginTransaction???>>>
+
+1. Конфиги
+
+	hibernate.cfg.xml - имя файла конфигов по умолчанию, если надо изменить имя придется задавать доп. параметры
+		этот файл расположен или в корне проекта (classpath?), или в resouces для maven
+	
+	1. Чтобы настроить: взять example файла, копировать и изменить под себя.
+	
+	
+	2. xml конфиги:
+	
+	<session-factory>
+		<property name="connection.driver_class">
+		<property name="connection.url">
+		<property name="connection.username">
+		<property name="connection.password">
+		
+		
+		<property name="connection.pool_size"> - чтобы настроить размер смотреть документацию
+		<property name="dialect"> - какой SQL язык для базы использовать (каждый диалект это класс описывающий язык)
+		<property name="cache.provider_class"> - использовать или нет кэш L2
+		<property name="show_sql"> - показывать или нет запросы в консоли при их выполнении
+		<property name="hbm2ddl.auto"> - параметры обращения с таблице при создании/удалении/обновлении
+			create - удаляет и пересоздаёт все таблицы при каждом перезапуске (это плохо)
+			update - не пересоздаёт (это хорошо)
+			validate - 
+			create-drop - 
+			
+		<mapping class="prg.hibernate.tutorial.my.dto.UserDetails" /> - указываем класс который будем маппить
+		
+	3. Аннотации как правило из JPA, не hibernate. Потому что hibernate имеет особенности
+	
+2. Классы
+
+	@Entity
+	public class UserDetails {
+		@Id
+		int userId;
+		String username;
+		//getters, setters
+	}
+	
+	//main()
+		UserDetails ui = new UserDetails();
+		ui.setUserId(1);
+		ui.setUserName("Jim");
+		
+		//берем конфиг и строим фабрику сессий
+		SessionFactory sf = new Configuration().configure().buildSessionFactory();
+		
+		//создаём сессию
+		Session s = sf.openSession();
+		
+		//создаём транзакцию
+		s.beginTransaction();
+		s.save(ui);
+		s.getTransaction().commit();
+		s.close();
+		
+3. 
+	1.
+	@Entity(name = "имя") - назначает имя таблицы классу (что будет если задать name в Entity а не Table???)
+	class User {}
+	
+	2.
+	class User {
+		@Column (name = "имя") - указать имя столбца вручную
+		private String name;
+	}
+	
+	3.
+	Если ставить аннотации не над полями, над setter то в setter можно определить действие, например изменения столбца перед установкой
+	
+	class User {
+		private String name;
+		
+		Column (name = "имя") - указать имя столбца вручную
+		setName(String name) {
+			this.name = name + "blabla";
+		}
+	}
+	
+	4. @Entity vs @Table
+	
+	@Entity - имя сущности
+	@Table - имя в DB
+	
+	HQL or JPQL - в них использовать имя из @Entity
+	
+	@Entity
+	@Table(name = "имя") // устанавливаем другое имя таблиц, отличается от @Entity(name = "") меняя имя только таблицы (ещё чем???)
+	class User {}
+	
+	5. @Basic - анотация по умолчанию у всех столбцов (даже если не указана)
+	У неё есть параметры option и fetch
+	class User {
+		@Basic
+		//@Basic(optional = false) - аналог Column(nullable = false) только для ограничения в памяти, а не базе. Ошибка выскочит до SQL запроса, т.к. ограничение на уровне языка, а не базы.
+		//@Basic(fetch = ) - EAGER или LAZY
+		String name;
+	}
+	
+	6.
+		class User {
+			@Transient //не сохранять поле
+			String name;
+			//static, transient, final - тоже что и @Transient
+			static String name2; //тоже что и @Transient
+			transient String name3; //тоже что и @Transient
+			final String name4; //тоже что и @Transient
+		}
+		
+	7. По умолчанию дата сохраняется в полном формате  год : мес : число : время до милисекунд (Timestamp)
+		class User {
+			@Temporal(TemporalType.DATE) //сохранить только дату, имеет и другие форматы
+			//TemporalType.TIME, TemporalType.TIMESTAMP
+			Date time;
+		}
+		
+	8.
+		class User {
+			@Lob //large object, большие строки
+			String longDescription;
+			
+			@Lob //большой байтовый массив
+			byte [] b;
+		}
+		
+4. 
+	//main()
+		Session s = sessionFactory.openSession()
+		s.beginTransaction();
+		User user = (User) s.get(User.class, userId);
+		
+5.
+	class User {
+		@Id
+		@GeneratedValue
+		//@GeneratedValue(strategy = GenerationType.AUTO) - по умолчанию
+		//@GeneratedValue(strategy = GenerationType.IDENTITY) - 
+		//@GeneratedValue(strategy = GenerationType.SEQUENCE) - 
+		//@GeneratedValue(strategy = GenerationType.TABLE) - 
+		int userId;
+	}
+	
+8. @EmbeddedId - это как комбинация @Id + @Embedded только такую комбинацию нельзя писать, можно использовать только - @EmbeddedId
+	Для случая когда EmbeddedId ОБЪЕКТ служит первичным ключем
+	
+	class User {
+		@EmbeddedId
+		private MyObjectId myObjectId;
+		
+	}
+	
+	@Embeddadble
+	class MyObjectId {
+		String name; //уникальное поле
+		String email;
+		String phone;
+	}
+		
+11.	После запроса возвращается прокси объект
+	load() - возвращает прокси, запрос выполнится только когда будет работа с объектом (исключение при ошибке)
+	get() - сразу выполняет запрос, так что в случае ошибки она сразу видна (возвращает null при ошибке)
+
+	fetch = FetchType.EAGER или FetchType.LAZY
+	причем этот аттрибут есть у разных аннотаций, в том числе у:
+		@ElementCollection(fetch = )
+		
+12. связь только с одной стороны
+	class User {
+		int userId;
+		@OneToOne
+		@JoinColumn(name = "VEHICLE_ID") //меняет имя столбца id на красивое
+		Vehicle vehicle;
+	}
+	class Vehicle {
+		String name;
+	}
+	
+	Задаём OneToOne по другому (нету в видео):
+	http://www.mkyong.com/hibernate/hibernate-one-to-one-relationship-example-annotation/
+		@Entity
+		@Table(
+			name = "stock",
+			catalog = "mkyongdb", //имя БД
+			uniqueConstraints = { //составной уникальный ключ на уровне таблицы
+				@UniqueConstraint(columnNames = {"STOCK_NAME"}),
+				@UniqueConstraint(columnNames = "STOCK_CODE")
+			}
+		)
+		public class Stock implements java.io.Serializable {
+		
+			@Id
+			@GeneratedValue(strategy = GenerationType.IDENTITY)
+			@Column(name = "STOCK_ID", unique = true, nullable = false)
+			private Integer stockId;
+			
+			@Column(name = "STOCK_CODE", unique = true, nullable = false, length = 10)
+			private String stockCode;
+			
+			@Column(name = "STOCK_NAME", unique = true, nullable = false, length = 20)
+			private String stockName;
+			
+			@OneToOne(fetch = FetchType.LAZY, mappedBy = "stock", cascade = CascadeType.ALL)
+			private StockDetail stockDetail;
+		}
+		
+		import org.hibernate.annotations.GenericGenerator;
+		import org.hibernate.annotations.Parameter;
+		@Entity
+		@Table(name = "stock_detail", catalog = "mkyongdb")
+		public class StockDetail implements java.io.Serializable {
+		
+			@GenericGenerator(
+				name = "generator",
+				strategy = "foreign",
+				parameters = @Parameter(
+					name = "property",
+					value = "stock"
+				)
+			)
+			@Id
+			@GeneratedValue(generator = "generator")
+			@Column(name = "STOCK_ID", unique = true, nullable = false)
+			private Integer stockId;
+			
+			@OneToOne(fetch = FetchType.LAZY)
+			@PrimaryKeyJoinColumn
+			private Stock stock;
+			
+			private String compName;
+			private String compDesc;
+			private String remark;
+			private Date listedDate;
+	
+13. При этом типе связи создаётся отдельная 3-я таблица User_Vehicle в которой они связываются по id
+	class User {
+		@Id
+		int userId;
+	
+		@OneToMany
+		@JoinTable(
+			name = "USER_VEHICLE", //имя 3-ей таблицы в которой связываются 2-е связью @OneToMany
+			joinColumns=@JoinColumn(name = "USER_ID"),
+			inverseJoinColumns=@JoinColumn(name = "VEHICLE_ID")
+		)
+		private Collection<Vehicle> vehicles = new ArrayList<>(); 
+	}
+	
+	class Vehicle {
+		@Id
+		int vehicleId;
+		
+		@ManyToOne
+		private User user;
+	}
+	
+14.
+	второй вариант маппинга ManyToOne - без 3-ей таблицы-посредника
+	
+	class User {
+		@Id
+		int userId;
+	
+		@OneToMany(mappedBy = "user")
+		private Collection<Vehicle> vehicles = new ArrayList<>();  
+	}
+	
+	class Vehicle {
+		@Id
+		int vehicleId;
+		
+		@ManyToOne
+		@JoinColumn(name = "USER_ID")
+		private User user;
+	}
+	
+15.
+	@ManyToMany - mappedBy только с одной стороны, иначе будет лишняя связь
+	В результате создаётся 3-я таблица через которую устанавливается связь
+	
+	class User {
+		@Id
+		int userId;
+	
+		@ManyToMany(mappedBy = "user")
+		private Collection<Vehicle> vehicles = new ArrayList<>();  
+	}
+	
+	class Vehicle {
+		@Id
+		int vehicleId;
+		
+		@ManyToMany
+		private Collection<User> users = new ArrayList<>();
+	}
+	
+16.
+
+	class Vehicle {
+		@ManyToOne
+		@NotFound //аннотация hibernate подавляет исключение, если user не найден, 
+					//например если есть старый код со старыми связями в таблице
+		//@NotFound(name = NotFoundAction.IGNORE) - что нужно делать при подавлении исключения
+		User user;
+	}
+	
+	class User{}
+	
+17.
+	Коллекции Hibernate - hibernate сам заботится о семантике
+	
+		Bag semantic - List /ArrayList
+		Bag semantic with ID - List / ArrayList
+		List semantic - List / ArrayList
+		Set semantic - Set
+		Map semantic - Map
+		
+18.	Аттрибут cascade = CascadeType
+
+	При вызове save() и ДРУГИХ оппераций по умолчанию операция выполняется только для конкретного объекта, а не для связанного с ним. Аттрибут cascade говорит пойти в элемент для которого прописаны связи и сохранить его тоже.
+	Если сохранить user при этом установив элемент vehicles, то будет ошибка. Чтобы задать поведение таблицы при операциях используется CascadeType, тогда ошибки не будет
+	
+	cascade - как бы говорит: когда я сохраняю user иди в его связь @OneToMany и сохрани все объекты которые с ним связаны (или удали если REMOVE)
+	
+	class User {
+		@OneToMany(cascade = CascadeType.PERSIST)
+		//@OneToMany(cascade = CascadeType.ALL) - для всех оппераций
+		//@OneToMany(cascade = CascadeType.DETACH)
+		//@OneToMany(cascade = CascadeType.MERGE)
+		//@OneToMany(cascade = CascadeType.REFRESH)
+		//@OneToMany(cascade = CascadeType.REMOVE)
+		//@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) - массив оппераций
+		private Collection<Vehicle> vehicles = new ArrayList<>();
+	}
+	
+	class Vehicle{...}
+	
+	//main()
+		session.beginTransaction();
+		
+		User user = new User();
+		user.getVehicles().add(new Vehicle());
+		
+		session.persist(user); //сохраняем
+		session.getTransaction().commit();
+		session.close();
+	
+24.
+	Чтобы сказать hibernate обновлять объект ДАЖЕ в другой сессии (и транзакции) ТОЛЬКО если он изменился между транзакциями (когда сессия не отслеживает изменения).
+	
+	@Entity
+	@org.hibernate.annotations.Entity(selectBeforeUpdate = true)
+		//обновляет объект только если он изменился, даже во время изменения он не был привязан к сессии
+	class User {...}
+	
+	//main()
+	User user;
+	Session s = sessionFactory.openSession();
+	s.beginTransaction();
+	user = (User) s.get(user);
+	s.getTransaction().commit();
+	s.close();
+	
+	//user.setName("My"); //если здесь объект был изменен, то update() ниже отправит запрос в базу
+	
+	s = sessionFactory.openSession();
+	s.beginTransaction();
+	s.update(user); //обновление случится ТОЛЬКО если user был изменен между сессиями
+	s.getTransaction().commit();
+	s.close();
+	
+25.
+	HQL
+	
+	//не пишется SELECT *
+	Query query = session.createQuery("from User where id > 5");
+	query.setFirstResult(5); //начать с 5-го результата
+	query.setMaxResults(4); //максимум 4 результата
+	List<User> list = query.list(); //выполняется запрос к базе на основе HQL
+	
+	Query query = session.createQuery("select name from User"); //List<String> одного поля
+	
+	//изменить тип получаемой коллекции
+	Query query = session.createQuery("select new map(name, id) from User"); //Map<Integer, String>
+	
+	Query query = session.createQuery("select max(id) from User"); //максимальное id
+	
+26. 
+	Query query = session.createQuery("from User where id > ? and name = ?");
+	int id = 5;
+	String name = "my";
+	query.setInteger(0, Integer.parseInt(id));
+	query.setName(1, name);
+	
+	или
+	
+	Query query = session.createQuery("from User where id > :id and name = :name");
+	query.setInteger("id", Integer.parseInt(id));
+	query.setName("name", name);
+	
+27.
+	Named queries
+	
+	@Entity
+	@NamedQuery(
+		name = "User.byId",
+		query = "from User where id = ?"
+	)
+	@NamedNativeQuery( //для чистого SQL
+		name = "User.byName",
+		query = "select * from USER where name = ?",
+		resultClass = User.class //тип класса результата запроса
+	)
+	class User {
+		...
+	}
+	
+	//main()
+		Query query = session.getNamedQuery("User.byId");
+		query.setInteger(0, Integer.parseInt(id));
+		
+28. Criteria
+	
+	Criteria criteria = session.createCriteria(User.class);
+	criteria.add(Restriction.eq("name", "ivan"))
+		.add(Restriction.or(Restriction.between(12, 13), Restriction.between(2, 6)))
+		.add(Restriction.like("name", "%van"));
+	
+	Criteria criteria = session.createCriteria(User.class)
+		.setProjection(Projections.property("userId")); //берем только одно поле из запроса, тип String
+		
+	Criteria criteria = session.createCriteria(User.class)
+		.setProjection(Projections.max("userId")); //максимальное из свойства userId
+
+	Criteria criteria = session.createCriteria(User.class)
+		.setProjection(Projections.count("userId")); //подсчитать userId
+		
+		
+		.addOrder(Order.desc("userId")); //сортировать результат
+
+29. Шаблоны запросов Example
+
+	//работа с Example классом - как шаблон
+	User exampleUser = new User();
+	//exampleUser.setId(5); - установка id для Example ни на что не влияет
+	exampleUser.setName("ivan");
+	Example example = Example.create(exampleUser); //шаблон
+	Criteria criteria = session.createCriteria(User.class)
+		.add(example); //вернет всех пользователей с именем ivan
+	
+	//исключить запись с конкретным свойством из выборки
+	Example example = Example.create(exampleUser).excludeProperty("ivan_2");
+	
+	//использование совпадение строки Like в шаблоне
+	exampleUser.setName("%van");
+	Example example = Example.create(exampleUser).enableLike("%van");
+				
+Чего нет в этих лекциях:
+4.
+	Параметр orphanRemoval = true указывает, что все объекты Task, которые не имеют ссылки на User, должны быть удалены из БД.
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    public List<Tasks> getTasks() {
+        return tasks;
+    }
+	
+5. Чтобы при каскаде CascadeType.REMOVE не удалить remove() связанный с удаляемым объект нужно удалить связь удаляемого с тем что сохранить перед удалением:
+task.setUser(null)
+
+Или можно просто не указывать delete в Cascade???
+
+7.
+cascade нужно указывать только с одной стороны класса???? проверить
+
+8.
+Атрибут schema - 
+	http://stackoverflow.com/questions/915974/using-table-with-schema-name-in-hibernate-3-3-1ga-and-hsqldb
+	http://stackoverflow.com/questions/1301399/jpa-using-multiple-database-schemas
+	
+	1.
+	@Entity
+	@Table(name = "user", schema = "public")
+	public class User {...}
+
+	2.
+	<persistence
+		xmlns="http://java.sun.com/xml/ns/persistence"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+		version="2.0" >
+	<persistence-unit name="schemaOne">
+		. . .
+		<mapping-file>ormOne.xml</mapping-file>
+		. . .
+	</persistence-unit>
+
+	<persistence-unit name="schemaTwo">
+		. . .
+		<mapping-file>ormTwo.xml</mapping-file>
+		. . .
+	</persistence-unit>
+	</persistence>
+	
+	3.
+	EntityManagerFactory emf=Persistence.createEntityManagerFactory("schemaOne");
+	
+9.
+	Переписываем имя связи внешнего ключа @ForeignKey для ManyToOne
+	
+	@Entity
+    public class Order {
+        ...
+        @JoinColumn(name = "CLIENT_ID")
+        @ManyToOne(optional = false)
+        @ForeignKey(name = "FK_CLIENT_ORDERS") //тут
+        private Client client;
+        ...
+    }
+	
+9.2 Переписываем имя связи вторичного ключа @ForeignKey для @ManyToMany
+	@Entity
+    public class SocialNetworker {
+        @ManyToMany
+        @JoinTable(
+			name = "TFRD_FRIEND",
+			joinColumns = {
+				@JoinColumn(name = "NETWORKER_ID")
+			},
+			inverseJoinColumns = {
+				@JoinColumn(name = "FRIEND_ID")
+			} 
+        )
+        @ForeignKey(	//тут
+			name = "FK_SNT_FRIENDS",
+			inverseName="FK_FRD_FRIENDS"
+		)  
+		}
+        private Set<SocialNetworker> friends = new HashSet<SocialNetworker>();
+        ...
+    }
+	
+10. Свой генератор имен
+
+	1. Включаем генерацию, создает бин namingStrategy и устанавливаем его в конфиге
+		<bean id="sessionFactory" 
+			   class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		   <property name="dataSource" ref="dataSource" />
+		   <property name="configLocation" value="classpath:/hibernate.cfg.xml" />
+		   <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfiguration" />
+		   <property name="namingStrategy" ref="namingStrategy" />
+		</bean>
+    
+		<bean id="namingStrategy" class="org.hibernate.cfg.ImprovedNamingStrategy"/>
+	
+	2. Реализуем методы заменяющие стандартные имена
+	public class MyNamingStrategy extends ImprovedNamingStrategy implements NamingStrategy {
+		private String currentTablePrefix;
+
+		@Override
+		public String classToTableName(String className) {
+			currentTablePrefix = className.substring(0, 3).toUpperCase() + "_";
+			return "T" + currentTablePrefix + tableName(className);
+		}
+
+		@Override
+		public String propertyToColumnName(String propertyName) {
+			return currentTablePrefix + addUnderscores(propertyName).toUpperCase();
+		}
+
+		@Override
+		public String columnName(String columnName) {
+			return addUnderscores(columnName).toUpperCase();
+		}
+
+		@Override
+		public String tableName(String tableName) {
+			return addUnderscores(tableName).toUpperCase();
+		}
+	}
+
+13. Столбцам можно задавать ограничения
+@Column(name = "STOCK_CODE", unique = true, nullable = false, length = 10)
+@Size(max = 15)
+@NotNull //из hibernate?
+@Length //из hibernate?
+public String getStockCode() {}
+
+14. catalog - имя базы??? Для чего? Если подключены две базы одновременно?
+@Entity
+@Table(name = "stock_detail", catalog = "mkyongdb")
+public class StockDetail implements java.io.Serializable {}
+
+<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/mkyongdb</property>
+
+15. Чтобы использовать аннотации в транзакциях нужно создать bean в spring (включаем декларативные транзакции)
+
+	//создать в инициализации spring
+	@Bean
+	public HibernateTransactionManager txManager() {
+		return new HibernateTransactionManager(sessionFactory());
+	}
+	
+	//через xml
+	<bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+
+	// Можно указать имя класса для транзакций. Например если есть две session для разных баз (?) и они имеют разные менеджеры.
+	@Transactional("txManager")
+	void f1() {
+	}
+	
+16.
+	Уникальные столбцы @UniqueConstraint (аналог UNIQUE):
+	@Table(
+		name="students",
+		uniqueConstraints = {
+			@UniqueConstraint(columnNames={"lastName"})
+		}
+	)
+	class User {
+		String lastName;
+	}
+		
+19. атрибуты @Column
+	@Column(
+		name="first_name";
+		boolean unique() default false;
+		boolean nullable() default true;
+		boolean insertable() default true;
+		boolean updatable() default true;
+		String columnDefinition() default "";
+		String table() default "";
+		int length() default 255;
+		int precision() default 0;
+		int scale() default 0;
+	)
+	
+	name — имя столбца. По умолчанию соответствует имени свойства;
+	unique — накладывает ограничение уникальности на данный столбец.
+	По умолчанию false;
+	nullable — указывает, может ли значение столбца принимать значение null.
+	По умолчанию true;
+	insertable — указывает, будет ли столбец входить в insert утверждение.
+	По умолчанию true;
+	updatable — указывает, будет ли столбец входить в update утверждение.
+	По умолчанию true;
+	columnDefinition — переписывает sql DDL фрагмент для конкретного столбца;
+	table — определяет таблицу, в которой находится столбец. По умолчанию
+	таблица, соответствующая классу;
+	length — длина столбца. По умолчанию принимает значение 255;
+	precision — количество цифр. По умолчанию принимает значение 0;
+	scale — количество цифр после запятой. По умолчанию принимает значение 0.
+	
+21. Составные первичные ключи
+	@Entity
+	@IdClass(StudentPk.class)
+	public class Student {
+		String email;
+		
+		@Id
+		String fname;
+		@Id
+		String lname;
+	}
+	
+	//класс описывает составной ключ (такие же поля
+	@Embedeable
+	public StudentPk implements Serializable {
+		String fname;
+		String lname;
+	}
+	
+22. Блокировки
+	
+	Используется для устранения ошибки:
+		Когда две транзакции меняют одни данные, то та которая сделает commit() первой затрёт изменения второй транзакции. (стратегия last-commit-wins)
+		Предотвращает потерю данных.
+			OPTIMISTIC - использует номер версии @Version для автоматической работы
+			PESSIMISTIC - блокируем изменения вручную в методах get()/load()/delete() и т.д.
+		
+		Типы: //их значение описаны ниже
+			//FORCE_INCREMENT - означает увеличивает номер версии @Version видимо и в PESSIMISTIC тоже
+			NONE
+			OPTIMISTIC/READ, OPTIMISTIC_FORCE_INCREMENT/WRITE
+			PESSIMISTIC_READ, PESSIMISTIC_WRITE, PESSIMISTIC_FORCE_INCREMENT
+		
+		
+	Оптимистичное блокирование (работает по умолчанию для @Version):
+		0. Включить поддержку Optimistic Lock в конфигах
+			0.1 //или в hibernate.cfg.xml???
+			EntityManager em = ...; //EntityManager - аналог Session в Hibernate
+			Person person = ...;
+			em.lock(person, LockModeType.OPTIMISTIC);
+			
+			//назначение блокировки при вызове функции
+			em.refresh(person, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+			
+			0.2 Видимо можно включить и аннотацией
+			interface WidgetRepository extends Repository<Widget, Long> {
+				@Lock(LockModeType.OPTIMISTIC)
+				Widget findOne(Long id);
+			}
+		
+		1. Добавить аннотацию @Version тип int или java.util.Date - для хранения номера версии или времени последнего изменения. Date - МЕНЕЕ надежен.
+			@Entity
+			class User implements Serializable {
+				@Version
+				int versionNum; //или java.util.Date
+				
+				@Id
+				int id;
+			}
+		2. При commit() происходит проверка версии в памяти и базе в случае совпадения сохраняется и увеличивает версию. В противном исключение OptimisticLockException
+		
+	
+	Пессимистичное блокирование:
+		1. Делается при использовании спец. параметров при выборке/добавлении из Базы
+			EntityManager entityManager = new EntityManager();
+			entityManager.find(Student.class, student.getId(), LockModeType.PESSIMISTIC_WRITE);
+			1.1 Также можно вызвать блокировку:
+				Session.lock(person, LockModeType.PESSIMISTIC_READ) //первый способ
+				EntityManager em = ...;
+				em.lock(person, LockModeType.PESSIMISTIC_READ); //первый способ
+				Query q = em.createQuery(...);
+				Query.setLockMode(LockModeType.PESSIMISTIC_FORCE_INCREMENT) //второй способ
+		2. Значения LockModeType:
+			PESSIMISTIC_READ - блокирует на запись данные ЧИТАЕМЫЕ ТЕКУЩЕЙ транзакцией
+			PESSIMISTIC_WRITE - в момент ОБНОВЛЕНИЯ данных ТЕКУЩЕЙ транзакцией блокируется чтение/запись/удаление
+			PESSIMISTIC_FORCE_INCREMENT - блокирует данные, которые текущая транзакция читает или для которых увеличивает проаннотированную версию.
+			!!! Есть и другие значения для конкретных баз данных.
+		3. Использование через аннотации:
+			interface WidgetRepository extends Repository<Widget, Long> {
+				@Lock(LockModeType.PESSIMISTIC_WRITE)
+				Widget findOne(Long id);
+			}
+		4. В параметризованных запросах (НАВЕРНОЕ можно применять и для OPTIMISTIC !!!)
+			@NamedQuery(name="lockPersonQuery",
+		  query="SELECT p FROM Person p WHERE p.name LIKE :name",
+		  lockMode=PESSIMISTIC_READ)
+		
+	Примечание:
+		Колонка версии может быть любого типа, при условии, что вы определите и реализуете подходящий UserVersionType.
+
+		Вашему приложению запрещено изменять номер версии, проставленный Hibernate. Чтобы искусственно увеличить номер версии, см. описание свойств LockModeType.OPTIMISTIC_FORCE_INCREMENT или LockModeType.PESSIMISTIC_FORCE_INCREMENT в документации по Hibernate Entity Manager. Если номер версии сгенерирован базой данных, например триггером, используйте аннотацию org.hibernate.annotations.Generated(GenerationTime.ALWAYS).
+
+23.
+	Поля перечисления
+	class User {
+		//конфиги того как сохранять enum в базу (в виде строки)
+		@Enumerated(value = STRING)
+		private TypeCourse type = TypeCourse.OPTIONAL;
+	}
+	
+24.
+	Описание типов генераторов идентификатора
+
+	<id name="uid" column="uuid" type="string" length="32">
+
+	   <generator class="ru.naumen.bpm.commons.util.PrefixUUIDGenerator"/>
+
+	</id>
+
+	increment - генерирует идентификаторы типов long, int и short, которые являются уникальными только если никакой другой процесс не добавляет данные в ту же самую таблицу. Данную стратегию нельзя использовать в кластерном окружении.
+
+	identity - поддерживает identity-столбцы в DB2, MySQL, MS SQL Server, Sybase и HypersonicSQL. Возвращаемый идентификатор имеет тип long, int или short.
+
+	sequence - использует последовательности в DB2, PostgreSQL, Oracle, SAP DB, McKoi или генераторы в Interbase. Возвращаемый идентификатор имеет тип long, int или short.
+
+	hilo - использует hi/lo алгоритм для рационального генерирования идентификаторов типа long, int или short уникальных для таблицы или колонки (по умолчанию - hibernate_unique_key и next_hi, соответственно). Hi/lo алгоритм генерирует идентификаторы, которые уникальны только для конкретной базы данных. Не стоит использовать данную стратегию для соединений, установленных с помощью JTA или с помощью определяемых пользователем соединений.
+
+	seqhilo - использует hi/lo алгоритм для рационального генерирования идентификаторов типа long, int или short. В качестве источника данных используются именованные последовательности.
+
+	uuid - использует 128-битный UUID-алгоритм для генерации идентификаторов типа String, уникальных в пределах сети (используется IP-адрес). UUID кодируется как строка шестнадцатеричных цифр длиной 32-символа.
+
+	guid - использует генерируемую СУБД GUID-строку на MS SQL Server или MySQL.
+
+	native - выбирает идентификатор, последовательность или hilo в зависимости от возможностей используемой СУБД.
+
+	assigned - позволяет приложению самостоятельно устанавливать идентификатор объекта перед тем как вызвать save(). Данная стратегия установлена по-умолчанию и будет использоваться, если не указывать тег generator вообще.
+
+	select - извлекает первичный ключ, назначенный триггером. Триггер выбирает некоторое уникальное значение строки и возвращает значение первичного ключа.
+
+	foreign - использует идентификатор другого связанного объекта. Обычно используется в связке с <one-to-one> ассоциацией.
+	
+25.
+			
+27.
+	Объект Session кэширует у себя загруженные объекты; при загрузке объекта из БД в первую очередь проверяется кэш. Для того, чтобы удалить объект из кэша и отсоединить от сессии, используется session.evict(Object). Метод session.clear() применит evict() ко всем объектам в сессии.
+	
+	Пояснение. Например кэш может устареть и данные в нем будут не нужны, как пример можно удалить region из кэша (подробности в др. пункте):
+        session.getSessionFactory().getCache().evictQueryRegion( "query.cache.person" );
+	
+28.3 возможны проблемы если MyEntity implements Serializeable
+
+30. @Type(type="text") - задаем тип в базе
+	private String text;
+		
+33. Статья о транзакциях и как их правильно применять
+https://developer.jboss.org/wiki/SessionsAndTransactions#jive_content_id_This_is_all_very_difficult_cant_this_be_done_easier
+
+37 @Immutable - для View
+
+	@Entity
+	@Immutable //т.к. View часто не изменяется, 
+				//хотя через него есть ограниченная возможность изменять данные табл из которых формируется view
+	@Table(name = "V_INSTRUCTIONS")
+	public class InstructionsView {}
+
+38
+	тип перечесления EnumType
+	    @Column(name = "STATUS")
+	    @Enumerated(EnumType.STRING)
+	    private TemplateStatus status;
+	    
+        @Enumerated(EnumType.ORDINAL)
+        @Column(name = "phone_type")
+        private PhoneType type;
+        
+Можно использовать конвертер JPA 2.1:
+    @Entity(name = "Person")
+    public static class Person {
+        @Convert( converter = GenderConverter.class ) // используем
+        public Gender gender;
+    }
+    
+    // создаем
+    @Converter
+    public static class GenderConverter
+            implements AttributeConverter<Gender, Character> {
+        public Character convertToDatabaseColumn( Gender value ) {
+            if ( value == null ) {
+                return null;
+            }
+
+            return value.getCode();
+        }
+
+        public Gender convertToEntityAttribute( Character value ) {
+            if ( value == null ) {
+                return null;
+            }
+
+            return Gender.fromCode( value );
+        }
+    }
+
+39
+	описать targetEntity
+
+40 значение по умолчанию
+	1. @Column(name="Price", columnDefinition="Decimal(10,2) default '100.00'")
+	2. 
+		@Column(name="price")
+		private double price = 0.0;
+
+	3.
+		@PrePersist
+		void preInsert() {
+		   createdt = new Date();
+		}
+
+	4.
+	@Column(length = 4096, nullable = false)
+	@org.hibernate.annotations.ColumnDefault("")
+	private String description;
+
+	5.
+		public class MyObject
+		{
+		    int attrib = 0;
+
+		    /** Default is 0 */
+		    @Column ( nullable = true )
+		    public int getAttrib()
+
+		    /** Falls to default = 0 when null */
+		    public void setAttrib ( Integer attrib ) {
+		       this.attrib = attrib == null ? 0 : attrib;
+		    }
+		}
+
+41. Можно при связи @ManyToOne указать эту связь с ОДНОЙ стороны.
+	А с другой вообще не делать @OneToMany и не писать никакой коллекции (List, Set и т.д.)
+	Это будет работать (хотя я думаю это не удобно)
+	
+44. (Не проверена!) Связь через @ManyToMany
+	(через @JoinTable можно не только переписывать имена связей, как это сказано в другом пункте)
+	
+	1. Даны табл:
+		CREATE TABLE `employee` (
+		  `employee_id` int(11) NOT NULL AUTO_INCREMENT,
+		  `first_name` varchar(50) DEFAULT NULL,
+		)
+		
+		CREATE TABLE `project` (
+		  `project_id` int(11) NOT NULL AUTO_INCREMENT,
+		  `title` varchar(50) DEFAULT NULL,
+		)
+		 
+		CREATE TABLE `employee_project` (
+		  `employee_id` int(11) NOT NULL,
+		  `project_id` int(11) NOT NULL,
+		)
+	
+	2. Связываем их @ManyToMany
+		@Entity
+		@Table(name = "Employee")
+		public class Employee { 
+			// ...
+		  
+			@ManyToMany(cascade = { CascadeType.ALL })
+			@JoinTable(
+				name = "Employee_Project", 
+				joinColumns = { @JoinColumn(name = "employee_id") }, 
+				inverseJoinColumns = { @JoinColumn(name = "project_id") }
+			)
+			Set<Project> projects = new HashSet<>();
+			
+			// standard constructor/getters/setters
+		}
+			
+		@Entity
+		@Table(name = "Project")
+		public class Project {    
+			// ...  
+		  
+			@ManyToMany(mappedBy = "projects")
+			private Set<Employee> employees = new HashSet<>();
+			 
+			// standard constructors/getters/setters   
+		}
+		
+45. В новой версии hibernate заменены аннотации
+
+	@Entity - @DynamicUpdate, etc
+	@Table(value = "...") - @Table(applyTo = "...")
+
+46. Сортировка
+
+	1. Можно использовать сортировку самих коллекций.
+		При этом для SortedSet нужно реализовать Comparable или Comparator
+		
+		@Entity 
+		public class Cat {
+		  @OneToMany(mappedBy = "cat", cascade = CascadeType.ALL)
+		  @OrderBy("name ASC")
+		  private SortedSet<User> users = new TreeSet<>();
+		}
+		
+	2. @OrderBy
+	3. @Sort
+	4. @SortComparator - может передать Comparator прямо в коллекцию
+	5. @SortNatural - предполагает, что объект реализовал Comparable и использует его чтобы сформировать отсортированное TreeSet
+	
+		@SortNatural
+		@OrderBy("name ASC")
+		private SortedSet<Kitten> kittens = new TreeSet<>();
+	
+	
+48 Способ сделать доп. столбцы внутри ManyToMany таблицы (но какой-то странный)
+	https://www.mkyong.com/hibernate/hibernate-many-to-many-example-join-table-extra-column-annotation/
+	
+49 Как на самом деле Spring JPA repository создается:
+	https://stackoverflow.com/a/38511337
+
+50 @OrderColumn - описать????
+	
+52 Описать метомодель - если коротко, то создается объект поля которого это название полей табл, как названия в виде Enum, чтобы не использовать строки
+
+56. аннотация @SubSelect (это не SUBSELECT)
+57  Статья о том почему нужно отмечать транзакцию read only, если коротко т.к. поведение может быть непредсказуемым.
+    Перенести сюда описание?
+    https://stackoverflow.com/questions/13539213/why-do-i-need-transaction-in-hibernate-for-read-only-operation
+58. Проверить факт!!! Некоторые возможности перетекшие из Hibernate в JPA могут стать Depricated в Hibernate, т.к. они уже есть в JPA и рекомендуется использовать их из JPA (например создание Criteria)
+		
+60. Описать!!! @IndexColumn(name="idx")
+61. Описать!!!
+	@ColumnTransformer(
+        read = "decrypt( 'AES', '00', pswd  )",
+        write = "encrypt('AES', '00', ?)"
+    )
+        
+63. ОПИСАТЬ!!! DTO projections
+    https://vladmihalcea.com/the-best-way-to-map-a-projection-query-to-a-dto-with-jpa-and-hibernate/
+    		
+66. !!! HibernateTransactionManager vs JtaTransactionManager (управляемые транзакции vs неуправляемые)
+67. Прим. возможно речь о аннотациях @Sort и @OrderBy (или аналоге в свойстве табл. чтобы включить сортировку)
+    Сортированные коллеекции vs упорядоченные (ВОЗМОЖНО Hibernate позволяет через параметры включить упорядочивание коллекция для БД???)
+    Сортированные - отсортированы в памяти Java (через аннотации hibernate?)
+    Упорядоченные - отсортированы в БД
+    
+71. @NaturalId
+
+    Person person = session
+        .byNaturalId( Person.class )
+        .using( "code", "unique-code")
+        .load();
+
+72. ОПИСАТЬ!!! Подключение hibernate 5+ к spring
+    https://www.baeldung.com/hibernate-4-spring
+    https://www.baeldung.com/hibernate-5-spring
+    https://www.boraji.com/spring-4-hibernate-5-integration-example-with-zero-xml
+    https://www.boraji.com/spring-mvc-5-spring-security-5-hibernate-5-example
+    http://docs.jboss.org/hibernate/orm/5.3/quickstart/html_single/#tutorial-native
+    
+    возможно добавить описание ServiceRegistry
+    
+73 ОПИСАТЬ!!! Создание событий через org.hibernate.event
+74 ОПИСАТЬ!!! two-phase-commit transaction
+75 ОПИСАТЬ!!! distributed transaction
+76. Определении транзакции и как она работает:
+        http://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html#transactions
+77. Session это логическая транзакция в рамках участка кода
+78. ОПИСАТЬ основы, легко загуглить !!! Interceptors and EventListeners
+79. @Transactional vs @LockMode
+    https://stackoverflow.com/questions/37980677/how-are-the-spring-transactional-and-the-hibernate-lockmode-annotations-relate
+80 почему больше не нужно использовать HibernateDaoSupport and HibernateTemplate
+        https://stackoverflow.com/a/43801315
+        
+81 openStatelessSession()
+82 createAlias
+83 Cache Concurrency Strategy TRANSACTIONAL для XA https://www.baeldung.com/hibernate-second-level-cache
+84 http://akorsa.ru/2016/11/strategii-zagruzki-grafa-obektov-v-jpa-chast-2-i-vyvod/
+84 https://stackoverflow.com/a/37478255

@@ -1,0 +1,223 @@
+Обязательное:
+    0 текущее основное:        
+        Англ: составить план собеседования:
+            неправильные глаголы
+			био читать, повторять слова, времена, at/in/on
+			conditions, passive voice
+            
+        Приоритет:
+            :
+                collection, stream api, io, nio, generics, spring, mvc, security, aop, sql, hibernate, tdd, микросервисы, maven, git, solid, patterns
+            
+                Основное:
+                    Особый приоритет: жизненный цикл Spring, ссылки на методы и andThen + apply для ссылок в Java 8, TDD,
+                        web fragments, ServletConfig vs ServletContext
+                
+                    Java: пулы, GC, String, Collection (+ то что в списке 2), Generics, Stream API (+ lambda + splitterator), i/o, reflection API,
+                    Java EE: ServletConfig, ServletContext, lifecycle, web fragments,
+                    SQL (join, подзапрос, типы данных, ACID, CAP),
+                    Spring: lifecycle (!!!), AOP, MVC, Security, аннотации, prototype vs singleton - 
+                    Hibernate ORM (fetching, isolation, propagation (!), n+1, cache lvls, cache регионы, все способы создания запросов criteria, hql, SQL, методы, типы id; стратегии наследования), openStatelessSession()
+                    TDD (JUnit в Spring),
+                    микросервисы,
+                    git, maven (+ profiles), SOLID, patterns,
+                    REST, O(n),
+                    default propagation lvl
+                    
+            
+                Java (неотвеченные вопросы + списки для собес), Spring Boot, Security (CSRF, token, pre/postFilter), MVC,
+                микросервисы (REST + Netflix, SOAP поменьше),
+                TDD в Spring (ролик + см. проект),
+                NIO (хотя бы теорию)
+                
+                Совет от срг:
+                Может что-то сказать про rabbit mq
+                Может сказать что-то про реактивный подход Rx
+                Показать что готов учить новое.
+                аннотации histrix,
+                профили maven
+                    
+                Дополнительно:
+                Object pool pattern
+        
+        
+            Angular, RxJs, Jest, jasmine, npm, git,
+            план: ролики на youtube Jest, jasmine, ролик о тестировании в Angular,
+                повторить сбольшего Angular, создать проект, использовать jest + jasmine,
+                дальше учить чисто Angular
+            
+            rest, hal,
+            docker, ci / cd, scrum,
+            o(n), solid, patterns
+            ---
+        
+            Java (collections, streams, Stream API + lambda (+ splitterator), i/o, generics, Thread, xml parser, equals-hashcode, дерево интерфейсов java коллекций), SQL
+            java ee,
+            Spring (IoC, MVC, Boot)
+            Web Services (REST), rest
+            sql  (join, подзапрос, типы данных, ACID, CAP),
+            Hibernate ORM (fetching, isolation, propagation, n+1, cache lvls)
+            Hibernate get/load/save/update/scroll/replicate/find
+            git, maven, JNDI, active-directory,
+            JUnit в Spring,
+            Spring AOP, конкретно про AOP с кодом,
+            common: O(n), (!) solid, patterns, СI/CD, agile, token, перевод в системы, CSP, CXRS, token
+            
+            новое:
+            примеры с i/o, collect, видео по streams и spliterator,
+            nio, Spring JMS, Spring JMX, Spring SOAP, liquibase,
+            поведение finally,
+            filters в Spring MVC
+            
+            Java EE: user login/registring, transaction, пример savepoint, обратить внимание на жизнь сессии и ее timeout, static resources
+
+    1 java - свои заметки
+        java для собеседования - сохраненные страницы
+        добавить в заметки базовые потоки ввода/вывода (InputStream, InputStreamReader, BufferReader, PrintWriter, PrintStream, Scan, Properties)
+    2 java коллекции, многопоточность, stream api, лог и его уровни
+    3 java ee (подключение java ee (web.xml), уровни изоляции транзакций, создание сессии, чтение/отправка sql запроса, жизненный цикл)
+    4 основные паттерны
+    
+    5 sql - свои заметки
+        acid, cap, xa, уровни изолиорванности транзакций в самой БД
+    
+    6 hibernate - свои заметки
+        уровни изоляции +, уровни распостранения +, стратегии загрузки (fetching, n + 1 problem) (entity graph. join, ...), уровни кэша +, стратегии кэширования, регионы кэша +, блокировки (в том числе в чистом SQL),
+        методы get/load/save/update/scroll/replicate/find... (JPA методы vs Hibernate методы) - смотреть в своих и тут https://www.baeldung.com/hibernate-save-persist-update-merge-saveorupdate
+        допустимые типы полей +, допустимые типы id +, типы связей и их применение,
+        типы наследования табл +, @ElementCollection +, Embeddable +
+        порядок подключения hibernate к spring (сюда входит принцип работы транзакция через AOP+),
+        определение транзакции +, глобальные и локальные транзакции +, двух фазный коммит +
+        Auditing и hibernate-envers - https://www.baeldung.com/database-auditing-jpa
+        Interceptors and EventListeners
+        jpa vs hibernate https://stackoverflow.com/questions/9881611/whats-the-difference-between-jpa-and-hibernate
+    
+    7 angular - свои заметки
+    8 rxjs - свои заметки
+    
+    9 spring:
+        + паттерн service locator
+        статья spring по русски,
+        список аннотаций,
+        регистрацию событие spring,
+        создание своей аннотации
+        модули Spring Data, Spring Data JPA, Spring Data REST, Spring HATEOAS - хотя бы основные методы
+    10 spring mvc (уровни изоляции транзакций, @service vs @repository)
+    11 spring security (основные классы, подключение к spring, подключение к БД)
+    12 spring data jpa и основные принципы работы (частично свои заметки)
+    12.2 Spring HATEOAS
+    
+    12. web service - основные понятия, команды генерации классов из xml для soap
+    
+    13 общее: ldap, jndi, HAL (href, links), AOP (совет, срез
+    14 git - читать свое
+    15 maven - читать свое
+    16 xml/xslt/xsd - из w3cshool
+    17 общее касательно java - читать свое
+    18. перевод из 2ой в 10ую, из 10ой в 16ую и обратно, формулы дискретки
+    19. junit, mock, TDD - обязательно! https://www.youtube.com/watch?v=RJKn6w6iUy0
+
+    
+    
+    
+    
+Желательно:
+1. Angular - свои заметки
+	
+	RxJs:
+		читать свои заметки и дополнить их
+
+10. Java
+        0. свои заметки
+		1. структуры данных, их скорости работы в разных условиях
+		2. что нового в java 9 и 10
+
+2. Spring
+    0. Core (context, bean factory, DI, scopes, типы бинов (bean, configuration, controller, component, service, model), типы конфигов (xml, аннотации, java config))
+    1. MVC
+    2. Security
+    3. AOP (основные понятия)
+    4. HAL - обязательно
+    5. RESTful
+    6. SOAP - основные принципы
+    7. Integration ?
+    8. Data
+    9. Data JPA
+    10. Transaction (как происходит управление транзакциями, может это и не модуль)
+    11. oAuth
+        
+
+3. Hibernate - читать свои заметки
+
+4. SQL - читать свои заметки
+
+5. git
+	1. rebase
+	2. merge и его алгоритмы; стратегии merge
+	3. переход к комиту
+	4. fast forward
+	5. fetch vs pull
+
+6. maven
+    основы: артефакт и т.д.
+    scope
+    разделение pom на куски
+    добавление сторонних репозиториев
+
+8. Шина (middle-ware) - сервис промежуточные, для приема, конвертации и отправки сообщений
+
+7. системы счисления и формулы
+    Обязательно:
+        1. перевод из одной системы в другую
+        2. формулы из дискретки (выборки)
+        3. Простая прогрессия (арифметическая и геометрическая)
+        4. Логарифм
+        5. Простые производные
+        6. кв уравнение
+        7. простой интеграл
+        8. Площадь треугольника, параллелограма, трапеции, круга, cos, sin, tg, медиана
+        9. объем сферы, конуса, параллелепипеда
+	
+	3. формулы из тер. вер
+		1. вероятность при условии
+		2. формула байса
+		3. формула полной вероятности
+		4. мат ожидание
+		5. дисперсия
+		6. дискретна вероятность и ... вероятность
+		7. дискрименантный анализ (или как-то так)
+	4. матрицы и операции с ними, определитель матрицы
+	5. пределы
+	6. производная (и ее смысл), интеграл (определенный, неопределенный, двойной и тройной)
+	5. бином Ньютона?
+	8. задача комивояжера, и несколько др алгоритмов из оптимизаций (алгоритм Джонсона, метод кратчайшего спуска?)
+	
+	когда нибудь:
+        9. Основы ТФКП
+        10. квартернионы
+        11. Алгоритмы поворота геом фигур
+        12. Разложения в ряды (используетсы много где)
+		
+6. алгоритмы и структуры
+	1. временная сложность, запомнить табл основных алгоритмов
+	2. граф (полный, цикличный, однонаправленный)
+		1. поиск вглубины и вширину
+		2. поиск пути (Дейкстры и еще несколько лучших)
+	3. сортировки.
+		пузырьком, быстрая сортировка (qsort)
+		сортировка слиянием (легко паралелится)
+		timsort самая быстрая комбинированная (в лучшей ситуации хорошая, а в худшей плохая?)
+	4. дерево (двоичное, n-ary, примерный алгоритм балансировки)
+		1. красно-черное дерево (балансировка узлов)
+		2. балансное дерево
+	5. матрица смежности
+	6. реализация различных алгоритмов через матрицы
+	7. списки с пропусками
+
+9. тестирование (mock и junit), тестирование в Spring и Angular
+
+10. основы с w3c xslt + xml + xsd, про dtd сказать что знаю примерно и использовал?
+
+11. сети
+		1. коды основных типов запросов и ответов http
+		2. модель OSI

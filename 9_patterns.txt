@@ -1,0 +1,168 @@
+behavioral patterns (Поведенческие)
+	Observer - получает оповещения от других классов о измеении их состояния (наблюдает за ними)
+	
+	Iterator - может обходить связанные объекты не раскрывая их структуры (разные List, Set, Map etc). Выносит методы для обхода коллекций в отдельный класс с методами: hasNext(), next(), previouse() etc.
+	
+	Command - объект команды содержит само действие (вызов методов других классов) и параметры. Команды в этом паттерне не методы, а сам объект целиком - это команда.
+	
+	Strategy - содержит ссылку на алгоритм с общим для всех таких же алгоритмов интерфейсом (методом). Устанавливая другие реализации алгоритма можно переключаться между ними. Пример: архиватор с разными методами сжатия.
+	
+	Memento - хранит состояние объекта и позволяет откатывать к прошлым состояниям
+	
+	Template method - переопределяет некоторые шаги алгоритмов предка, не меняя остальные шаги (обычное наследование)
+	
+Creational patterns (Порождающие)
+
+	Singleton - 
+	
+	Builder - создает сложный объект пошагово (инициализируя его). Может использовать один и тот же код для строительства разных объектов (с общим предком).
+	
+	Factory - еще называют "smart constructor", т.е. просто создает сложный объект, аналог конструктора.
+	
+	Abstract Factory - есть общий интерфес для всех наследников, они его переопределяют и создают каждый разные типы объектов, хотя имя метода тоже. Используется в dependency injection/strategy.
+	
+	Factory Method / Virtual Constructor - как Factory, только метод фабрики абстрактный и может быть переопределен в наследниках
+	
+	Factory vs Builder - Factory простая версия Builder. Можно рассматривать ее как обертку вокруг конструктора, с отличием от конструктора в том, что она создает объект за 1ин шаг. Factory создает подтипы одного и того же объекта. Builder сложнее и создает объект по шагам.
+	
+Structural patterns (Структурные)
+	Proxy - прокси между объектом к которому нужно получить доступ. Перехватывает вызовы методов объекта именяет их.
+	
+	Adapter / Wrapper - оборачивает вызов метода в свой метод и перед передачей параметров в обернутый метод "адаптирует" их (меняет формат, напр. xml в json). Может "оборачивать" object или class.
+	Имеет общий interface со всеми необходимыми методами РАЗНЫХ объектов, так что наследовать Adapter может любой из них, а не нужный метод интерфейса можно просто не использовать.
+	
+	Decorator - альтернатива наследованию классов. Класс-обертка получающая ссылку на классы того же типа что и он сам. Вызывает какие-то другие методы "до, во время или после" вызова "обернутого" метода.
+	
+	Facade - содержит ссылки на несколько разных объектов. Его метод скрывает вызов нескольких методов этих разных объектов.
+
+Other:
+    Service Locator - состоит из:
+        Service - общий интерфес для все сервисов: execute() и getName()
+        Initial Context - получаем service по его name
+        Cache - кэширует сервисы
+        Service Locator - содержит Initial Context и Cache. Если Service есть в Cache, то возвращает его, иначе достает из Initial Context. Возвращенные из Initial Context сервисы имеют общий метод execute()
+        
+---
+SOLID
+
+principles:
+1. Single responsibility - каждый класс должен отвечать за ОДНУ обязанность
+2. Open-closed - открыты для расширения, закрыты для изменения (наследование)
+3. Liskov substitution - ссылка базового может указывать на наследника
+4. Interface segregation (разделения) - разделять универсальные метод на много спец. методов (с меньшим количеством параметров)
+5. Dependency inversion - модули верхних уровней не зависит от модулей нижнего,
+        т.к. система строится на основе абстракций
+        (Абстракции не должны зависеть от деталей. Детали должны зависеть от абстракций)
+---
+is A и Has A
+
+is A (Inheritance) - является ЛИ класс наследником другого, Если есть is A мы делаем extends
+Has A (Composition) - содержит ли класс сущность, если есть has a мы делаем переменную класса
+
+class Mercedes extends Car {} // Mercedes is A Car (use Inheritance)
+class Car { Radio radion } // car has a radio (use Composition)
+---
+Самая простая Factory
+class A { make() { return new A(); } }
+---
+Pure function - функция которая возвращает одни и те же значения для одних и тех же переменных. Т.е. ее состояние не меняется (например через ссылки на объекты, которые в ней содержатся и влияют на ее работу). И ее выполнение не имеет "side effect" (не изменяются local static variables, non-local variables. references.
+
+Это аналог математической функции.
+---
+SAM паттерн (не один из основных, возможно относит к функциональному программированию)
+    https://github.com/jeffbski/redux-logic#implementing-sampal-pattern
+---
+Список ООП vs functional концепций:
+    https://fullstackengine.net/fullstack-javascript-interview-questions/
+---
+Реализации Singleton
+
+1. Eager Singleton
+public class EagerSingleton {
+    private static final EagerSingleton instance = new EagerSingleton();
+    
+    //private constructor to avoid client applications to use constructor
+    private EagerSingleton(){}
+    public static EagerSingleton getInstance(){ return instance; }
+}
+
+2. Lazy Singleton
+public class LazySingleton {
+    private static LazySingleton instance;
+    private LazySingleton(){}
+    public static LazySingleton getInstance(){
+        return instance == null ? instance = new LazySingleton() : instance;
+    }
+}
+
+3. Static Singleton
+public class StaticBlockSingleton {
+    private static StaticBlockSingleton instance;
+    private StaticBlockSingleton(){}
+    
+    //static block initialization for exception handling
+    static{
+        try{
+            instance = new StaticBlockSingleton();
+        }catch(Exception e){
+            throw new RuntimeException("Exception occured in creating singleton instance");
+        }
+    }
+    public static StaticBlockSingleton getInstance(){ return instance; }
+}
+
+4. Thread Safe Singleton, с double check locking в Java для которой выполняется happen before
+public class ThreadSafeSingleton {
+    private static volatile ThreadSafeSingleton instance; // volatile чтобы взять переменную не из кэша CPU, а актуальную
+    private ThreadSafeSingleton(){}
+    public static synchronized ThreadSafeSingleton getInstance(){
+        if (instance == null) {	// сначало проверяем, только потом захватываем монитор
+            synchronized (DclSingleton.class) {
+                if (instance == null) {
+                    instance = new DclSingleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+5. Enum Singleton
+public enum EnumSingleton {
+    INSTANCE;
+    public static void doSomething(){
+        //do something
+    }
+}
+---
+Пример Iterable (с next() и hasNext() ) и Iterator (с iterator() ):
+
+class MySet implements Iterable {
+    Iterator iterator() { return new MySetIterator(); }
+    class MySetIterator impliments Iterator {
+        // ... доступ к внутренностям MySet и возврат ее элементов по next()
+        boolean hasNext();
+        Object next() { return someMySetEl; };
+    }
+}
+---
+Пример Proxy:
+Прим. В AOP, если связывание (weaving) сделано через method invocation, то вызов метода proxy внутри другого метода того же proxy не вызовет сквозную задачу, это следствие паттерна proxy. Так работает Spring AOP, но не AspectJ при использовании weaving во время компиляции компилятором AspectJ (для него вызов метода proxy из другого метода proxy тоже будет проксирован).
+
+public class Math implements IMath {
+	public double add(double x, double y) {
+		return x + y;
+	}
+}
+
+public class MathProxy implements IMath {
+	private Math math;
+	public double add(double x, double y) {
+		 if(math == null) {
+                     math = new Math();                      
+                }
+		return math.add(x, y);
+	}
+}
+
+IMath p = new MathProxy();

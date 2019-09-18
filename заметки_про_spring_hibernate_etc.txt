@@ -1,0 +1,141 @@
+https://ru.wikibooks.org/wiki/Spring_Framework_Guide - список аннотаций Spring
+fruzenshtein.com/spring-jpa-data-hibernate-mysql/ - пример стандартного MVC + DAO + Service приложения
+http://stackoverflow.com/questions/12229282/difference-between-spring-annotations - разница между аннотациями типа @Named и 
+http://samolisov.blogspot.com.by/2016/01/restful-spring-web-mvc.html - пример RESTful приложения на Spring MVC на русском
+http://www.tutorialspoint.com/junit/index.htm - отличный туториал по JUnit
+
+Spring
+	Занимается автосетанием DI и IoC - чтобы не было жестких связей между объектами
+	
+	@Component - им анотируются классы которые будут сканированы
+	@Bean - создают объекты из методов над которыми стоят, потом эти объекты можно использовать
+		@Bean(name = {"namr1", "name2"}) - задаём имя сами
+	@Autowire - если поставить над переменной класса, то объект созданный в @Bean автоматически приравняется этой переменной аналог: new MyBean(). Можно ставить над методами.
+	@Qualifier("name1") - связываем не по типа, а по имени
+		
+	@Scope - ??? по умолчанию singleton (stateless), можно задать prototype (statefull) - создание нового при каждом обращении. Для MVC есть спец. области видимости
+	
+	@Value - ??? для выполнения SpEL, взятие свойст из .properties и xml (если они предварительно заданы в конфигах)
+	
+	JSR 330
+		Это альтернативная реализация, не Spring а вроде как из JDK. Возможно менее удобная.
+	
+	
+Spring MVC
+	фреймворк для работы с запросами
+	
+	@Controller - анотируются куски кода привязывающие запросы (адреса url) к коду обрабатывающему их
+	
+	Наследники @Component
+		@Service - анотируется бизнес-логика, это методы которые вызываются в @Controller и результат которых отправляется пользователю (через них также данных отправляются от пользователя в базу)
+			Именно в слое @Service делаются транзакции аннотацией @Transactional и проставляются параметры аннотации уровни распостранения транзакции, @Cascade и др.
+		@Repository - анотируется им DAO
+	
+	@RequestMapping - связывает url с методом и/или классом
+	@PathParam - связывает параметр запроса с переменной, которую потом можно использовать
+	
+	@RequestBody
+	@RestControlle == @Controller + @RequestBody
+	
+	Для REST архитектуры может интегрироваться с библиотекой Jkson которая парсит JSON в объект и обратно. Или с другими библиотеками. В том числе с парсерами из/в xml.
+	Для парсинга в xml придется использовать утилиту командной строки для генерации объектов из xsd (запускается через maven или ant)
+	
+Hibarnate
+	связывает классы аннотациями или xml с таблицами базы данных
+	
+	Аннотации связи базы:
+		@Entity - отмечает класс
+		@Id - отмечает идентификатор
+		@ManyToOne, @OneToMany - связи, в их параметрах нужно прописывать к какому столбцу связь, для хранения массива записей использовать HashSet()
+		@ManyToMany - пока не разобрался можно ли его нормально использовать???
+		@GeneratedValue - отмечается поле индекса которое само будет увеличиваться
+	
+	Конфиги:
+		Надо помнить: hibernate.ddl-auto=none во многих конфигах стоит в create-drop или подобном, что может удалять базу при перезапуске, нужно это менять. (лучше ставить в validate?)
+	
+	У hibernate есть три уровня кэша:
+		1. Автоматический, на уровне сессии (работает между открытием-закрытием сессии)
+		2. Включается в конфигах, кэширует все сессии глобально
+		3. Включается в конфигах, на уровне запроса. При повторной выборке запроса к БД не будет, достанет из кэша (как из Map). Ключ кэша это запрос + его параметры
+		
+	С hibernate часто используют Criteria API
+	
+	Транзакции:
+		1. Можно создать объект EntityManager - главное API и вызывать его методы
+			EntityManager.transaction().begin();
+			try {
+				//do smth
+			} catch(e) { EntityManager.transaction().rallback(); } //обработка ошибки
+			EntityManager.transaction().end();
+		2. Можно поставить аннотации над методами в которых нужна транзакция
+			@Transactional
+			void saveMyObj(){dao.save(myObj);}
+			//при ошибке автоаткатывается, для перехвата ошибок в таких транзакциях нужно генерировать своё исключение RuntimeException() и перехватывать его в спец. классе.
+	
+	Описать уровни распостранения транзакций и каскады???
+	
+Spring Security
+	Конфиги для ограничения доступа пользователей к страницам на основе ролей.
+	Также есть доп. теги для работы с безопасностью в JSP
+	
+Spring Data (Spring Data JPA)
+	Фактически доп. классы для работы с базой совместно с hibernate, например можно наследовать спец. класс к DAO и не реализовывать стандартные методы DAO. А если надо потом дополнить DAO своими
+
+	Spring Data использует возможности Hibernate и других реализаций JPA в зависимости от того , что вы используете. Spring Data упрощает и ускоряет работу с JPA и JDBC. Для понимания работы Spring Data необходимо разобраться с работой JDBC, JPA и Hibernate. Spring многие вещи делает за нас, но мы должны понимать как они работают.
+	
+	JPA это спецификация, Hibernate это реализация спецификации JPA. А Spring Data просто упрощает разработку, но в конечном итоге все запросы выполнял hibernate. Если хотите разобраться изучайте JPA. потому как Spring Data and Spring Repository это вспомогательные вещи. 
+	
+JUnit и его применение в Spring
+	Создаем класс
+	
+	Помечаем его методы @Test и вызывем в них спец. методы assertionEquals(2, 2, 0.0001) и подобные
+	
+	Можно создать класс, пометить
+		@RunWith(Suite.class)
+		@Suite.SuiteClasses({TestJunit1.class, TestJunit2.class})
+		class MyTests {}
+		и так выполнить группу методов из группы классов
+	
+	@Test(expected = ArithmeticException.class) - над методом @Test ознает какое исключение он должен выбросить из себя (тогда будет защитан успех?)
+	
+	Ручной запуск и проверка JUnit в main
+		Result result = JUnitCore.runClasses(TestJunit.class);
+		  for (Failure failure : result.getFailures()) {
+			 System.out.println(failure.toString());
+		  }
+		  
+	Можно задавать Parameterized Test - в нём объявляется массив переменных принимаемых тестовым методом во время теста и по очереди проверяются значения
+		@RunWith(Parameterized.class)
+		public class PrimeNumberCheckerTest {
+			   private Integer inputNumber;
+				private Boolean expectedResult;
+   
+			@Parameterized.Parameters
+			   public static Collection primeNumbers() {
+				  return Arrays.asList(new Object[][] {
+					 { 2, true },
+					 { 6, false },
+					 { 19, true },
+					 { 22, false },
+					 { 23, true }
+				  });
+			   }
+			   
+			@Test
+			   public void testPrimeNumberChecker() {
+				  System.out.println("Parameterized Number is : " + inputNumber);
+				  assertEquals(expectedResult, 
+					primeNumberChecker.validate(inputNumber));
+			   }
+			   
+	Для тестирования в Spring:
+		@DirtiesContext //говорит что ApplicationContext Spring будет связан с тестовым классом;
+		@RunWith(SpringJUnit4ClassRunner.class)
+		@ContextConfiguration(
+			classes = TestDataBaseConfig.class
+			//locations = "/context1.xml"
+			//loader = AnnotationConfigContextLoader.class //можно указать контекст вместо @DirtiesContext
+		)
+		@WebAppConfiguration
+		public class BankServiceTest {
+		}

@@ -1,0 +1,123 @@
+Commands:
+----------------
+Сохранение паролей для каждого репозитория отдельно. Не будет запросов паролей.
+
+Пароли хранятся в спец. системах управления паролями конкретных систем. Т.е. в linux/MacOS/Windows они разные.
+После установки сохраненные пароли можно найти в KWallet (в KDE) или Accessing Credential Manager (в Панели Управления Windows).
+
+Установить (в Kubuntu 18.04 установлено из коробки):
+    sudo apt install ksshaskpass
+
+Для Kubuntu (KDE):
+    git config --global core.askpass /usr/bin/ksshaskpass
+
+Для Windows:
+    git config --global credential.helper wincred
+----------------
+1. Быстрый сброс до состояния удаленного репозитория
+
+	git fetch origin
+	git reset --hard origin/master
+	
+	Если перед сбросом нужно сохранить изменения
+		git commit -a -m "Saving my work, just in case"
+		git branch my-saved-work
+	Можно еще удалить лишние файлы
+		git clean -d -f
+	Или посмотреть какие файлы будут удалены
+		git clean -n -f
+		
+2. Запустить diff в графическом режиме
+    git difftool
+    git difftool --dir-diff - открыть различие сразу всех файлов в каталоге, а не по одному
+    
+3. Установить свою программу для просмотра различий
+
+    git config --global --add merge.tool kdiff3
+    git config --global --add mergetool.kdiff3.trustExitCode false
+    git config --global --add diff.guitool kdiff3
+    git config --global --add difftool.kdiff3.trustExitCode false
+------------------
+очистить всю историю комитов
+
+-- Remove the history from 
+rm -rf .git
+
+-- recreate the repos from the current content only
+git init
+git add .
+git config user.name "Mona Lisa"
+git config user.email johndoe@example.com
+git commit -m "Initial commit"
+
+-- push to the github remote repos ensuring you overwrite history
+git remote add origin git@github.com:<YOUR ACCOUNT>/<YOUR REPOS>.git
+git push -u --force origin master
+
+--------------------------
+сохранить пароль и имя для конкретного репа
+    git config --global credential.https://github.com.username <your_username>
+
+посмотреть сохраненное
+    git config --global --edit
+-----------------------------
+git config --global --add merge.tool kdiff3
+git config --global --add mergetool.kdiff3.path "/usr/bin/kdiff3"
+git config --global --add mergetool.kdiff3.trustExitCode false
+
+возможно этой команды не существует
+git config --global mergetool.prompt false
+
+git config --global --add diff.guitool kdiff3
+git config --global --add difftool.kdiff3.path "/usr/bin/kdiff3"
+git config --global --add difftool.kdiff3.trustExitCode false
+git config --global difftool.prompt false
+
+если будут проблемы то эту
+git config --global --add diff.tool kdiff3
+git config --global --add difftool.kdiff3.path "/usr/bin/kdiff3"
+
+запуск diff в gui:
+git difftool
+
+Чтобы открыть все файлы репа с diff в одном окне (Набрать в каталоге git):
+    git difftool --dir-diff
+
+Это лучше чем kdiff3 (на первый взгляд)
+Чтобы открыть все файлы репа с diff в одном окне:
+    sudo apt install diffuse
+Набрать в каталоге git:
+diffuse -m
+
+Еще 1 способ, использовать gtk утилиту meld, пишут что она лучше
+git config --global diff.tool meld
+git config --global difftool.meld.path "/usr/bin/meld"
+git config --global --add difftool.meld.trustExitCode false
+git config --global difftool.prompt false
+
+git config --global merge.tool meld
+git config --global mergetool.meld.path "/usr/bin/meld"
+git config --global --add mergetool.meld.trustExitCode false
+git config --global mergetool.prompt false
+
+Еще 1 вариант это tkdiff
+git config --global diff.tool tkdiff
+git config --global merge.tool tkdiff
+
+git config --global difftool.meld.path "/usr/bin/tkdiff"
+git config --global mergetool.meld.path "/usr/bin/tkdiff"
+
+git config --global --add mergetool.tkdiff.trustExitCode false
+git config --global --add difftool.tkdiff.trustExitCode false
+
+git config --global --add mergetool.prompt false
+git config --global --add difftool.prompt false
+---------------
+графический интерфейс
+sudo apt install git-gui
+
+1. просмотр истории (git log + grep)
+    gitk
+    
+2. управление коммитами
+    git gui

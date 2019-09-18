@@ -1,0 +1,829 @@
+***
+основной список тем https://www.journaldev.com/2696/spring-interview-questions-and-answers#servlet-context-config-spring-bean
+как список тем https://www.tutorialspoint.com/spring/
+***
+Ключевое Spring:
+    bean factory
+    JSR аннотации (2 варианта)
+    
+    Spring Bean Life Cycle
+    https://www.journaldev.com/2637/spring-bean-life-cycle
+    
+    свои event
+    типы связывния (имя, тип, конструктор)
+***
+Ключевое Spring Security
+***
+Ключевое Spring MVC
+    Spring MVC Interceptor HandlerInterceptorAdapter, HandlerInterceptor - аналог фильтров в сервлетах
+    https://www.journaldev.com/2676/spring-mvc-interceptor-example-handlerinterceptor-handlerinterceptoradapter
+
+    Spring MVC Exception Handling – @ControllerAdvice, @ExceptionHandler, HandlerExceptionResolver - обработчики ошибок
+    https://www.journaldev.com/2651/spring-mvc-exception-handling-controlleradvice-exceptionhandler-handlerexceptionresolver
+
+######### Spring основа
+
+Цель - ослабление связей через DI и AOP и уменьшение количества кода. В качестве компонентов испольует POJO или JavaBean.
+DI - взаимодействие с объектом через интерфейм, не зная о реализации. IoC один из видом DI, реализован через паттерн ServiceLocator.
+Легко тестировать с DI, подставляя фективную реализацию.
+
+IoC - это:
+    1. Dependency lnjection - внедрение зависимостей, напр xml или аннотации; внедряется IoC контейнером автоматически
+        1. Constructor Dependency Injection - Внедрение зависимостей через конструктор
+        2. Setter Dependency Injection - Внедрение зависимостей через метод установки
+    2. Dependency Lookup - поиск зависимостей, когда зависимость вручную достается из контейнера: SpringContext.lookup('Blabla')
+        1. Dependency Pull - Извлечение зависимостей вручную (чаще всего, прим. выше для DL)
+        2. Contextualized Dependency Lookup (CDL) - реализуем метод из интерфейса контейнера в классе в котором нужна зависимость, этот метод сам вызовется и сделает set() зависимости: прим. https://stackoverflow.com/a/42000709
+        
+DI - лучше
+DL - нужно использовать, когда невозможно DI, напр. при инициализации через ApplicationContext автономного приложения (в случае MVC он сам все запускает)
+
+BeanFactory - ядро DI (в т.ч. зависимости и life cycle)
+ApplicationContext - расширение BeanFactory, кроме того содержит сервисы JMS, AOP, i18n, Event listeners, transactions, properties, MessageSource (для i18n) etc; регистрацию в BeanPostProcessor, BeanFactoryPostProcessor
+
+Типы ApplicationContext для разных типов конфигов:
+    ClassPathXmlApplicationContext - конфиги из classpach
+    FileSystemXmlApplicationContext - файл конфигов
+    XmlWebApplicationContext - по умолчанию по пути "/WEB-INF/applicationContext.xml", или указать вручную (можно сразу несколько xml) добавив в web.xml слушатель ContextLoaderListener и параметр <context-param> с ключем contextConfigLocation и путями к xml
+    
+Пример:
+    ConfigurableBeanFactory factory = new XmlBeanFactory(...);
+    // теперь зарегистрируем необходимый BeanPostProcessor экземпляр
+    MyBeanPostProcessor postProcessor = new MyBeanPostProcessor();
+    factory.addBeanPostProcessor(postProcessor);
+    // запускаем, используя factory
+    
+    
+Пример ContextLoaderListener:
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            /WEB-INF/spitter-security.xml
+            classpath:service-context.xml
+            classpath:persistence-context.xml
+            classpath:dataSource-context.xml
+        </param-value>
+    </context-param>
+
+
+ApplicationContext запускается вручную или через ContextLoaderListener в JavaEE (MVC), с передачей ему пути к конфигурации (xml или @ComponentScan)
+
+В Spring слово bean означает любой компонент управляемый IoC контейнером.
+
+Annotation vs xml configs. В xml для каждого типа конфигов есть свой namespace, tx для транзакций, aop и т.д. и xml имеет больший приоритет чем аннотации
+    <context:annotation-config/>
+    @ComponentScan == <context:component-scan base-package="com.apress.prospring4.ch3.annotation" />
+    @Bean == <bean id ="messageProvider" class="com.apress.prospring4.ch3.xml.HelloWorldMessageProvider"/>
+
+SpEL, пример:
+    @Value("#{injectSimpleConfig.name}")
+    private String name;
+    
+Режимы автосвязывания обычно не используется, т.к. приходится строго следить за типами. Бывает: byName, ЬуТуре, constructor, default и no
+
+Spring использует Template Method, чтобы обернуть рутинные операции (один интерфес множество методов).
+
+######### Шаблоны в Spring, реализации оберток для рутинных операций
+JdbcTemplate, SimpleJdbcTemplate (расширенный) и т.д.
+HibernateTemplate или JpaTemplate
+JdbcDaoSupport - его можно наследовать своему dao (возможно устарел)
+HibernateDaoSupport
+RestTemplate
+
+
+<bean id="jdbcTemplate"
+ class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+ <constructor-arg ref="dataSource" />
+</bean>
+
+public class JdbcSpitterDAO implements SpitterDAO {
+...
+ private SimpleJdbcTemplate jdbcTemplate;
+ public void setJdbcTemplate(SimpleJdbcTemplate jdbcTemplate) {
+ this.jdbcTemplate = jdbcTemplate;
+ }
+}
+
+jdbcTemplate.update(SQL_INSERT_SPITTER, params);
+
+
+Spring Modules Cache - прокси для кэша, через него подключаются классы кэшировщики для JPA например
+@CacheFlush – отмечает метод, вызов которого приводит к очистке кеша
+@Cacheable – отмечает метод, возвращаемое значение которого
+должно кешироваться;
+
+Поддержка декларативного управления транзакциями
+в Spring напоминает поддержку в EJB транзакций, управляемых
+контейнером (container-managed transactions, CMT). 
+
+######### scope
+
+------------------------------------
+Область действия    Описание
+------------------------------------
+singleton           В каждом контейнере Spring может быть создан только
+                    один компонент (по умолчанию)
+prototype           Позволяет создавать произвольное количество
+                    компонентов (по одному на каждое обращение)
+request             Область действия компонента ограничивается
+                    HTTP-запросом. Может применяться только в веб-приложениях Spring (например, использующих Spring MVC)
+session             Область действия компонента ограничивается
+                    HTTP-сеансом. Может применяться только в веб-приложениях Spring (например, использующих Spring MVC)
+global-session      Область действия компонента ограничивается
+                    глобальным HTTP-сеансом. Может применяться только
+                    в портлетах
+------------------------------------
+
+В Portlet container в каждом Portlet своя session, и есть общая global-session.
+
+######### Life cycle
+https://stackoverflow.com/a/24755419
+
+Методы отмеченные @PostConstruct, @PreDestroy Annotations
+или class EmployeeService implements InitializingBean, DisposableBean{
+        public void destroy() throws Exception {
+            System.out.println("EmployeeService Closing resources");
+        }
+
+        @Override
+        public void afterPropertiesSet() throws Exception {
+или post-init and pre-destroy в xml
+
+
+Spring Aware Interfaces - наследуем и переопределяем метод нужного события, касается напр. модулей для чей конфигурации нужно наследовать Aware и переопределить.
+
+События life cycle делятся на 2 вида:
+1.  
+    интерфесы: InitializingBean, DisposableBean
+    аннотации: @postConstruct, @preDestroy
+    методы: init-method, destroy-method
+2. BeanPostProcessor interface часть жизненного цикла, но используется чтобы расширить функциональность. Нужно наследовать и переопределить метод.
+    напр.: CommonAnnotationBeanPostProcessor,  RequiredAnnotationBeanPostProcessor,  AutowiredAnnotationBeanPostProcessor
+
+Последовательность вызовов:
+1) BeanPostProcessor.postProcessBeforeInitilazation()
+2) @postConstruct or InitializingBean.afterPropertiesSet() or init-method
+3) BeanPostProcessor.postProcessAfterInitialization()
+4) @preDestroy or DisposibleBean.destroy() or destroy-method
+
+######### Events
+https://www.baeldung.com/spring-events
+
+Чтобы работать с событиями нужно:
+    1. наследовать ApplicationEvent
+    2. заинжектить ApplicationEventPublisher
+    3. слушатель должен реализовать ApplicationListener или иметь аннтацию @EventListener(condition = "#event.success")
+    
+В Spring есть predefined события: ContextRefreshedEvent, ContextStartedEvent, RequestHandledEvent etc
+    
+По умолчанию пользовательские события synchronous. synchronous события могут участвовать в разных действиях, например в транзакциях.
+Можно создать и async события.
+
+Если использовать generics, то внутри publisher нужно явно определять тип.
+
+Создаем:
+public class CustomSpringEvent extends ApplicationEvent {
+    private String message;
+ 
+    public CustomSpringEvent(Object source, String message) {
+        super(source);
+        this.message = message;
+    }
+    public String getMessage() {
+        return message;
+    }
+}
+
+Публикуем:
+@Component
+public class CustomSpringEventPublisher {
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+ 
+    public void doStuffAndPublishAnEvent(final String message) {
+        System.out.println("Publishing custom event. ");
+        CustomSpringEvent customSpringEvent = new CustomSpringEvent(this, message);
+        applicationEventPublisher.publishEvent(customSpringEvent);
+    }
+}
+
+Слушаем, наследуя ApplicationListener нашему бину (событие попадает в метод по имени):
+@Component
+public class CustomSpringEventListener implements ApplicationListener<CustomSpringEvent> {
+    @Override
+    public void onApplicationEvent(CustomSpringEvent event) {
+        System.out.println("Received spring custom event - " + event.getMessage());
+    }
+}
+
+Случаем событие без наследования интерфейса, через аннотацию:
+@Component
+public class AnnotationDrivenContextStartedListener {
+    // @Async
+    @EventListener(condition = "#event.success")    // только для успешных событий
+    public void handleContextStart(ContextStartedEvent cse) {
+        System.out.println("Handling context started event.");
+    }
+}
+
+Привязываем событие к транзакции:
+@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+public void handleCustom(CustomSpringEvent event) {
+    System.out.println("Handling event inside a transaction BEFORE COMMIT.");
+}
+
+######### Annotations
+https://springframework.guru/spring-framework-annotations/
+
+@SpringBootApplication включает: @Configuration, @EnableAutoConfiguration, @EnableWebMvc, @ComponentScan
+@EnableAutoConfiguration - пытается угадать и создать конфиги: DataSource, EntityManagerFactory, TransactionManager etc
+
+Аннотации
+    JSR-250 (для JSE и JEE)
+    vs
+    JSR-299 (из Contexts and Dependency lnjection for the Java ЕЕ Platform)
+    vs
+    JSR-330
+    
+    @Value - внедряет значение (как константа?)
+    @Resource(name= "map") - позволяет внедрять коллекции, в отличии от @Autowired, которая вместо коллекций пытается внедрить коллекции бинов из контейнера
+
+Аннотации @Autowired, @Inject, @Resource и @Value обрабатываются Spring реализацией BeanPostProcessor, поэтому вы не можете их применять в своих собственных BeanPostProcessor и BeanFactoryPostProcessor, а только лишь явной инициализацией через XML или @Bean метод. 
+    
+Чтобы включить управление транзакциями в MVC (в дополнение нужно создать @Bean менеджера транзакций): @EnableTransactionManagement
+
+Включаем Spring Security через @EnableWebSecurity
+@Configuration
+@EnableWebSecurity // устаревшая версия это @EnableWebMvcSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter { тут бины конфигов Security }
+    
+Аннотация @RequestParam + MultipartFile - выгрузка файлов
+    @RequestMapping(value="/upload", method=RequestMethod.POST)
+        public @ResponseBody String handleFileUpload(@RequestParam("name") String name,
+                @RequestParam("file") MultipartFile file){}
+######### MVC
+
+Начало работы - сервлет DispatcherServlet, когда зпрос входит в него, он выбирает к какому Controller его послать.
+Сам request делает намного больше работы чем response на своем пути.
+
+Путь запроса:
+    браузер > DispatcherServlet (сервлет, наз. front controller) > Controller (возвращает имя view прикрепленное к model, в model можно сетать данные) > ViewResolver (сюда request доставляет model из Controller). Сформированный шаблон View возвращается с response
+
+Controller отсылает Model + названия View обратно в DispatcherServlet. Т.е. к model добавляется имя view, которое потом DispatcherServlet отправляет в ViewResolver. И он использует имя чтобы выбрать view (страницу jsp или др.) и упаковать ее с model (шаблонизировать). ViewResolver оборачивает возвращаемую страницу (JSP или др.) в класс View, которые дает доступ к EL и другим переменным окружения Spring (напр. request). https://stackoverflow.com/a/34702997
+
+Основные ViewResolver:
+    UrlBasedViewResolver - имя view это url (путь к нему), можно добавлять prefix or suffix
+    InternalResourceViewResolver - поддерживает InternalResourceView, который добавлет 
+    XsltViewReolver
+    ... (для разных шаблонизаторов)
+    
+Основные View (org.springframework.web.servlet.View):
+    UrlBasedViewResolver - базовый класс, напр. для InternalResourceViewResolver
+    BeanNameViewResolver - ищет по имени среди bean
+    ContentNegotiatingViewResolver - использует другие ViewResolver в зависимости от типа запрошенных данных
+    InternalResourceViewResolver - ищет в WAR файле, использовать i18n для выбора нужного view и т.д.
+    ResourceBundleViewResolver - ищет в properties
+    XmlViewResolver - ищет в bean из /WEB-INF/views.xml
+    XsltViewResolver - ищет View реализованные через xslt (т.е. ищет табл стилей xslt)
+    ... (для разных шаблонизаторов)
+    
+Другими словами: ViewResolver ищет путь к шаблону и передает его View, View запускает шаблонизатор (JSP etc) и добавляет в него model + переменные окружения Spring (bean, cookie, request etc). Кроме того можно использовать доп. набор тегов, напр. <s:url>. Если точнее, то DispatcherServlet копирует все атрибуты model в атрибут запроса с тем же именем (косноязычность из книги).
+
+Важные атрибуты класса UrlBasedViewResolver:
+    AlwaysInclude - include или forward для страницы
+    ExposeContextBeansAsAttributes - дает доступ к бинам из context Spring как request attributes через EL
+    ExposedContextBeanNames - список beans которые будут переданы во view?
+    
+HandlerMapping - эти классы использует DispatcherServlet чтобы решить к какому Controller (и методу) отправить запрос
+    BeanNameUrlHandlerMapping - по именам бинов
+    ControllerBeanNameHandlerMapping
+    ControllerClassNameHandlerMapping
+    DefaultAnnotationHandlerMapping - через @RequestMapping
+    SimpleUrlHandlerMapping - использует Map с соотв. url/controller
+    
+
+    
+Настройка:
+    1. Подключаем DispatcherServlet, при этом имя конфигов WEB-INF/spitter-servlet.xml (зависит от имени Servlet)
+        <servlet>
+            <servlet-name>spitter</servlet-name>
+            <servlet-class>org.springframework.web.servlet.DispatcherServlet </servlet-class>
+            <load-on-startup>1</load-on-startup>
+        </servlet>
+    2. Привязать url к DispatcherServlet, если указать вместо / паттерн, напр. html или /**, то будут обрабатываться только эти типы запросов
+        <servlet-mapping>
+        <servlet-name>spitter</servlet-name>
+        <url-pattern>/</url-pattern>
+        </servlet-mapping>
+    3. Добавляем поддержку статических ресурсов, в файл spitter-servlet.xml (по сути это избавляет от того чтобы писать отдельный контроллер для статики)
+        <?xml version="1.0" encoding="UTF-8"?>
+        <beans xmlns="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:mvc="http://www.springframework.org/schema/mvc"
+            xsi:schemaLocation="http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+            
+                <mvc:resources mapping="/resources/**" location="/resources/" /> <!-- Обрабатывает запросы на получение -->
+                
+        </beans> <!-- статических ресурсов -->
+    4. Включение поддержки аннотаций для @Controller в spitter-servlet.xml (в т.ч. JSR-303 (Bean Validation API) ):
+        <mvc:annotation-driven/>
+    5. Возможно еще нужно связать возвращаемую Controller строку с шаблоном (прим. выяснить в каком файле это писать)
+        <definition name="spittles/list" extends="template">
+            <put-attribute name="content" value="/WEB-INF/views/spittles/list.jsp" />
+        </definition>
+    6. Если нужна выгрузка файлов сделать bean конфигов
+        <bean id="multipartResolver"
+            class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+            p:maxUploadSize="500000" />
+    7. Подключение других не JSP шаблонизаторов сводится к объявлению бинов конфига и ViewResolver и добавлянию jar *****/
+
+Пример:
+    @Controller
+    @RequestMapping("/spitter") 
+    class A {
+        
+        // ====> сюда в метод можно передать HttpServletRequest, HttpServletResponse, cookie, header etc
+        @RequestMapping({value="/spittles", method=GET})
+        String get(@RequestParam("spitter") String username, Map<String, Object> model) {
+            model.put("userList", userSrv.getAll());
+            return "home";
+        }
+        
+        // можно использовать Model вместо Map<String, Object>, в нем есть доп. методы addAttribute() и др.
+        @RequestMapping({value="/spittles2", method=GET})
+        String get2(Model model) { return "home2"; }
+        
+        // только если один из параметров будет с именем new
+        @RequestMapping(method=RequestMethod.GET, params="new")
+        public String createSpitterProfile(Model model) {
+            model.addAttribute(new Spitter());
+            return "spitters/edit";
+        }
+        
+        // валидировать spitter и при ошибках засунуть результат в bindingResult (Spitter должен быть отмечем аннотациями правил)
+        @RequestMapping(method=RequestMethod.POST)
+        public String addSpitterFromForm(@Valid Spitter spitter, BindingResult bindingResult) {
+            if(bindingResult.hasErrors()) { // Проверка ошибок
+                return "spitters/edit";
+            }
+            spitterService.saveSpitter(spitter); // Сохранить объект Spitter
+            return "redirect:/spitters/" + spitter.getUsername(); // Переадресовать
+        }
+        
+        // @PathVariable
+        @RequestMapping(value="/{username}", method=RequestMethod.GET)
+        public String showSpitterProfile(@PathVariable String username, Model model) {
+            model.addAttribute(spitterService.getSpitter(username));
+            return "spitters/view";
+        }
+        
+        // выгрузка файлов, MultipartFile image
+        @RequestMapping(method=RequestMethod.POST)
+        public String addSpitterFromForm(@Valid Spitter spitter, BindingResult bindingResult, @RequestParam(value="image", required=false) MultipartFile image) {
+            if(bindingResult.hasErrors()) {
+                return "spitters/edit";
+            }
+            spitterService.saveSpitter(spitter);
+            try {
+                if(!image.isEmpty()) {
+                    if(!image.getContentType().equals("image/jpeg")) {
+                        throw new ImageUploadException("Only JPG images accepted");
+                    }
+                    saveImage(spitter.getId() + ".jpg", image); // Сохранить файл
+                }
+            } catch (ImageUploadException e) {
+                bindingResult.reject(e.getMessage());
+                return "spitters/edit";
+            }
+            return "redirect:/spitters/" + spitter.getUsername();
+        }
+        
+        // просто вспомогательный метод для сохранения файла на диске
+        private void saveImage(String filename, MultipartFile image) throws ImageUploadException {
+            try {
+                File file = new File(webRootPath + "/resources/" + filename);
+                FileUtils.writeByteArrayToFile(file, image.getBytes());
+            } catch (IOException e) {
+                throw new ImageUploadException("Unable to save image", e);
+            }
+        }
+    }
+    
+Пример JSP:
+    <%@ taglib prefix="sf" uri="http://www.springframework.org/tags/form"%>
+    <c:out value="${spittle.text}" />
+    <fmt:formatDate value="${spittle.when}" pattern="hh:mma MMM d, yyyy" />
+    <sf:form method="POST" modelAttribute="spitter">                        <!-- форма spring -->
+        <sf:input>
+        <sf:password>
+        <sf:checkbox>
+        <sf:errors path="username" cssClass="error" /> <!-- Сообщить об ошибке в поле username для Bean Validation API -->
+        <sf:errors path="fullName" delimiter=", " cssClass="error" /> <!-- сообщения об ошибках через , -->
+        <sf:errors path="*" cssClass="error" /> <!-- name input для которого вывести ошибку, * означает все сообщения вверху в одном месте -->
+        
+    <!-- форма выгрузки файлов -->
+    <sf:form method="POST" modelAttribute="spitter" enctype="multipart/form-data">
+        <input name="image" type="file"/>
+    
+Пример ViewResolver + View в файл spitter-servlet.xml (т.е. создаем bean который подхватывает Spring):
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/views/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    
+
+Если аннотации @RequestParam нет, то параметры запроса мапятся на одноименные переменные
+    @RequestParam("spitter") String username
+    @RequestParam(value="name", defaultValue="World") String name
+
+// @CookieValue куки, аналог через request:
+//      org.springframework.web.util.WebUtils.getCookie(HttpServletRequest request, String cookieName)
+//      request.getCookies()
+//      response.addCookie(new Cookie("test", "value"));
+@RequestMapping("/hello")
+public String hello(@CookieValue("foo") String fooCookie) {
+    // ...
+}
+
+// @RequestHeader
+@RequestMapping(value = "/hello.htm")
+public String hello(@RequestHeader HttpHeaders httpHeaders){
+    Map<String,String> headerMap=httpHeaders.toSingleValueMap();
+    //TODO httpHeaders will have many methods
+}
+    
+Возврат Excel, PDF и т.д. вместо HTML (описан в Spring in action):
+    Суть сводится к подключению нужного конвертера, наследовании класса и переопределении метода для билда, который работает как парсер и формирует документ.
+    Сам класс парсер это наследник View, тот которому ViewResolver передает управление отображением шаблонов (посылая запрос через DispatcherServlet)
+    Само подключение конвертера делает в виде объявления bean:
+        <bean id="vehicleRants.pdf" class="com.roadrantz.mvc.RantPdfView" />
+    И сделать mapping ссылок к обработчику (регистрация отображения URL чтобы это не значило):
+        <prop key="/rantsForVehicle.xls">rantsForVehicleController</prop>
+        
+    Прим. файлы AbstractExcelView и AbstractPdfView входят в Spring
+    
+    
+Пример конфигов ViewResolver через аннотации:
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = { "com.boraji.tutorial.spring.controller" })
+public class WebConfig implements WebMvcConfigurer {
+  @Override
+  public void configureViewResolvers(ViewResolverRegistry registry) {
+    registry.jsp().prefix("/WEB-INF/views/").suffix(".jsp");
+  }
+
+  @Override
+  public void addViewControllers(ViewControllerRegistry registry) {
+    registry.addViewController("/login").setViewName("login");
+  }
+}
+    
+######### REST
+Работает поверх Spring Data repositories и позволяет создавать REST
+
+Типы запросов:
+    HEAD (возвращается если resource доступен, никаких статусов или ресурсов не содержит),
+    GET, PATCH (как put, только частичный update), PUT, DELETE
+
+Используются типы: application/hal+json или application/json
+Ключевые атрибуты HAL:
+    _links - связные сущности
+    _self
+    _next, _previous
+    
+Методы:
+    get: findAll(Pageable), findAll(Sort), findAll()
+    delete: save()
+
+Параметры: http://localhost:8080/people/?size=5
+    sort +  ($propertyname,)+[asc|desc]
+    page
+    size
+
+Настраивается одной из @SpringBootApplication or @EnableAutoConfiguration или через регистрацию RepositoryRestConfigurer#configure
+
+// Repository Detection Strategy - как будут регистрироваться репозитории (разные опции, все или только аннтатированные и т.д.)
+
+Базовый путь: spring.data.rest.basePath=/api
+
+Настройка через одно из:
+    1. @Bean public RepositoryRestConfigurer repositoryRestConfigurer() {
+    2. @Component public class CustomizedRestMvcConfiguration extends RepositoryRestConfigurerAdapter {
+    
+Spring Data REST не знает о abstract классах и interface, поэтому нужно их конфигурить через (это часть jackson):
+    configureJacksonObjectMapper(ObjectMapper objectMapper) {
+        objectMapper.registerModule(new SimpleModule("MyCustomModule") {
+    
+Можно подключить Serializers, если нужно сериализировать или десериализировать по особому:
+    public void setupModule(SetupContext context) {
+    
+Projections and Excerpts - через Projections можно создать класс шаблон с теми полями Entity, которые нужно отправить.
+Можно добавить вручную через: RepositoryRestConfiguration.getProjectionConfiguration().addProjection(…)
+Прикрепляем Entity к :
+    @Projection(name = "noAddresses", types = { Person.class }) 
+    interface NoAddresses { 
+        String getFirstName(); 
+        String getLastName(); 
+    }
+    
+Чтобы скрыть поле нужно пометить его: @JsonIgnore
+
+Комбинирование имени в @Projection:
+    @Value("#{target.firstName} #{target.lastName}") 
+    String getFullName();
+    
+Подключение @Projection к repository, поля подключенной проекции отобразятся в результате:
+    @RepositoryRestResource(excerptProjection = NoAddresses.class)
+    interface PersonRepository extends CrudRepository<Person, Long> {}
+    
+Встраивание одной Entity в другую, чтобы одним запросом получить обе:
+    @Projection(name = "inlineAddress", types = { Person.class }) 
+    interface InlineAddress {
+        String getFirstName();
+        String getLastName();
+        Address getAddress(); 
+    }
+
+Классы repository:
+    CrudRepository
+    PagingAndSortingRepository<T, ID>
+    JpaRepository
+
+Отмечает repository:
+        collectionResourceRel   - имя сгенерированных links (users)
+        path                    - путь в url (users)
+        itemResourceRel         - имя 1ой сущности (user)
+    @RepositoryRestResource(collectionResourceRel = "article", path = "article")
+
+@RestResource(path = "nameStartsWith", rel = "nameStartsWith")
+public Page findByNameStartsWith(@Param("name") String name, Pageable p);
+
+@RepositoryRestController дополняет endpints из @RepositoryRestResource методами, над методами нужно ставить @ResponseBody, @RequestParam и т.д.
+Перед первой переменной в методе можно поставить @ResponseBody, чтобы засетать туда сущности запроса (  f1(@ResponseBody List<users> users, ...)
+
+@RequestBody проставляется перед переменной, которая передается в метод Controller (напр list сущностей)
+
+
+Добавление Validator (кажется это Bean Validation API)
+@Override
+protected void configureValidatingRepositoryEventListener(ValidatingRepositoryEventListener v) {
+  v.addValidator("beforeSave", new BeforeSaveValidator());
+}
+
+LinkBuilder для модификации ссылок.
+
+Безопасность (@Pre/@Post):
+@PreAuthorize("hasRole('ROLE_USER')")
+@Secured("ROLE_USER")
+
+Включение Spring Security для Spring Data REST:
+@Configuration 
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true) 
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter { 
+	...
+}
+
+######### Data
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/
+
+// чтобы запретить экспорт, напр для табл паролей???
+@RepositoryRestResouce(exported = false)
+
+
+// Excerpting Commonly Accessed Data - inline сущность внутри другой сущности (встраивает одну сущность в другую)
+@Projection(name = "inlineAddress", types = { Person.class }) 
+interface InlineAddress {
+  String getFirstName();
+  String getLastName();
+  Address getAddress(); 
+}
+
+// подключаем Excerpting Commonly Accessed Data
+@RepositoryRestResource(excerptProjection = InlineAddress.class)
+interface PersonRepository extends CrudRepository<Person, Long> {}
+
+@NoRepositoryBean Проставляется над базовым классом CrusRepository, чтобы не создалась его сущность
+
+Класс конвертирует через toResource в resource (напр. PagedResources):
+    PagedResourcesAssembler pagedResourcesAssembler;
+    
+Класс PageImpl принимает list сущностей, объект pageable и размер
+
+Его методы используются в PagedResourcesAssembler, в него передается ссылка на assembler
+    PersistentEntityResourceAssembler assembler
+    
+В ResponseEntity пакуется resource и возвращается из controller как ответ:
+    return new ResponseEntity<>(resources, HttpStatus.CREATED);
+    
+    
+Включаем:
+@Configuration
+@EnableWebMvc
+@EnableSpringDataWebSupport // включение Spring HATEOAS
+class WebConfiguration {}
+
+Доступ к Sessino в repository:
+    @PersistenceContext // или Session
+    private EntityManager em;
+    
+
+События привязанные к действиям над Entity:
+@RepositoryEventHandler(Author.class) 
+public class AuthorEventHandler {
+    Logger logger = Logger.getLogger("Class AuthorEventHandler");
+     
+    @HandleBeforeCreate
+    public void handleAuthorBeforeCreate(Author author){
+        logger.info("Inside Author Before Create....");
+        String name = author.getName();
+    }
+    // ...
+}
+
+Подключаем бин событий:
+@Configuration
+public class RepositoryConfiguration{ 
+    @Bean
+    AuthorEventHandler authorEventHandler() {
+        return new AuthorEventHandler();
+    }
+}
+
+######### AOP
+######### Security
+
+добавить https://stackoverflow.com/a/28272347
+
+Использует сервлеты для ограничения доступа к запросам и AOP и обертки к метода классов.
+Делится на модули: Core, Configuration, Web, Tag Library
+
+Все взаимодействие в Java начинается с HttpServletRequest. Spring создает springSecurityFilterChain для цепочек фильтрации.
+
+Для xml конфигов web.xml нужно добавить общий фильтр для Spring Security (по springSecurityFilterChain будет находится фильтр внутри Spring):
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class> org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    
+В самом xml файле конфигов Security пишут:
+    <http auto-config="true" use-expressions="true">
+    ...
+    </http>
+    
+На статической странице для обработки нужно добавить поля: j_username, j_password
+И добавляется путь к фильтру auth: <spring:url var="authUrl" value="/static/j_spring_security_check" />
+
+И пример самой настройки внутри <http>:
+    <intercept-url pattern="/admin/**"
+        access="hasRole('ROLE_ADMIN') and hasIpAddress('192.168.1.2')"/>
+    <intercept-url pattern="/spitter/form" requires-channel="https"/>       <!-- всегда https -->
+
+-------------------------------------------
+Пространство имен           Назначение
+-------------------------------------------
+authentication              Объект аутентификации пользователя
+denyAll                     Всегда возвращает false
+hasAnyRole(list_of_roles)   true, если пользователь обладает какой-либо из привилегий, перечисленных в списке list_of_roles
+hasRole(role)               true, если пользователь обладает привилегией role
+hasIpAddress(IP Address)    IP-адрес пользователя (доступен только в веб-приложениях)
+isAnonymous()               true, если текущий пользователь не был аутентифицирован
+isAuthenticated()           true, если текущий пользователь был аутентифицирован
+isFullyAuthenticated()      true, если текущий пользователь был аутентифицирован и не использовал функцию «запомнить меня»
+isRememberMe()              true, если текущий пользователь был аутентифицирован автоматически
+permitAll                   Всегда возвращает false
+principal                   Основной объект, представляющий пользователя
+-------------------------------------------
+
+
+Подключение базы с логином, ролью, паролем (солью).
+    Вся конфигурация делается наследованием UserDetailsService#loadUserByUsername(String username)
+    
+Пример подключения db:
+public class UserDetailsServiceImp implements UserDetailsService {
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+    /*Here we are using dummy data, you need to load user data from
+     database or other third party application*/
+    User user = repo.findUserbyUername(username);
+
+    UserBuilder builder = null;
+    if (user != null) {
+      builder = org.springframework.security.core.userdetails.User.withUsername(username);
+      builder.password(new BCryptPasswordEncoder().encode(user.getPassword()));
+      builder.roles(user.getRoles());
+    } else {
+      throw new UsernameNotFoundException("User not found.");
+    }
+
+    return builder.build();
+  }
+}
+
+
+Настройки самих прав доступа:
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+  @Bean
+  public UserDetailsService userDetailsService() {
+    return new UserDetailsServiceImp();
+  };
+  
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  };
+  
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+  }
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    http.authorizeRequests().anyRequest().hasAnyRole("ADMIN", "USER")
+    .and()
+    .formLogin()
+    .and()
+    .logout().permitAll().logoutSuccessUrl("/login")
+    .and()
+    .csrf().disable();
+  }
+  
+}
+
+GrantedAuthorities - важный класс, содержит предоставленные доступы (роли и права)
+
+Инжектим описание user в Contoller (класс Principal):
+public class MyContoller {
+    public String index(Model model, Principal principal) {
+
+Включает запоминание на время:
+<remember-me key="spitterKey" token-validity-seconds="2419200" />
+
+Над методами контроллера можно проставлять: @Secured("ROLE_SPITTER") == @RolesAllowed({"SPITTER"})
+Другие:
+    @PostFilter/@PreFilter          - допускает вызов метода, но фильтрует результат (напр отдадим админу только сообщение с матами)
+    @PreAuthorize                   - можно вызвать, если указанное выражение в ней true
+    @PostAuthorize                  - можно вызвать, но если вернет false, то исключение
+    
+    
+Пример:
+@PreAuthorize("(hasRole('ROLE_SPITTER') and #spittle.text.length() <= 140) or hasRole('ROLE_PREMIUM')")
+public void addSpittle(Spittle spittle) {}
+
+
+ПРОВЕРКА (запомнить) на то подходит ли user
+@PostAuthorize("returnObject.spitter.username == principal.username")
+public Spittle getSpittleById(long id) {
+ // ...
+}
+
+
+Всегда возвращает false, но его можно переопределить так что для каждого приложения или пользователя будут разные значения:
+org.springframework.security.access.PermissionEvaluator#hasPermission()
+    
+######### REST
+@ResponseBody - одна из ключевых аннотаций
+@ResponseStatus(HttpStatus.NO_CONTENT) - тоже можно использовать
+
+Ключевые приемы чтобы вручную написать REST:
+    HttpClient httpClient = new DefaultHttpClient();    // получить
+    HttpEntity entity = response.getEntity();   // извлечь результат
+    ObjectMapper mapper = new ObjectMapper();   // преобразовать
+    
+RestTemplate - разные методы для ускорения разработки
+
+######### Web Services
+
+Spring WS
+
+######### SpEL
+#{5}
+#{spitter.name}
+#{songSelector.selectSong()?.toUpperCase()}     // если null, то просто не выполнится без ошибки
+#{T(java.lang.Math).PI}   // T() возвращает Class и можно использовать его методы
+#{circle.radius ^ 2} // степень
+#{admin.email matches '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.com'}     // регулярки
+#{cities[2]}
+#{cities['Dallas']} // из Map
+#{settings['twitter.accessToken']}  // properties из <util:properties id="settings" location="classpath:settings.properties"/>
+#{systemEnvironment['HOME']}    // системная переменная
+#{systemProperties['application.home']} // параметры запущенной JVM из командной строки
+#{cities.?[population gt 100000]}   // создает новую коллекцию из элементов проходящих по условию
+#{cities.^[population gt 100000]}   // первый элемент из выборки
+#{cities.$[population gt 100000]}   // последний элемент из выборки
+<property name="cityNames" value="#{cities.![name]}"/>  // массив свойств с именем name будут присвоены переменной cityNames
+<property name="cityNames" value="#{cities.![name + ', ' + state]}"/>   // тоже только группа:  «Chicago, IL», «Atlanta, GA» и «Dallas, TX»
+<property name="cityNames" value="#{cities.?[population gt 100000].![name + ', ' + state]}"/>   // можно объединить 2е операции

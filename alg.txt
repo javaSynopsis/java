@@ -1,0 +1,50 @@
+простое объяснение теории графов
+	https://medium.com/@vardanator/i-dont-understand-graph-theory-1c96572a1401
+	
+XA
+	http://samolisov.blogspot.com.by/2011/02/xa-jta-javase-spring-atomikos-2.html
+	http://www.k-press.ru/cs/2009/1/ts/ts.asp#ID0EJCAE
+	http://www.theserverside.com/discussions/thread/21385.html#95346
+	https://en.wikipedia.org/wiki/Two-phase_commit_protocol
+
+сигнатуры файлов
+	https://en.wikipedia.org/wiki/List_of_file_signatures
+
+все типы регресионного анализа, хорошго написано
+https://www.listendata.com/2018/03/regression-analysis.html
+
+хорошая статья на русском по основам графов
+	https://prog-cpp.ru/data-graph/
+
+A* (очень просто написано, обязательно читать)
+https://habr.com/post/331192/
+
+набор статей с алгоритмами и структурам для game dev, хорошо написано про поиск путей
+http://theory.stanford.edu/~amitp/GameProgramming/
+
+подборка алгоритмов поиска пути
+https://habr.com/post/323650/
+
+тут можно взять список того минимума что учить по поиску пути
+	(три эвристики расчёта расстояния: Manhattan (расстояние городских кварталов), евклидова метрика и расстояние Чебышёва)
+https://habr.com/post/238001/
+
+-------- битовые алгоритмы
+https://stackoverflow.com/questions/20695586/casting-uint8-to-uint32
+https://stackoverflow.com/questions/6499183/converting-a-uint32-value-into-a-uint8-array4
+
+большая подборка операция с битами (сохранить!)
+	https://graphics.stanford.edu/~seander/bithacks.html
+
+
+Сайт похожий на tutorialpoint
+	там же много реализованных алгоритмов и структур (дерево, граф, поиски) на разных языках
+https://www.cdn.geeksforgeeks.org/javascript-tutorial/
+
+
+использование структур и алгоримов в реальных системах хранения данных (картинки с рзными деревьями)
+	чтобы знать в каких случаях какие структуры использовать
+	https://queue.acm.org/detail.cfm?id=3220266
+	
+Список лекций алг и структ от mail,ru который можно использовать для подготовки
+    https://habrahabr.ru/company/mailru/blog/251561/

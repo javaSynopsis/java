@@ -1,0 +1,292 @@
+JUnit, Mock, Cucumber (или др. новые системы), TDD, BDD, пример тестирования в Spring MVC
+
+Про тестирование Spring сервисов с JUnit + mock
+https://www.youtube.com/watch?v=SJ2hwfdFMxY&index=2&list=PLdW9lrB9HDw0odgQIcyQspcTeQ4HX85I7
+***
+
+***
+Основные классы. Можно переопределить, например чтобы добавить свои тесты в процессе:
+    TestResult - содержит stop/run/addError/endTest/errors()/startTest(test)/... и содержит результаты тестов.
+    TestCase - запуск тестов и подсчет ошибок, countTestCases/createResult/getName/TestResult run()/setUp/tearDown/...
+    TestSuite - это объединения классов тестов в 1ин (напр. TestN.class)
+    
+Запуск нескольких связанных классов тестов:
+    // 1. связываем
+    @RunWith(Suite.class) // указываем класс связыватель Suite.class из JUnit
+    @Suite.SuiteClasses({ // привязываем классы тестов к 1му классу
+        TestJunit1.class,
+        TestJunit2.class
+    })
+    public class JunitTestSuite {}
+
+    // 2. запускаем в main() и читаем ошибки в цикле
+    Result result = JUnitCore.runClasses(JunitTestSuite.class);
+    result.getFailures().forEach(failure -> System.out.println(failure.toString()))
+
+(прим. в старых версиях параметры устанавливаются по другому)
+Parameterized Test - тесты в которых параметры в виде Array, List, Stream и т.д.
+хранятся внутри тестируемого класса и при запуске метода-теста по очереди передаются туда:
+
+    public class LoanProcessorParameterizedTest {
+
+        // в аргументы этого метода попадают элементы Stream (или List, Array etc) возвращаемые из метода testRequestLoan_Parameters()
+        @ParameterizedTest(name="Run {index}: loanAmount={0}, downPayment={1}, availableFunds={2}, expectApproved={3}, expectedMessage={4}")
+        @MethodSource("testRequestLoan_Parameters")
+        public void testRequestLoan(float loanAmount, float downPayment, float availableFunds,
+                boolean expectApproved, String expectedMessage) throws Throwable {
+            // ...
+        }
+
+        static Stream<Arguments> testRequestLoan_Parameters() throws Throwable {
+            return Stream.of(
+                Arguments.of(1000.0f, 200.0f, 250.0f,  true, null),
+                Arguments.of(1000.0f,  50.0f, 250.0f, false, "error.insufficient.down.payment"),
+                Arguments.of(1000.0f, 200.0f, 150.0f, false, "error.insufficient.funds.for.down.payment")
+            );
+        }
+    }
+***
+Тестирование mock @Service в Spring с JUnit 5:
+
+Прим. JUnit 5 может называться JUnit Jupiter
+
+В Junit 5 тесты отключаются @Disabled вместо @Ignored над методами
+
+По шагам:
+    0. Подключенный пакет spring-boot-starter-test подключит JUnit и Mockito
+    1. подключаем JUnit и Mockito
+    2. Создаем класс BlaServiceTest
+    3. помечаем тестовые методы @Test и добавлем в название слово "test"
+    4. Создать главный тестовый класс SpringBoot приложения
+        и пометить @SpringBootTest
+    5. Поставить над главным тестовым классом @RunWith()
+    6. Сделать mock для repository (или др.) через @Mock
+    6. Вместо @Autowired инжектить тестируемый сервис через @InjectMocks, потому что в самом сервисе тоже есть @Autowired других объектов в которые @InjectMocks добавляет зависимости. А сам сервис мы сделать mock не может, собственно потому что мы его тестим.
+    7. В пару к @InjectMocks нужно добавить для инициализации:
+        @BeforeEach void setUp throws Exception () {
+            MockitoAnnotations.initMocks(this);
+        }
+        
+Про @InjectMocks: в тестируемый СЕРВИС заинжекшенный через @InjectMocks инжектятся классы помеченные @Mock из этого же ТЕСТОВОГО класса.
+
+Стандартная конструкция для Mockito:
+    when().thenReturn()
+    
+Пример junit + mock:
+
+    // в отличии от integration testing
+    // в unit тестировании тут аннотаций
+    // привязывающих Spring контекст нету
+    class BlaServiceTest {
+        // when, anyString из mackito
+        // остальные из JUnit
+
+        // тестируемый сервис,
+        // этому сервису в зависимости @Autowired внутри него добавятся mock
+        @InjectMocks UserSrv userSrv;
+
+        // inject mock, который добавится ВНУТРЬ сервиса
+        @Mock UserRep userRep;
+        
+        // инициализируем помеченные @InjectMocks
+        @BeforeEach void setUp throws Exception () {
+            MockitoAnnotations.initMocks(this); // обязательно
+        }
+        
+        // если вызовется getUsr(), то вернуть new User()
+        @Test
+        testGetUser() {
+            // показываем что будет вернуто из mock метода
+            when(userRep.getUsr(anyString())).thenReturn(new User());
+            
+            // тестируем сам сервис, который использует userRep для user
+            // т.е. userRep будет mock внутри UserSrv
+            User user = userSrv.getUser();
+            assertNotNull(user);
+            assertEquals("Ivan", user.getName());
+            
+            // проверка на совпадение выбрасываемого Exception
+            // true если исключение совпало
+            assertThrows(UserNotFoundException.class,
+            () -> userSrv.getUser(null)); // вызов Exception
+        }
+    }
+***
+Создание интеграционного теста с JUnit 5 (отличается от старых версий JUnit)
+
+Интеграционный тест на практике отличается от Unit (модульного) тем, что имеет доступ к контексту Spring. Напр. WebApplicationContext для Spring MVC.
+
+Т.е. тестируем интеграцию между компонентами, чтобы понять работают ли они вместе.
+Тестируем группу JUnit модулей.
+
+Каталоги integration и unit тестов принято держать отдельно.
+
+Для теста REST сервиса нужно добавить СТОРОННЮЮ библиотеку rest-assured.
+
+@SpringBootTest говорит использовать конфиги @SpringBootApplication чтобы запустить Spring контекст (ApplicactionContext)
+
+Note: Spring Test кэширует ApplicationContext, если он один и тот же между тестами.
+@DirtiesContext - над классом устанавливает различное поведения кэширования, напр. чтобы удалять кэш между тестами, если он изменен (dirty) самими тестами чтобы всегда был чистый.
+
+Опции @DirtiesContext (НЕ ВСЕ!):
+    AFTER_CLASS, AFTER_EACH_TEST_METHOD, BEFORE_CLASS, BEFORE_EACH_TEST_METHOD
+    
+Note: указываем файл свойств для тестов вручную:
+    @TestPropertySource(locations = "classpath:my.properties")
+
+Note: Аннотация @TestExecutionListeners переопределяет default слушатели событий теста (before, after etc) или делает merge default событий (предустановленных из Spring) с пользовательскими. Удаление default событий может сломать функциональность.
+Класс MyListener implements TestExecutionListener содержит @Override методы жизненного кикла слушателя теста (beforeTestClass, prepareTestInstance, ...).
+
+Пример @TestExecutionListeners:
+    @TestExecutionListeners(value = MyListener.class,
+        // делаем merge своих слушателей с default слушателями Spring
+        mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+
+//@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD) своя настройка кэша
+//@RunWith(SpringRunner.class) старая, до JUnit5
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+class UtilTest {
+        // ПРИМ. вместо rest-assured можно использовать:
+        //      RestTemplate или @Autowired MockMvc mockMvc;
+        // инициализируем rest-assured для теста именно REST
+        @BeforeEach void setUp throws Exception () {
+            RestAssured.baseURI="http://localhost";
+            RestAssured.port=8080;
+        }
+        
+        // тест REST
+        @Test testRest() {
+            // тут в стиле mock, но из rest-assured
+            // описывается что отправится куда-то
+            // и какой ответ придет
+            // в том числе статус, contentType и body запроса
+        }
+}
+***
+Тестировние веб слоя (пример оф. доки Spring с JUnit4).
+
+Суть: используем аннтации @AutoConfigureMockMvc или @WebMvcTest
+
+Как это работает:
+1. Говорит какой контроллер будет
+    @WebMvcTest(GreetingController.class)
+2. Инжектим этот mock контроллер, использующий методы сервисы @MockBean ниже:
+    @Autowired
+    private MockMvc mockMvc;
+3. Инжектим сервис, для методов которого определим поведение mock:
+    @MockBean
+    private GreetingService service;
+4. Вызываем методы тестируемого контроллера в стиле mock
+    с передачей ему ссылки и запроса, внутри этот контроллер
+    вызовет методы mock сервиса.
+    Потом сравниваем контроллером вернутый результат:
+    
+    when(service.greet()).thenReturn("Hello Mock");
+    this.mockMvc
+    .perform(get("/greeting"))
+    .andDo(print()).andExpect(status().isOk())
+    .andExpect(content().string(containsString("Hello Mock")));
+            
+Коротко:
+    инжектим контроллер, в который Mockito заинжектит mock сервис
+    через @WebMvcTest(GreetingController.class) и @Autowired MockMvc mockMvc.
+    инжектим mock сервис @MockBean GreetingService service.
+    и вызываем метод этого контроллера для теста.
+    Метод контроллера внутри использует mock метод mock сервиса service.
+    Вернутый методом контроллера результат сравниваем.
+    
+Note:
+    Можно использовать:
+    1. @SpringBootTest + @AutoConfigureMockMvc
+    2. или легкую версию ТОЛЬКО для теста MVC @WebMvcTest вместо них
+        при это НЕТ теста для: @Component, @Service or @Repository
+        но есть для: @Controller, Filter, Security, ...
+    
+Note:
+    для теста серверу можно назначить random порт
+    @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+    @LocalServerPort // получаем порт чтобы использовать в ссылке
+    private int port;
+            
+@RunWith(SpringRunner.class)
+@WebMvcTest(GreetingController.class) // 1.
+public class WebMockTest {
+    @Autowired
+    private MockMvc mockMvc; // 2.
+
+    @MockBean
+    private GreetingService service; // 3.
+
+    @Test // 4.
+    public void greetingShouldReturnMessageFromService() throws Exception {
+        when(service.greet()).thenReturn("Hello Mock"); // mock метод сервиса
+        this.mockMvc // вызов метода этого контроллера в стиле mock
+        .perform(get("/greeting"))
+        .andDo(print()).andExpect(status().isOk())
+        // сравниваем что вернул контроллер
+        .andExpect(content().string(containsString("Hello Mock")));
+    }
+}
+***
+(с сайта)
+
+Тестирование mock @Service в Spring с JUnit 4:
+
+@DirtiesContext - ApplicationContext Spring будет связан с тестовым классом;
+
+@RunWith(SpringJUnit4ClassRunner.class) – говорит JUnit-у что для запуска тестов нужно использовать спринговый ранер;
+
+@ContextConfiguration(classes = TestDataBaseConfig.class) – с помощью этой аннотации мы указываем какую конфигурацию контекста использовать, можно указывать несколько. Обратите внимание что мы указали конфигурацию, которую создали в первом шаге.
+
+@WebAppConfiguration – используется для тестирования контроллеров например, чтобы иметь доступ к веб-ресурсам.
+
+@DirtiesContext
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(
+    classes = TestDataBaseConfig.class,
+    locations={"/applicationContext-test.xml"}
+)
+@WebAppConfiguration
+public class BankServiceTest {
+
+    @Resource
+    private EntityManagerFactory emf; // SessionFactory
+    protected EntityManager em; // Session
+
+    // привязываем тестируемый сервис
+    @Resource
+    private BankService bankService;
+
+    @Before
+    public void setUp() throws Exception {
+        em = emf.createEntityManager();
+    }
+
+    @Test
+    public void testSaveBank() throws Exception {
+        bankService.addBank(BankUtil.createBank());
+    }
+}
+
+// конфиги ApplicationContext, т.е. обычные для Spring
+@Configuration
+@EnableTransactionManagement
+@ComponentScan("com.devcolibri.dataexam")
+public class TestDataBaseConfig {
+    @Bean public LocalContainerEntityManagerFactoryBean entityManagerFactory() {}
+    @Bean public JpaTransactionManager transactionManager() {}
+    @Bean public DataSource dataSource() {}
+}
+***
+@Rule
+***
+@Interceptor
+***
+Не относится к программированию:
+A/B testing (Split testing) - группу делят на 2 части, тестируют и сравнивают результат
+***
+Утилиты:
+    sonarlint, - как jslint, но это плагин для IDE для java
+    sonarqubes (continuous inspection) - отклонит merge, если настройки посчитают код плохим (т.е. если не будет соотв. заданным правилам)
+    

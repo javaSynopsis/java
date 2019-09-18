@@ -1,0 +1,263 @@
+data jpa умеет много (переодически просматривать ссылки на доку)
+	1. может генерировать finBy<MyClassFieldName>(String name) запросы в БД сам
+		public interface UserRepository extends JpaRepository<User, Long> {
+		  List<User> findByLastname(String lastname);
+		  User findByEmailAddress(String emailAddress);
+		}
+		
+		Т.Е. запросы автоматически генерируются на основе имен методов
+		тут примеры https://docs.spring.io/spring-data/jpa/docs/1.8.0.M1/reference/html/#repositories.query-methods.query-creation
+			List<Person> findByLastnameOrderByFirstnameAsc(String lastname);
+			List<Person> findPeopleDistinctByLastnameOrFirstname(String lastname, String firstname);
+			
+		Через спец. параметры можно сортировать страницы или разбивать их на страницы Sort, Pageable
+			(Slice вместо Pageable можно использовать если данных много, чтобы быстрее)
+			List<User> findByLastname(String lastname, Sort sort);
+			List<User> findByLastname(String lastname, Pageable pageable);
+		
+	2. CRUD
+	3. Запросы, если встроенные методы не подходят
+		public interface UserRepository extends JpaRepository<User, Long> {
+
+		  @Query("select u from User u where u.emailAddress = ?1")
+		  User findByEmailAddress(String emailAddress);
+		}
+	4. Время транзакций: @Transactional(timeout = 10)
+		https://docs.spring.io/spring-data/jpa/docs/1.6.0.RELEASE/reference/html/jpa.repositories.html
+	5. Для работы с страницами
+		public interface PagingAndSortingRepository<T, ID> extends CrudRepository<T, ID> {...}
+		
+		Page<User> users = repository.findAll(new PageRequest(1, 20))
+		
+	6. Выброс исключений, которые потом перехватываются в спец. контроллере
+		this.accountRepository.findByUsername(userId).orElseThrow(
+			() -> new UserNotFoundException(userId));
+
+------------------
+Dev journal
+	0. Основной tutorial
+		https://docs.spring.io/spring-data/rest/docs/current/reference/html/
+		
+		Работа с запросами и ответами data rest
+		https://spring.io/guides/gs/accessing-data-rest/
+		http://spring-projects.ru/guides/accessing-data-rest/ - на русском (чуть другая инфа)
+		
+		data rest + security
+		https://stackoverflow.com/q/30761253
+		https://github.com/spring-projects/spring-data-examples/tree/master/rest/security
+		
+		простой вариант data rest приложенки
+		https://hellokoding.com/restful-api-example-with-spring-boot-spring-data-rest-one-to-many-relationship-and-mysql/
+		
+		бизнес логика в spring data jpa
+		https://stackoverflow.com/a/43187697
+			по отдельности:
+				https://docs.spring.io/spring-data/rest/docs/current/reference/html/#validation
+				https://docs.spring.io/spring-data/rest/docs/current/reference/html/#events
+				https://docs.spring.io/spring-data/rest/docs/current/reference/html/#customizing-sdr.overriding-sdr-response-handlers
+		
+		Как использовать SpEL внутри Query внутри Spring Data JPA.
+		ВАЖНО для фильтрации в Query по например user.id
+		https://spring.io/blog/2014/07/15/spel-support-in-spring-data-jpa-query-definitions
+		
+		несколько data spurce в spring data
+		http://www.baeldung.com/spring-data-jpa-multiple-databases
+		
+		пример настроек application.properties
+			https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+			
+		все конфиги hibernate (их много)
+			http://docs.jboss.org/hibernate/orm/5.2/userguide/html_single/Hibernate_User_Guide.html#configurations-mapping
+			
+		о том почему может не работать POST запрос в DATA JPA (нужно написать его в ПРАВИЛЬНО формате)
+			https://stackoverflow.com/questions/25311978/posting-a-onetomany-sub-resource-association-in-spring-data-rest
+			
+		кастомные анотации spring boot (вместо @SpringBootApplication)
+			https://stackoverflow.com/a/43558513
+			
+		как добавить несколько объектов в spring rest за один запрос
+			https://stackoverflow.com/questions/31374689/how-post-a-list-to-spring-data-rest
+			
+		как добавить ссылки HAL к возвращемым объектам из дополнительного контроллера
+			1. https://docs.spring.io/spring-data/rest/docs/current/reference/html/#customizing-sdr.overriding-sdr-response-handlers
+			2. https://spring.io/guides/gs/rest-hateoas/
+			3. https://docs.spring.io/spring-hateoas/docs/current/reference/html/#fundamentals.obtaining-links
+			4. https://stackoverflow.com/a/45401735
+			5. https://stackoverflow.com/a/45629801
+			6. https://stackoverflow.com/a/41512744 (вроде самый простой способ)
+				см баг https://jira.spring.io/browse/DATAREST-657
+				
+		авто создание first и last в HAL через PagedResourcesAssembler ВОЗМОЖНО не работает
+			https://stackoverflow.com/questions/30281438/spring-data-rest-hateoas-first-and-last-rels
+			
+		querydsl - встроенный фреймворк, конструкция запросов по названию методов с примерами
+			https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#core.extensions.querydsl
+			
+		о том как сделать custom repository с доп. методами (пока не нашел варианта делать update и insert внутри JpaRepository)
+			https://stackoverflow.com/questions/11880924/how-to-add-custom-method-to-spring-data-jpa
+			
+		использование insert внутри @Repository
+			https://stackoverflow.com/a/42741360
+			
+		для работы с lombok в Entity унаследованных от super класса сделать
+			1. https://stackoverflow.com/a/27430992
+			2. поставить @EqualsAndHashCode(callSuper = true) рядом с @Data
+				(хотя может быть в @Data есть свой callSuper ???)
+				
+		как просто добавить данные (типа даты создания и имени) при создании объекта (записи) в табл
+			http://www.baeldung.com/database-auditing-jpa
+			
+		пример предка Controller который дополняет основной методами
+			https://gist.github.com/wvuong/5673644
+			баг из-за которого такое может не работать
+				https://github.com/FasterXML/jackson-databind/issues/1287
+		
+		как переопределить стандартный save()  метод в rest repository
+			https://stackoverflow.com/a/42139967
+		
+	1. Исключить org.springframework.shell т.к. он требует доп. настройки и просто так не запускается
+	2. Исключить spring session т.к. он требует доп. настройки и просто так не запускается
+		можно вместо исключения поставить в application.properties опцию spring.session.store-type=none
+	3. Закомментировать @RunWith(SpringRunner.class) в запуске тестов, т.к. он требует доп. настройки и просто так не запускается
+	4. Адрес по умолчанию localhost:8080
+		Для вывода пароля установить
+			logging.level.org.springframework.boot.autoconfigure.security=INFO
+			в файле application.properties
+		имя - user
+		пароль - в логах, начинается с Using default security password:
+	5.	НА САМОМ ДЕЛЕ ВОЗМОЖНО. Spring Boot заменяет все аннотации ниже и сканит дочерние пакеты.
+		Можно дополнительно указать какой из дочерних пакетов сканить
+	
+		Указать 3 анотации, чтобы показать Spring Boot что сканировать на конфиги создания бинов
+	
+		//@ComponentScan(basePackages = {"com.serjkzv.wordassemblage"}) - не нужна т.к. Spring по умолчанию сканирует дочерние пакеты, но в дальнейшем можно указать
+		@EnableJpaRepositories(basePackages = {"com.serjkzv.wordassemblage"})
+		@EntityScan(basePackages = {"com.serjkzv.wordassemblage"})
+		public class WordassemblageApplication {
+	6. Чтобы настроить Spring Security нужно переопределить конфигурацию https://stackoverflow.com/q/30761253
+		Тут подробно с примером: https://github.com/spring-projects/spring-data-examples/tree/master/rest/security
+	7. REST API (возможно) автоматически формируется spring data jpa и spring data rest
+		т.е. формируются и end points
+		пример:  https://hellokoding.com/restful-api-example-with-spring-boot-spring-data-rest-one-to-many-relationship-and-mysql/
+		
+		При этом можно использовать @RestResource чтобы дополнить CrudRepository дополнительными методами привязанными к дополнительным end points
+	8. @RestController - не нужен (его нельзя использовать с data rest)
+	9. сделать авто создание бД и авто заполнение его акаунтом admin
+		- либо spring batch и засунуть в работу
+	10. Чтобы экранировать имена типа order добавил
+		hibernate.globally_quoted_identifiers: true
+		НО оно не работает в hiernate 5 (подождать исправления бага, пока переименовал в order2)
+	11. Временно отключить CSRF
+		    @Override
+			protected void configure(HttpSecurity http) throws Exception {
+				http.csrf().disable();
+			}
+	12. почитать нужно ли добавить @EnableTransactionManagement для работы аннотации @Transactional
+		Судя по этому ответу менеджер транзакций создается в Spring Boot автоматически
+			https://stackoverflow.com/a/41643269
+			
+	13. Попробовал сделать jackson десериализацию вручную
+		https://stackoverflow.com/questions/19379863/how-to-deserialize-interface-fields-using-jacksons-objectmapper
+		http://programmerbruce.blogspot.com.by/2011/05/deserialize-json-with-jackson-into.html
+		глянуть это, о том почему jackson может не работать с list, но работать с set
+			https://stackoverflow.com/a/41306232
+		
+	план:
+	1. настроить стратегию создания репозиториев spring data rest (чтобы поменять ссылки end points)
+		посмотреть @RepositoryRestResource(collectionResourceRel = "people", path = "people")
+			http://spring-projects.ru/guides/accessing-data-rest/
+			
+			@RepositoryRestResource(path = "people", rel = "people")
+			interface PersonRepository extends CrudRepository<Person, Long> {
+
+			  @RestResource(path = "names", rel = "names")
+			  List<Person> findByName(String name);
+			}
+
+	2. security
+	3. connection pool
+	4. разобраться как работать с транзакциями в этом REST и обрабатывать их ошибки
+		(crud операции по умолчанию транзакционные)
+		https://docs.spring.io/spring-data/jpa/docs/2.0.3.RELEASE/reference/html/#transactions
+		почитать нужно ли добавить @EnableTransactionManagement для работы аннотации @Transactional
+		https://spring.io/guides/gs/managing-transactions/
+	5. заменить в контрллере аннотацию @Autowired в конструкторе на @RequiredArgsConstructor(onConstructor_={@Autowired})
+		это когда поправят баг в Idea
+		https://stackoverflow.com/questions/9424364/cant-compile-project-when-im-using-lombok-under-intellij-idea
+	6. разобраться со spring-boot-actuators
+		http://www.baeldung.com/spring-boot-actuators
+	7. Узнать зачем поля @RepositoryRestController сделаны final в примере
+
+Создание hateoas
+	https://spring.io/guides/tutorials/bookmarks/#_building_a_hateoas_rest_service
+	
+Создание hateoas, кратко
+	https://spring.io/guides/gs/rest-hateoas/
+
+Создание RESTFull (Spring Boot Actuator)
+	https://spring.io/guides/gs/actuator-service/
+
+Создание RESTFull
+	https://spring.io/guides/gs/rest-service/
+
+Туториал hateoas
+	https://docs.spring.io/spring-hateoas/docs/0.23.0.RELEASE/reference/html/
+
+Полный список статей
+	https://spring.io/guides?filter=rest
+
+Вся документация, но краткая по SPring Boot
+	https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/
+
+Как использовать SpEL внутри Query внутри Spring Data JPA.
+ВАЖНО для фильтрации в Query по например user.id
+	https://spring.io/blog/2014/07/15/spel-support-in-spring-data-jpa-query-definitions
+
+Чтобы получить записи принадлежащие только конкретному пользователю
+Например у User есть несколько Orders и нужно запретить ему получать доступ
+по ссылке api/orders/id
+к чужим orders
+	https://stackoverflow.com/questions/37059014/how-to-only-fetch-data-owned-by-an-authenticated-user-in-graphrepository
+
+	1. в Repository
+	@PostAuthorize("returnObject.user.username == principal.username")
+	@Override
+	Activity findOne(Long id);
+
+	2. в Repository
+	@PostFilter("filterObject.user.username == principal.username")
+	@Override
+	Iterable<Activity> findAll();
+
+	3. в Repository
+	@Query - с использованнием в нем userId и фильтрацией
+
+	4. Фильтровать в Controller и Service
+
+	5. Этот способ скорее всего лучше для обычных БД (для необычных может не работать)
+		https://stackoverflow.com/a/37068711
+		https://spring.io/blog/2014/07/15/spel-support-in-spring-data-jpa-query-definitions
+
+Чтобы получить только часть полей в ответе
+	https://docs.spring.io/spring-data/rest/docs/current/reference/html/#projections-excerpts
+
+	1
+	Делаем шаблон
+	@Projection(name="personSummary", types={Person.class})
+	public interface PersonSummary {
+	    String getEmail();
+	    String getId();
+	    String getName();
+	}
+
+	2
+	устанавливаем запросу
+	@RepositoryRestResource(excerptProjection = PersonSummary.class)
+	public interface PersonRepository extends CrudRepository<Person, String> {}
+
+Как настраивать spring security в spring boot
+	https://stackoverflow.com/a/37288790
+
+@NoRepositoryBean - проставить над interface который наследует JpaRepository, чтобы spring не создал его как proxy репозиторий
+
+@EqualsAndHashCode(callSuper = true) - использовать на дочерней Entity совместно с @Data

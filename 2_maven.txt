@@ -1,0 +1,370 @@
+--------------------------------
+maven
+
+maven - строго определяет структуру каталогов проекта
+
+Находит библиотеку по ключ-значение и добавляет в classpath проекта:
+	groupId: org.spring - название разработчика (org.spring)
+	artefactId: spring-mvc - название структуры проекта + набор библиотек
+	version: 1.0.0-RELEASE
+	package: - как назвать пакет
+Общая форма: artifactId-version.extension
+
+mvn archetype:generate - команда показывает список всех архетипов в официальном репозитории
+mvn archetype:generate > mvn.txt - перенаправить вывод в файл
+
+ctrl + c - прервать в консоли
+
+Для выбора архетипа:
+1. ввести mvn archetype:generate
+2. набрать номер проекта и нажать ввода
+3. ввести groupId, artefactId, version
+4. Получим в каталоге в котором находимся готовый проект
+
+Пример команд (вводим по очереди):
+	1 mvn archetype:generate
+	2 am.ik.archetype
+	3 spring-boot-jersey-blank-archetype
+	4 1.0.2
+
+--В maven 4 ОСНОВНЫХ каталога в SOURCE (без них проект не сконвертируется в IDE через контекстное меню в проект для maven):
+src/main/java - java код
+src/main/resources - конфиги, картинки, языковые файлы и прочее
+src/test/java - для тестов
+src/test/resources - конфиги для тестов
+src
+pom.xml
+
+target/ - для архивов
+target/classes - для скомпиленных классов
+target/site - для сгенерированной документации
+
+В веб приложении добавляются:
+src/main/webapp - для .jsp
+src/main/webapp/WEB-INF - web.xml
+
+--Для создание проекта в Eclipse:
+	Каталоги выше нужно добавить в проект (в настройках создание проекта)
+	ПКМ по проекту > конфигурация > сконвертировать в maven проект
+	в результате: создастся проект с генерированным pom.xml в который можно дописывать dependencies
+	
+Default output folder - куда складывается байткод, можно поставить в:
+maven/target
+
+Для создание web приложение тоже самоей, только:
+	создать динамик веб апликашион
+	удалить существующую src
+	выходную деректорию сменить с build\classes на target\classes
+	сменить Content Directory с WebContent на src/main/webapp
+
+Проверить соберается ли готовый проект можно командой: mvn clean package
+
+Как узнать какой проект выбрать:
+	На официальном сайте в центральном репозитории
+	
+--Добавить библиотеку можно скопировав подобный код c офф. сайта и добавив его после тега </build>:
+
+	(API сервлетов)
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			
+			  <classifier>linux</classifier> - для какой системы
+				<type>jar</type> - какого формата
+		</dependency>
+	</dependencies>
+
+	(jstl)
+	<dependency>
+		<groupId>jstl</groupId>
+		<artifactId>jstl</artifactId>
+		<version>1.2</version>
+	</dependency>
+
+maven сначало подгружает либы в локальный реп., а потом использует.
+
+--Сборка проекта:
+	mvn validate - проверка данных на корректность
+	mvn compile - компилирует данные
+	mvn test - выполняет тесты
+	mvn package - создание архива (jar, war). То есть записывает готовые архив в target
+	mvn install - переносить готовый скомпиленный архив проекта в локальный репозиторий maven (которые потом можно использовать)
+	mvn clean package - тоже что и mvn package, только сначало удаляет предыдущий скомпиленный проект (мусор)
+	mvn clean install - аналогично только для install
+	mvn deploy - помещает скомпиленный архив в заданный контейнер сервлетов???
+	
+	mvn help:help
+	mvn site - создать документацию на базе javadoc
+		(результат будет в папке проека в подкаталоге site)
+	mvn pdf:pdf - создать доку в формате pdf
+		(результат будет в папке проека в подкаталоге pdf)
+	//есть команды на выполнения только одного конкретного теста, а не всех
+	
+--Плагины:
+	расширяет возможности maven
+	имеет: artifactId, version, теги для конфигов
+	<configuration> - для конфигов
+	
+В war файл добавляются зависимости jar автоматом.
+Для jar надо ставить плагин - чтобы добавить зависимые jar в него
+	jar-with-dependencies
+	
+1. maven-compiler-plugin - отвечает за то, какой версией java компилить проект
+	<source>1.7 - JDK7
+	<target>1.7
+2. maven-war-plugin - сборка war
+	<failOnMissingWebXml>false - нужен web.xml или нет
+3. maven-assembly-plugin - для генерации jar с включенными в него jar либами
+
+Если библиотеку нужно включить в сборку, но ненужно в готовый проект (например для тестирования, но чтобы не было в готом проекте)
+	то нужно указать scope
+<dependency>
+	<groupId>junit
+	<artefactId>
+	<version>
+	<scope>test</scope> - использовать библиотеку только на этапе тестирования и не включать в готовый проект
+						provided - не нужно включать в готовый проект (файлы уже есть на сервере и нужны только для сборки)
+						compile - только для сборки проекта
+</dependency>
+
+Все scopes:
+    compile: default, зависимости в classpath + эти же зависимости распостраняются на зависимые проекты
+    provided: как compile, но говорит проекту, что зависимости будут вставлены JDK или container в runtime (во время работы?)
+        например: чтобы использовать Servlet API контейнер должен вставить его сам когда приложение УЖЕ будет в контейнере, поэтому ставим ему provided
+        Этот scope доступен только compilation и test classpath
+    runtime: зависимость не нужна для компиляции, но нужна во время работы и тестов
+    test: зависимость нужна только для компиляции и исполнения тестов
+    system: аналог provided, но зависимость не из репозитория maven, а указывается вручную в теге <systemPath>
+    import: начиная с Maven 2.0.9 or later,
+        используется в дочерних pom.xml с типом <type>pom</type> чтобы указать, что зависимость будет взята из <dependencyManagement>
+        само по себе import влияния не оказывает
+
+<dependencyManagement> - если есть родительский и дочерний pom.xml, то объявленные в родительском pom.xml зависимости можно использовать в дочернем
+    <dependencyManagement>  
+        <dependencies>
+            <dependency>
+                <groupId>com.sample</groupId>
+                <artifactId>project1</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+Разница между <dependencies> и <dependencyManagement>:
+    В дочернем pom.xml <dependencies> зависимость будет включена ВСЕГДА
+    В дочернем pom.xml <dependencyManagement> зависимость будет включена ТОЛЬКО если она будет объявлена в <dependencies> самом по себе (а не в <dependencies> родительского?)
+После этого можно пропустить scope/version в дочернем pom.xml, потому что они уже объявдены в родительских
+
+Наследование:
+    Можно разделить 1 POM на несколько, для этого:
+    Создать pom.xml, в зависимом pom.xml указать родителя:
+        <parent>
+            <groupId>com.sample</groupId>
+            <artifactId>parent</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </parent>
+    и в дочернем pom.xml указать тип pom (а НЕ типы war, jar, ...)
+        <packaging>pom</packaging>
+ПО умолчанию дочерний POM ищется в корне проекта, потом в удаленном репе, можно указать путь вручную <relativePath>../baseapp/pom.xml</relativePath>
+
+--Задание сторонних репозиторие
+</build>
+<repositories> - между </build> и <dependencies>
+	<repository>
+		<release> - способ работы с репом (только на скачивание или нет и т.д.)
+			...
+		<snapshots> - статус работы
+			<enabled>true - в релизе или нет
+			<updatePolicy>never - когда обновлять
+							always
+							daily
+							interval:124 - минуты
+		<url>http://blbbla.com - адрес репа		
+...
+</repositories>
+<dependencies>
+
+
+--------------------------------
+
+<!--
+	--Структура maven проекта
+		Основные каталоги:
+			src/main/java - java код проекта
+			src/main/resources - конфиги, картинки, языковые файлы и прочее
+			src/test/java - java код для тестов (junit, mock)
+			src/test/resources - конфиги для тестов
+			target - (или target/classes) каталог для собранного проекта (если в IDE другое имя, лучше его заменить на это)
+		Примечание: для конвертации из проекта IDE в проект maven нужно будет удалить другие каталоги и добавить эти. В Eclipse конвертировать можно через контекстное меню, если использовать Eclipse JavaEE.
+			
+		Дополнительные:
+		
+	--Полная структура каталогов готового проекта:
+		src
+			main
+				java
+					com.my.prj.Main.java - моя программа
+				resources
+					myprop.properties - конфиги
+					log4j.properties
+			test
+				java
+					com.my.prj.test.Test.java - мои тесты
+				resources
+					mytest.properties - конфиги используемые в только тестах
+					log4j.properties
+		target - тут готовые .class, .jar, .war, .ear, .ejb
+		pom.xml
+-->
+
+<!--  
+	Загруженные из репозитория библиотеки (в том числе плагины?) хранятся в:
+		C:\Documents and Settings\MyAccountUserName\.m2
+		settings.xml - файл настроек (изначально файла с настройками может и не быть)
+		C:\Documents and Settings\MyAccountUserName\.m2\repository\ - загруженные библиотеки
+		
+	Запуск:
+		mvn плагин:цель - общая форма
+		Пример: mvn clean == mvn clean:clean
+	
+	Команды запуска:
+		m2 test -Dmaven.compiler.source=1.5 -Dmaven.compiler.target=1.5 - указываем не в pom.xml, а прямо командой нужную версию java
+	
+		mvn archetype:create -DarchetypeGroupId=org.appfuse.archetypes - создание проекта командой
+		  -DarchetypeArtifactId=appfuse-basic-jsf
+		  -DremoteRepositories=http://static.appfuse.org/releases 
+		  -DarchetypeVersion=2.0.2 
+		  -DgroupId=com.mycompany.app 
+		  -DartifactId=myproject
+-->
+
+
+<!--  Шапка пространства имен и xsd валидации, запоминать не нужно -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!--  Указываем какой шаблон проекта использовать -->
+	<groupId>jbossews</groupId>			<!-- ИМЯ РАЗРАБОТЧИКА типа проекта (структуры каталогов + библиотек) -->
+	<artifactId>jbossews</artifactId>	<!--  ИМЯ типа проекта, шаблона (структуры каталогов + библиотек) -->
+	<packaging>war</packaging>			<!--  Во что упаковать -->
+	<version>1.0</version>
+	
+	<!--  ПРОСТО ИНФА. о проекте, имя, адрес etc. Необязательны! Тут не полный список. Если нужно можно найти плагины maven для составления дополнительных сведений. -->
+	<name>jbossews</name>
+	<url>http://maven.apache.org</url>
+	<description>...</description>
+	<inceptionYear>...</inceptionYear> <!-- Год начала проекта, может вставляться в генерируемую документацию: надпись copyright -->
+	<licenses>...</licenses>
+	<organization>...</organization>
+	<developers>...</developers>
+	<contributors>...</contributors>
+	<mailingLists>...</mailingLists> <!--  Сведения о рассылки с обсуждением проекта -->
+
+  
+	<!--  Указываем сторонние репозитории -->
+	<repositories>
+		<repository>
+			<id>eap</id>
+			<url>http://maven.repository.redhat.com/techpreview/all</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	
+	<!--  Список плагинов для каждого репозитория -->
+	<pluginRepositories>
+		<pluginRepository>
+			<id>eap</id>
+			<url>http://maven.repository.redhat.com/techpreview/all</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+	</properties>
+	
+	<!--  Список библиотек, будут загружены из ОФИЦИАЛЬНОГО репозитория и добавлены в проект (classpath) -->
+	<!--  Если подключены сторонние репозитории, то и от туда -->
+	<dependencies>
+		<dependency>	<!-- Тут по аналогии с самим проектом (см. выше) -->
+			<groupId>org.postgresql</groupId>	<!--  Разработчик библиотеки -->
+			<artifactId>postgresql</artifactId>	<!--  Имя библиотеки -->
+			<version>9.2-1003-jdbc4</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.25</version>
+		</dependency>     
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	
+	<profiles>
+		<profile>
+			<!-- When built in OpenShift the 'openshift' profile will be used when 
+				invoking mvn. -->
+			<!-- Use this profile for any OpenShift specific customization your app 
+				will need. -->
+			<!-- By default that is to put the resulting archive into the 'webapps' 
+				folder. -->
+			<!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+			<id>openshift</id>
+			<build>
+				<finalName>jbossews</finalName>
+				<plugins>
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>2.1.1</version>
+						<configuration>
+							<outputDirectory>webapps</outputDirectory>
+							<warName>ROOT</warName>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
+
+<!-- 
+settings.xml
+-Dorg.apache.maven.user-settings=/path/to/user/settings.xml - указываем файл настроек при запуске
+
+Можно настроить свой репозиторий или прокси
+ -->
+<settings>
+  <proxies>
+	<proxy>
+	  <id>optional</id>
+	  <active>true</active>
+	  <protocol>http</protocol>
+	  <username>proxyuser</username>
+	  <password>proxypass</password>
+	  <host>proxy.host.net</host>
+	  <port>80</port>
+	  <nonProxyHosts>local.net,some.host.com</nonProxyHosts>
+	</proxy>
+  </proxies>
+</settings>

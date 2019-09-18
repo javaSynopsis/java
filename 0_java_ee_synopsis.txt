@@ -1,0 +1,651 @@
+--------------------------------
+Java EE
+	--Состав JavaEE (старое название - J2EE):
+		дополнить??? EJB, JSP, JSF, JMS, JSTL... 
+		альтернатива ему: Spring MVC, Hibernate, Spring Security и т.д.
+		
+	--Соединение с базой данных
+	1. Выбор коннектора (драйвера для БД) и его подключение:
+		//... добавить библиотеку в classpath
+		Class.forName("com.mysql.jdbc.Driver"); //для старых версий до JDBC 4.1
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql", "root", "pass");
+		Statement st = con.createStatement();
+		ResultSet res = st.executeQuery("SELECT ...");
+	1.1 DriverManager
+			* Соединение берется из класса java.sql.DriverManager
+			Connection cn = DriverManager.getConnection("jdbc:mysql://localhost:3306/testphones", "root", "pass");
+			* До JDBC 4.0 чтобы создать соединение нужно было:
+				1. Class.forName("com.mysql.jdbc.Driver");
+				2. или DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+			Сегодня в большинстве случаев этого делать не надо, драйвер загружается автоматически при соединении.
+			*  DriverManager.getDrivers() - получить список всех драйверов
+		
+	2. Выбор библиотеки для пулла соединений и создание синглтона для него. ПРИЧЕМ синглтон нужно создавать один на всё приложение (то есть способ создания зависит от сервера, объявить синглтон в его конфигах jndi?). Заполнение его переменных (с указанием времени соединения, количество соединений на один запрос и т.д):
+		class MyPoolSingleton extends org.apache.tomcat.jdbc.pool.DataSource {
+			private static MyPoolSingleton instance; //наверное нужно AtomicReference
+			private MyPoolSingleton() {
+				PoolProperties p = new PoolProperties();
+				p.setBla(...blabla... //устанавливаем много параметров
+				this.setPoolProperties(p);
+			}
+			public static MyPoolSingleton getInstance() {
+				//... реализация синглтона
+				return instance;
+			}
+		}
+	2.1 При этом если .jar библиотеку положить в каталог для библиотек сервера tomcat/common/lib/ то реальзованный там синглтон будет один на всё приложение??? То есть все приложения имеют свой ClassLoader и поэтому их классы изолированы, но если библиотека запускается стандартным ClassLoader из JRE то класс общий?????
+	3. Создание объекта Connection из пулла:  conn = DataSourceSingleton.getInstance().getConnection();
+	4. Из объекта Connection создаем Statement (для простого запроса) или PreparedStatement (для подготовленного запроса): Statement stat = (Statement) con.createStatement();
+	5. Через Statement выполняем запрос:
+		new Statement().executeQuery("SELECT * FROM users WHERE user='...")
+		new Statement().executeUpdate("INSERT ...");
+	6. Из new Statement().executeQuery("SELECT ...") получаем массив результатов в объекте ResultSet, это иттератор:
+		while(res.next()) str = res.getString("filePath"); //как и в любом итераторе вернуться нельзя
+	7. Всё это выполняетмя в блоке try:
+		try {
+			Connection con = (Connection) DataSourceSingleton.getInstance();
+			try {
+				Statement stat = (Statement) con.createStatement();
+				try {
+					ResultSet res = new Statement().executeQuery("SELECT ...");
+					while(res.next()) str = res.getString("filePath");
+				} finally { if (res != null) res.close(); }
+			} finally {if (stat != null) stat.close();}
+		} catch(SQLException e) { e.printStackTrace(); }
+		finally { if (con != null) con.close(); }
+	
+	8. Если используется фрэймворк для БД (типа Hibernate + Spring), то там уже готовое всё и ссылку на созданный объект пулла нужно просто передать нужной функции (конечно нужно прописать конфиги таймеров соединений, количество пользователей на одно соединение и т.д.):
+	
+	--ResultSetMetaData
+	Методанные о БД - таблицы, сталбцы и т.д.
+		ResultSetMetaData rsMetaData = rs.getMetaData();
+		getColumnCount() - число столюцов
+		int getColumnType(int column) - тип данных столбца
+		т т.д.
+	
+	--DatabaseMetaData
+	Мета данные БД - инфа о БД
+		DatabaseMetaData dbMetaData = cn.getMetaData();
+		String getDatabaseProductName() — возвращает название СУБД
+		String getDatabaseProductVersion() — возвращает номер версии СУБД;
+		String getDriverName() — возвращает имя драйвера JDBC;
+		String getUserName() — возвращает имя пользователя БД;
+		String getURL() — возвращает местонахождение источника данных
+		и т.д.
+	
+	--Statement
+		имеет методы не только res.getString("filePath");
+		но и getObject(), getInt, getClob, getBlob, getFloat и т.д.
+
+	--PreparedStatement http://articles.javatalks.ru/articles/2
+		Их следует использовать чтобы не было SQL инъекций.
+		Используется для выполнения частых запросов т.к. имеет кэширование.
+		
+			PreparedStatement ps = conn.preparedStatement("INSERT INTO users (name, fname, phone) values(?, ?, ?)");
+			ps.setString(1, "name");
+			ps.setString(2, "surname");
+			ps.setInt(3, 123456);
+			ps.executeUpdate();
+			if(ps != null) ps.close(); //???
+			
+	--batch-команда из PreparedStatement
+		Выполняет группу SQL
+		conn.setAutoCommit(false); //отключаем автовыполнение запроса сразу?
+		Statement st = conn.createStatement();
+		st.addBatch("INSERT INTO ...");
+		st.addBatch("INSERT INTO...");
+		int [] sqlCount = st.executeBatch(); //число строк изменное конкретным запросом
+		
+		//в цикле
+		PreparedStatement ps = conn.preparedStatement("insert ... values(?,?,?)");
+		for( : ) {
+			ps.setInt(1, 354);
+			ps.setString(2, "bla");
+			ps.setInt(3, 1231);
+			ps.addBatch(); //добавляем процедуру с новыми значениями
+		}
+		int rowCount[] = ps.executeBatch();
+			
+			
+	--CallableStatement (extends PreparedStatement)
+		Используется для вызова хранимых процедур БД.
+		Может также получать возвращаемые процедурами значения (IN, OUT, INOUT).
+		
+		CallableStatement cs = conn.prepareCall("{call myProc(?, ?)}");
+		cs.setInt(1, 12313);
+		cs.registerOutParameter(2, java.sql.Types.VARCHAR); //второй параметр процедуры как return
+		cs.execute();
+		String lastName = cs.getString(2); //читаем возвращенное значение из второго параметра процедуры 
+	
+	Особенности:
+		СУБД может кэшировать запрос "select * from books" в Map и возвращать из кэша
+		Чтобы кэшировать запрос с параметром "select * from books where id=2" нужно обобщить его параметр (но в каждой СУБД по разному бывает): "select * from books where id=?"
+		
+		* Запросы должны точно совпадать (запросы со словами USERS и users - будут считаться разными) - это правда для всех СУБД.
+		* Подзапросы и запросы с UNION не кешируются.
+		* Обязательно установите свойство "cachePrepStmts" в true, ибо по умолчанию оно отключено! Используйте параметры соединения, такие как "prepStmtCacheSize" и "prepStmtCacheSqlLimit" для конфигурации MySQL драйвера.
+		
+		1. Когда выполняется connection.prepareStatement("some query") драйвер обращается к СУБД для подготовки запроса*, которая возвращает обратно идентификатор запроса (его хеш как правило) и еще некоторые данные, такие как количество параметров в запросе.
+		2. При вызове executeQuery() драйвер отсылает лишь идентификатор запроса и параметры, СУБД по ID находит уже разобранный запрос и выполняет его.
+
+	--Транзакции
+		Это единица работы обладающая ACID.
+		
+		Типы чтения (проблемы параллельного чтения транзакций):
+            lost update
+			dirty reads - чтение данных транзакции, которая откатилась до её отката
+			non-repeatable reads - повторное чтение данных в одной транзакции, которые уже изменились ей же
+			phantom reads - тоже, что выше только данные меняются во второй транзакции, а читает первая
+			
+		Уровни изоляции транзакций (JDBC определяет уровни в стандарте SQL:2003):
+			TRANSACTION_NONE - информирует, что драйвер не поддерживает транзакции
+			TRANSACTION_READ_UNCOMMITTED - разрещает dirty, non-repeatable, phantom reads
+			TRANSACTION_READ_COMMITTED - запрещает dirty reads
+			TRANSACTION_REPEATABLE_READ - запрещает dirty и non-repeatable reads
+			TRANSACTION_SERIALIZABLE - запрещает dirty, non-repeatable, phantom reads
+			
+			Управляются через объект Connection:
+			Они константы Connection: Connection.TRANSACTION_SERIALIZABLE
+			int getTransaction()
+			void setTransactionIsolation(int level)
+			
+		Как работает:
+			try {
+				Connection c = DriverManager.getConnection(...);
+				c.setAutoCommit(false); //ОТКЛЮЧАЕМ auto commit
+				Statement s = c.createStatement();
+				ResultSet rs = s....
+				c.commit();
+			} catch(Exception e) {
+				c.rollback();
+			} finally {
+				if (s != null) {
+					s.close();
+				} catch(Exception e){}
+			}
+			
+	--Точки сохранения (save point)
+		java.sql.Savepoint
+		Дополнительный контроль над транзакциями, привязывает изменение СУБД к конкретной точке в области транзакции.
+		rollback(Savepoint sp) - для отмены изменений после этой точки
+		DatabaseMetaData.supportsSavepoints() - проверка поддержки базой save point
+		setSavepoint(String name)/setSavepoint() - установка точек
+		
+    --Структура файлов:
+			webapps/
+				FirstProject/
+					META-INF/
+					WEB-INF/
+						lib/
+						tld/
+						classes/
+						web.xml
+					jsp/
+					js/
+					css/
+					img/
+					index.jsp
+					
+        META-INF - Java EE имеет contract по которому она ищет разные типы
+            ресурсов в различных подкаталогах META-INF и использует автоматом.
+        
+        WEB-INF - ресурсы в нем недоступны извне, то к ним можно делать .forward()
+            т.е. можно иметь к этим ресурсам доступ из сервлета
+            Методы getResource() или getResourceAsStream() из ServletContext
+            могут достать ресурсы из WEB-INF.
+            И класс RequestDispatcher может делать .forward() в WEB-INF
+            Ресурсы вне WEB-INF доступны по статическим ссылкам.
+            
+            Пример:
+                ServletContext servletContext = getServletContext();
+                servletContext.getRequestDispatcher(path);
+            
+        WEB-INF/classes и WEB-INF/lib определены для:
+            классов сервлета и jar соотв.
+            
+        В maven проекте WEB-INF по пути src/main/webapp/WEB-INF
+            
+        На этапе сборки Spring через mvn конфиги из /src/main/resources
+        перемещаются в META-INF.
+        
+        Начиная с Servlet 3.0 появились web fragments так
+        называются jar которые будучи подключенными к web приложению
+        "делят" с ним свои web-fragment.xml, web resources, java classes.
+        
+        META-INF/manifest.mf - для описание main класса в JAR
+        META-INF/web-fragment.xml
+            - конфиг переносится из этого файла
+            расположенного в jar в web.xml приложенки
+        META-INF/resources/**
+            - web ресурсы (напр. JSP для web.xml)
+        META-INF/services/javax.servlet.ServletContainerInitializer
+            - список SCI классов
+	
+	--Жизненный цикл сервлета
+		init(), service(), destroy()
+		метод ServletConfig getServletConfig() - доступен в этих метдах и даёт доступ к среде и конфигам сервлета
+		В наследнике HttpServlet: doGet(), doPost(), doPut() и др.
+		
+		Передача параметров между сервлетами (и JSP)
+		1. Происходит через установку параметров session.setAttr() (тогда видна в сессии пользователя везде)
+		2. Или через установку параметров request.setAttr() и дальнейшую передачу request в другой сервлет или в JSP (тогда видна только в рамка одного запроса)
+		3. Можно передавать параметры в cookie: response.addCookie(new Cookie())
+		
+		Запросы:
+			HEAD, TRACE, OPTION - реализуются сервером веб-приложений, для отладки
+			HEAD - как GET, только без тела (существование или статус ресурса)
+			TRACE - возвращает прешедший запрос назад
+			OPTION - вернет описание возможностей сервера и параметры соединения
+			
+			GET, POST, PUT, DELETE - для REST
+			
+			/index.jsp?id=4
+			/index/4 - Friendly URL
+			
+			<form action="ServletPath">
+				<input type="hidden" ...> - часто используется скрытое поля для отправки параметров
+			<form action="ServletName">
+			
+		1. Для Servlet API 2.5 обязателен web.xml с описанием сервлетом и путей к ним
+		web.xml
+		<web-app xlmns=...>
+			<display-name>ProjectName</display-name>
+			<servlet>
+				<display-name>FirtsServlet</display-name>
+				<servlet-name>FirstServletName</servlet-name>
+				<servlet-class>com.my.servlets.FirstServlet</servlet-class>
+			</servlet>
+			<servlet-mapping>
+				<servlet-name>FirstServletName</servlet-name>
+				<url-pattern>/main.jsp</url-pattern>
+			</servlet-mapping>
+			<session-config>
+				<session-timeout>30</session-timeout>
+			</session-config>
+			<welcom-file-list>
+				<welcom-file>index.jsp</welcom-file>
+			</welcom-file-list>
+		</web-app>
+			
+		
+		2. Для Servlet API 3.0+ можно использовать аннотацию 
+		@WebServlet(name = "FirstServlet", urlPattern = {"/FirstServlet"})
+		public class FirstServlet extends HttpServlet {
+		}
+		
+		Обработка ошибок:
+			1. Методом response.sendError(500) - отправляем код ошибки
+			1.2 Установить странице с описанием ошибки <%@ page isErrorPage="true" %>
+			2. Связываем в web.xml код с страницой JSP
+				<error-page>
+					<error-code>404</error-code>
+					<location>/error/error404.jsp</location>
+				</error-page>
+			3. Или связать тип исключения с страницей JSP
+				<error-page>
+					<exception-type>javax.elPropertyNotFoundException</exception-type>
+					<location>/errors/error.jsp</location>
+				</error-page>
+			4. Описание ошибки извлечь из спец. объекта  ${pageContext.errorData}
+				<%@ page isErrorPage="true" contentType="text/html; charset=UTF-8"
+					pageEncoding="UTF-8"%>
+				${pageContext.errorData.requestURI}
+				${pageContext.errorData.servletName}
+				${pageContext.errorData.statusCode}
+				${pageContext.exception}
+				${pageContext.exception.message}
+			5. <%@ page errorPage="/errors/error_runtime.jsp" %>
+				- для указания страницы с описанием ошибки появляющей ТОЛЬКО НА ЭТОЙ странице (с дерективой)
+		
+		Редирект (forward(), sendRedirect(), include()):
+			request.getRequestDispatcher("/jsp/result.jsp").forward(request, response);
+			response.sendRedirect("login.jsp") - прямая переадрессация
+			Отличие: в forward используется тот же самый request и он быстрее
+			
+			// похож на тег include, запрос идет по указанному адресу login.html
+			// а после его выполнения код продолжает работать с места вызова
+			// (переходит на след строку после отправки запроса и его выполнения)
+			// а forward полностью передает управление след. сервлету
+			// и код ниже не будет выполнен (наверное???)
+			request.getRequestDispatcher("login.html").include(request, response);
+			
+			Ограничения include(): не может вызывать методы response, которые меняю headers для response, например setCookie()
+                
+        Методы для работы с User при использовании систем аутентификации встроенную в контейнеры сервлетов (т.е. эти методы работают только для них):
+            HttpServletRequest.getRemoteUser() vs HttpServletRequest.getUserPrincipal().getName()
+            httpServletRequest.login("user","password");
+            HttpServletRequest.logout()
+            
+            http://stackoverflow.com/questions/8680843/httpservletrequest-getremoteuser-vs-httpservletrequest-getuserprincipal-getn
+			
+        При использовании Spring:
+            1. HttpServletRequest.getRemoteUser()
+                возвращает:
+                    SecurityContextHolder.getContext().getAuthentication().getName()
+            2. HttpServletRequest.getUserPrincipal()
+                возвращает:
+                    SecurityContextHolder.getContext().getAuthentication()
+            3. HttpServletRequest.isUserInRole("ADMIN") 
+                возвращает true если:
+                    SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    содержится в GrantedAuthority
+        
+        // Servlet 3.0+
+        // создает новый поток сервлета для параллельных задач
+        //
+        // В Spring механизм Spring Security’s concurrency support
+        // переопределяет этот метод, чтобы распостранить (propagate)
+        // права (credentials) на новые new Thread
+        AsyncContext async = httpServletRequest.startAsync();
+        async.start(new Runnable() { run() {
+            final HttpServletResponse asyncResponse = (HttpServletResponse) async.getResponse();
+        } });
+        
+        У AsyncContext много методов:
+        complete(), dispatch(), addListener(), createListener(),
+        getTimeout(), getRequest()/getResponse()
+			
+		Обмен данными между сервлетом и JSP
+			1. HttpSession
+			2. request
+			3. Cookies
+		
+		HttpServletRequest
+			методы получения параметров запроса, кодировки, MIME типа, имени пользователя, порт, IP клиента, типа запроса, заголовков, входной поток (InputStream, Reader, BufferedReader)
+			setAttribute() - установка атрибутов (для дальнейшей отправки в JSP?)
+			getCookies()
+			String getRemoteUser() — определение имени пользователя, выполнившего запрос
+			String getQueryString() — извлечение строки HTTP-запроса
+			
+		HttpServletResponse
+			установка MIME, куков, 
+			sendError() - отправка ошибки
+			sendRedirect(String) - переадресация
+			getOutputStream() - возвращает ServletOutputStream для записи файлов в response (загрузки с сервера)
+			addCookie()
+			getWriter() - как getOutputStream() только PrintWriter
+			isCommitted() - выполнен ли response
+			setLocale(java.util.Locale) / getLocale() - установка / получения локали
+			и много других
+		
+		ServletContext
+			- имеет много методов для получения, установки удаления параметров. Получения инфы о файлах и сервлете, полных путей файлов.
+			
+			//вызывается в сервлете
+			ServletContext sc = this.getServletContext();
+			String val = sc.getInitParameter("admin");
+			
+			//web.xml
+			<context-param>
+				<param-name>admin</param-name>
+				<param-value>какое-то-значение_ня</param-value>
+			</context-param>
+			
+		ServletConfig
+			- получение инфы и параметров конкретного сервлета (каждый сервлет имеет свой ServletConfig)
+			ServletContext getServletContext() - можно получить контекст из конфига
+			
+			//вызывается в сервлете
+			sc = this.getServletConfig();
+			Enumeration p = sg.getInitParameterNames();
+			while(p.hasMoreElements()) {
+				String name = (String) p.nextElement();
+				String val = p.getInitParameter(name);
+			}
+			
+			//web.xml
+			<servlet>
+				<servlet-name>EmailServlet</servlet-name>
+				<servlet-class>my.com.package.EmailServlet</servlet-class>
+					<init-param>
+						<param-name>host</param-name>
+						<param-value>port</param-value>
+					</init-param>
+					<init-param>
+						<param-name>user</param-name>
+						<param-value>email@mail.ru</param-value>
+					</init-param>
+				</servlet-class>
+			</servlet>
+			
+			//Servlet API 3.0
+			@WebServlet(
+				UrlPatterns = {"/index"},
+				initParams = {
+					@WebInitParam(name = "host", value = "port"),
+					@WebInitParam(name = "user", value = "email@mail.ru")
+				}
+			)
+			public class MyServlet extends HttpServlet {}
+		
+	--JSP
+		Как избежать использования скриплетов в JSP
+			http://stackoverflow.com/questions/2188706/how-to-avoid-using-scriptlets-in-my-jsp-page
+			
+		<%@ %> - параметры JSP (кодировка, включение тегов и т.д.)
+		<%! %> - (устарел) поля класса (сервлета по которому генерируется jsp)
+		<% %> - (устарел) код попадает в _jspService() и выполняется во время генерации .jsp
+		<%= %> - (устарел) аналогиче out, вывод на страницу
+		<%-- --%> - комментарии
+		
+		Неявные объекты:
+			pageContext - javax.servlet.jsp.PageContext
+			servletContext - ServletContext
+			param
+			paramValues - список всех значений параметров переданных на страницу
+			initParam
+			cookie
+			request - javax.servlet.http.HttpServletRequest
+			response - javax.servlet.http.HttpServletResponse
+			config - javax.servlet.ServletConfig
+			session - javax.servlet.http.HttpSession
+			out
+			page - область видимости в пределах страницы (тип Object)
+			exception - java.lang.Throwable
+
+			<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+			<html>
+			<head><title>EL for pageContext</title></head>
+				<body>
+					Путь к контексту : ${ pageContext.request.contextPath } <br/>
+					Имя хоста : ${ header["host"] }<br/>
+					Тип и кодировка контента : ${pageContext.response.contentType}<br/>
+					Кодировка ответа : ${pageContext.response.characterEncoding}<br/>
+					ID сессии : ${pageContext.request.session.id}<br/>
+					Время создания сессии в мсек : ${pageContext.request.session.creationTime}<br/>
+					Время последнего доступа к сессии : ${pageContext.request.session.lastAccessedTime}<br/>
+					Имя сервлета : ${pageContext.servletConfig.servletName}
+				</body>
+			</html>
+			
+		Стандартные элементы Action:
+			<jsp:include page="/part.jsp" flush="true" />
+			
+			jsp:useBean
+			<jsp:useBean id="onjName" scope="request" class="com.my.MyObject" />
+			//аналог com.my.MyObject onjName = new com.my.MyObject();
+			scope == page, request, session
+	
+			<jsp:setProperty name="ob" property="id" value="717" />
+			<jsp:getProperty name="ob" property="text" /> - проперти выводится как текст в out
+			<jsp:forward page="относительный URL"/> - редирект
+			<jsp:param> — добавляет параметры в объект запроса (в forward, plugin, include)
+			<jsp:params> - группа <jsp:param>
+			
+			<jsp:plugin>, <jsp:fallback> - для апплетов
+			Элементы <jsp:attribute>, <jsp:body>, <jsp:invoke>, <jsp:doBody>, <jsp:element>, <jsp:output> используются, в основном, при включении в страницу пользовательских тегов и библиотек тегов.
+			
+		Дерективы
+			jsp-страница
+			<%@ page contentType="text/html"%> - объявление страницы
+			<%@ page contentType="text/html" session="false"%> - тоже, но только без доступа к сессии
+			<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> - включение библиотек тегов
+			<%@ include file="header.jspf"%> - включение jsp
+			
+			jsp-документ (для доумента НЕЛЬЗЯ использовать <%@ %>)
+			<jsp:directive.page contentType="text/html" /> == <%@ page contentType="text/html"%>
+			<jsp:include file="header.jspf" /> == <%@ include file="header.jspf"%>
+			<jsp:root xmlns:c="http://java.sun.com/jsp/jstl/core"/> ==
+				<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+				
+			Пример загаловка страницы:
+				<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+	
+	--EL (Expression Language)
+		Работает для scope: page request, session, application (то есть может работать с любым из этих)
+		
+		Пример
+		class MyObject {
+			MyObject(){}
+			void setText(String text){...}
+			String getText(){}
+		}
+		<jsp:useBean id="onjName" scope="request" class="com.my.MyObject" />
+		<jsp:setProperty name="ob" property="text" value="hello" />
+		${onjName.text} //Hello
+	
+		Пример с Map (c List также только индексы)
+			request.setAttribute("map", new Map<MyObj>);
+			
+			${map.Vasia} //доступ по значению ключа
+			${map["Vasia"}
+			${map["Vasia"}.id}
+			
+		== eq, != ne, < lt, > gt, <= le, >= ge, +, -, *, / div, % mod, && and, || or, ! not
+		${not empty myObj and empty myObj2} //myObj != null && myObj2 == null
+		
+	--Сессия
+		session = req.getSession();
+		// если сессия не существует, то ссылка на нее не будет получена
+		session = req.getSession(false);
+		session.invalidate(); - удаление сессии
+		session.setAttribute("role", new MyObjectRole());
+		session.isNew(); - true если сессия новая и только что создана
+		session.getId(); - идентификатор сессии
+		session.setMaxInactiveInterval(10); - установить время жизни сессии в 10 сек.
+		
+	--Куки
+		Cookie cookie = new Cookie("model", "Canon D7000");
+		response.addCookie(cookie);
+		Cookie[ ] cookies = request.getCookies();
+		c.setMaxAge(60 * 60); // время жизни файла cooki
+		
+	--Обработка событий
+		Это доп. инфа о событиях в сервлетах (установка сессии, куков, установка атрибутов, создания запросов и т.д. (паттер Слушатель)
+		1. Реализуем интерфейс.
+		2. Реализуем нужный метод.
+	
+		— javax.servlet.ServletContextListener — обрабатывает события создания/
+		удаления контекста сервлета;
+		— javax.servlet.ServletContextAttributeListener — обрабатывает события со-
+		здания/удаления/модификации атрибутов контекста сервлета;
+		  — javax.servlet.http.HttpSessionListener — обрабатывает события создания/
+		удаления HTTP-сессии;
+		  — javax.servlet.http.HttpSessionAttributeListener — обрабатывает события
+		создания/удаления/модификации атрибутов HTTP-сессии;
+		  — javax.servlet.http.HttpSessionBindingListener — обраба тывает события
+		привязывания/разъединения объекта с атрибутом HTTP-сессии;
+		  — javax.servlet.http.HttpSessionActivationListener — обрабаты вает события,
+		связанные с активацией/деактивацией HTTP-сессии;
+		— javax.servlet.ServletRequestListener — обрабатывает события создания/
+		удаления запроса;
+		  — javax.servlet.ServletRequestAttributeListener — обрабаты вает события со-
+		здания/удаления/модификации атрибутов запроса сервлета.
+		
+		В Servlet API 2.5
+		<listener>
+			<listener-class>by.bsu.control.listener.SessionListenerImpl</listener-class>
+		</listener
+
+		В Servlet API 3.0
+		@WebListener
+		public class SessionListenerImpl implements HttpSessionAttributeListener {
+			public void attributeRemoved(HttpSessionBindingEvent ev) {
+			}
+			public void attributeAdded(HttpSessionBindingEvent ev) {
+			// запись в log-файл или иные действия
+			System.out.println("add: " + ev.getClass().getSimpleName() + " : "+ ev.getName()
+			+ " : " + ev.getValue());
+			}
+			public void attributeReplaced(HttpSessionBindingEvent ev) {
+			// запись в log-файл или иные действия
+			System.out.println("replace: " + ev.getClass().getSimpleName() + " : " + ev.getName()
+			+ " : " + ev.getValue());
+			}
+		}
+	
+	--Фильтры
+		Интерфейс Filter перехватывает запрос, модефицирует и отправляет туда куда он шел (в сервлет)
+		Используются в частности для авторизации
+		
+		//основные методы
+		void init(FilterConfig fcon)
+		doFilter(ServletRequest req, ServletResponse resp, FilterChain fch)
+		chain.doFilter(req, resp);
+		
+		//web.xml
+		<filter>
+			<filter-name>encodingfilter</filter-name>
+			<filter-class>by.bsu.sample.filter.EncodingFilter</filter-class>
+			<init-param>
+				<param-name>encoding</param-name>
+				<param-value>UTF-8</param-value>
+			</init-param>
+		</filter>
+		<filter-mapping>
+			<filter-name>encodingfilter</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>
+		
+		*/
+		
+		//Servlet 3.0
+		@WebFilter(
+			urlPatterns = {"/*"},
+			initParams = {
+				@WebInitParam(name = "encoding", value = "UTF-8", description = "Encoding param")
+			}
+		)
+		public class MyFilter implements Filter {
+			String code = null;
+			1. public void init(FilterConfig fc) throws ServletException {
+				code = fc.getInitParameter("encoding");
+			}
+			2. public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) {
+				//do smth
+				3. chain.doFilter(req, resp);
+			}
+			4. public void destroy(){
+				code = null;
+			}
+		}
+		
+		//перехват запросов к конкретному сервлету
+		@WebFilter(urlPatterns = { "/controller" }, servletNames = { "MainServlet" })
+		
+	--JSTL
+		
+	
+	--jspx
+		Это просто xhtml
+		
+	--JSF - Java Server Faces
+		Это фреймворк. На нём делают страницы из готовых тегов.
+		Можно интегрировать с AJAX
+--------------------------------
+Чтобы расположить статику в Java EE можно определить сервлет,
+который будет делать .forward(req, resp) к нужному ресурсу.
+--------------------------------
+Пример регистрации и логина на сервлетах без использование ВСТРОЕННОЙ функциональности для аутентификации в контейнер сервлетов (e.g. Tomcat).
+
+Шаги регистрации:
+1. Создаем табл User в DB
+2. Принимает POST от браузера
+3. Берем логин и пароль, если они верны, то user залогинен:
+    String n=request.getParameter("username");  
+    String p=request.getParameter("userpass");
+    if(LoginDao.validate(n, p)){  
+        RequestDispatcher rd=request.getRequestDispatcher("servlet2");  
+        rd.forward(request,response);  
+    }  
+4. Для установки сессии используется getSession(false)

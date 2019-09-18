@@ -1,0 +1,84 @@
+https://www.baeldung.com/spring-mvc-annotations
+
+@PostMapping("/assemble")
+void assembleVehicle(@ModelAttribute("vehicle") Vehicle vehicleInModel) {
+    // ...
+}
+
+@ExceptionHandler(IllegalArgumentException.class)
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+void onIllegalArgumentException(IllegalArgumentException exception) {
+    // ...
+}
+
+@CrossOrigin
+@RequestMapping("/hello")
+String hello() {
+    return "Hello World!";
+}
+
+Vehicle getVehicle(@PathVariable long id) {
+
+
+HandlerInterceptorAdapter
+
+
+return "redirect:files/{path}"
+
+CookieLocaleResolver, AcceptHeaderLocaleResolver
+
+
+@ConditionalOnClass({ JdbcTemplate.class, PlatformTransactionManager.class })
+@ConditionalOnMissingBean(PlatformTransactionManager.class)
+
+@AutoConfigureOrder
+
+
+как тестировать сервисы в Spring через JUnit
+
+
+https://www.baeldung.com/configuration-properties-in-spring-boot
+@ConfigurationProperties(prefix = "mail")
+
+Project Methodologies
+
+https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-handlermapping
+@Configuration
+@EnableWebMvc
+public class WebConfig extends WebMvcConfigurerAdapter {
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/resources/**").addResourceLocations("/public-resources/").setCachePeriod(31556926);
+  }
+
+}
+
+
+@RequestMapping(value="/{day}", method = RequestMethod.GET)
+public Map<String, Appointment> getForDay(@PathVariable @DateTimeFormat(iso=ISO.DATE) Date day, Model model) {
+    return appointmentBook.getAppointmentsForDay(day);
+}
+
+@ModelAttribute
+https://www.journaldev.com/16966/spring-annotations
+
+https://www.baeldung.com/spring-primary
+@Primary - приоритет для связывания бина с одинаковыми типами.
+А бин 2го такого же типа связывать по имени через @Qualifier(“beanName”)
+    @Bean
+    @Primary
+    public Employee TonyEmployee() {}
+    
+https://www.javadevjournal.com/spring-mvc/spring-mvc-annotations/
+@SessionAttribute(name = "userLoginTime") LocalDateTime startDateTime
+
+@InitBinder
+
+@Order
+
+@SessionAttributes
+
+Spring JMX
+
+Spring JMS

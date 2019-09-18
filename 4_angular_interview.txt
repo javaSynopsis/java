@@ -1,0 +1,226 @@
+важное: листочки + техники rxjs + subject + xTime + команды создания компонентов и билда + TypeScript (generics) + js + смотреть код
+
+refreshToken + jwt toke (техника проверки на rxjs из видео)
+initService, authService, popupService, confirmService, exceptionService, httpService, tokenService, SpinnerService,
+buildBreadCrumb (ссылка формируется из activatedRouter.routerConfig.path, а имя из route.routeConfig.data[ 'breadcrumb' ] ),
+isAuth, hasRole,
+локальный показ спинера spinerComponent и spinerService, компонент это обертка для других компонентов с ng-content,
+    в ngOnInit spinerService регистрируется на наши спинеры-обертки и имеет методы показа их по именам и именам групп или показа сразу всех, isShowing,
+    ngOnDestroy - очистка регистрации (удаление из массива), имя в компонент прорасываем через атрибут
+js helper (validators (с примерами) + часть rxjs helpers),
+техники из RxJS,
+передача данных между соседними компонентами (использовал Angular, все наследники общего, кое-где через сервисы-мосты),
+использование lib (тех что по сути общий каталог) - думаю спросят,
+админка
+
+новое: Shematics раздел, ssr, service worker (описать доступные ему объекты?), swUpdate + pwa + appShell
+
+
+
+прикинуть архитектуру приложенки, чтобы сказать как ее использовали на проекте:
+архитектура:
+    core + shared + feuture + models + helpers
+
+1. старый проект, чистый старый js + jquery и логика интерфейса на js + velocity
+2. проект на Angular 4.3, - авторизация с jwt + refreshToken
+    РАЗРАБАТЫВАЛ,
+    отображение информации, обработка заявок, подробности сказать не могу по договору,
+    "кабинет", бэк на питоне (его не делал), перевели на другой проект этот отдали другим???,
+    разработал начальную структуру, учавствовало 4-5 человека,
+3. primefaces + чистый js, jquery + плагины moment для кастомизации - авторизация на куках
+    немного кодил на java, сборка через webpack и hot reloading
+4 проект агрегатор информации с разных сервисов, - авторизация старая самописная
+    УЧАВСТВОВАЛ,
+    была интеграция с старой системой авторизации и доп. сервис-прослойка поэтому без стандартного сервиса auth,
+    использовался сторонний плагин для tile окошек, была кастомизация интерфейса через директивы
+5. кабинет "кабинет", сбор различной финансовой инфы с разных сервисов, dashboard, - авторизацией занимался кто-то другой, кажется использовался jndi
+    УЧАВСТВОВАЛ, разработал часть архитектуры
+6. сейчас работаю не с ангулар, он есть на проекте, работаю с внутренней разработкой, запрещено разглашать
+7 pwa - сеачало не было нужно по требованию, потом делал, но не доделал
+8 ssr - на момент начала разработки с angular universal были проблемы, а потом уже был на другом проекте
+9. покрытие кода тестами было низким из-за требований к изменчивости проекта и небольшом финансировании (мало людей и времени)
+10. CI / CD конкретно на Angular проектах не было, но было на проекте с primefaces + js
+11. отображение progress было, но не глобально, в одном компоненте
+12  кэш был реализован на Subject
+    
+
+чтобы остаться можно назвать сумму зп больше, от xxx например или xxxx, сказать обдумаю
+
+----------
+
+темы:
+    module (useClass, useExisting, providerIn, provider в module и component),
+    component (lifecycle, if, switch-case, for, атрибутные и структурные директивы),
+    form (reactive, template driven, custom validator, разделение формы),
+    router (lifecycle маршрута и его события, outlet, resolver, guard, Router vs ActivatedRoute vs RouterStateSnapshot vs ActivatedRouteSnapshot),
+    other (i18l, ServiceWorker PWA, AppShell, SSR),
+    тесты unit и e2e
+    сервисы и техники: auth, isAuth, hasRole, TokenService, ExceptionService, SpinnerService, отписка с takeUntil, использование async pipe
+        типы начиток с rxjs
+
+js особенности (с листочка и вопросника)
+Angular: lifecycle, Input, Output, ViewChild и @ContentChild, EventEmitter, () и [],
+HostListener BindListener (тут глянуть metanit)
+
+установка HttpParams и HttpHeaders
+[routerLinkActiveOptions]="{exact:true}
+canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) : Observable<boolean> | boolean{
+
+Router vs ActivatedRoute vs RouterStateSnapshot vs ActivatedRouteSnapshot
+
+жизненный цикл маршрута, как сделать redirect, ActiveRouter vs Router, пример отписки через switchMap для отмены прошлого запроса
+outlets, [routerLink], routerLinkActive
+
+HashLocation
+
+https://angular.io/guide/dynamic-component-loader
+
+атрибутные и структурные директивы
+
+ОБЯЗАТЕЛЬНО: совмещение ввода и события size + sizeChange == [(size)] и формы с кастомными валидаторами, массивы полей в reactive form
+
+FormArray
+
+GuardsCheckStart, ChildActivationStart, ActivationStart, GuardsCheckEnd, ResolveStart, ResolveEnd, ActivationEnd, ChildActivationEnd
+    https://stackoverflow.com/a/47483004
+    
+template driven, reactive forms,
+разбитие reactive формы
+async validating
+    в template driven https://angular.io/guide/form-validation#adding-to-template-driven-forms
+    и в reactive
+
+TypeScript, его декораторы, generics и слово readonly для констант (с сайта metanit)
+define в TypeScript и ПОДКЛЮЧЕНИЕ сторонних планинов
+Заголовочные файлы TypeScript
+Generics в TS
+
+spinnerService - найти пример сервиса показа спинера
+    http://codetunnel.com/how-to-do-loading-spinners-the-angular-2/
+
+TokenService
+
+При ssr обращения к localStorage и возможно чем-то другому придется заменять в файле app.server.module.ts
+Например: window, document
+Код замены:
+  providers: [
+    {provide: TokenService, useClass: TokenServerService}
+  ]
+    https://mean-dev.info/angular-universal/
+    
+Проверка в SSR браузер это или нет
+    import { PLATFORM_ID } from '@angular/core';
+    import { isPlatformBrowser } from '@angular/common';
+    @Component({
+        selector: 'mySpecial',
+        templateUrl: './mySpecial.component.html'
+    })
+    export class MySpecialComponent {
+        isBrowser: boolean;
+
+        constructor( @Inject(PLATFORM_ID) platformId: Object) {
+            this.isBrowser = isPlatformBrowser(platformId);
+        }
+    }
+    // использование
+    <md-select *ngIf="isBrowser" placeholder="Favorite food" name="food">
+    
+internatilization
+
+CSP, XRSF, CORS, Angular Universal, Service Worker,
+отправка token для xsrf в залоголвке при запросе,
+что такое token и как работает
+
+RxJS:
+    типы Subject, flatMap, concatMap, switchMap, exustedMap,
+    cold vs hot,
+    читануть 10 раз операторы,
+    throttleTime vs debounceTime vs bufferTime vs auditTime (это основные, хотя их больше)
+    Популярные операторы RxJS в Angular - есть список в своих заметках
+
+по RxJS: пример отправки-приема всех запросов за 1 раз, цепочка запросов с flatMap,
+    переключение по вкладкам с запросами или подпиской на параметры со switchMap
+    
+свои заметки по api в js
+
++ загуглить вопросы по Angular
+
+тесты:
+    что такое e2e тесты,
+    что такое karma тесты, интеграционные, unit
+
+AppShell serviceWorker
+     https://angular.io/guide/app-shell
+--------------
+    // использование метки шаблона вместо передачи event для получения value (считается лучшей практикой)
+    // и использования ТИПА события (enter после точки)
+    <input #newHero
+      (keyup.enter)="addHero(newHero.value)"
+      (blur)="addHero(newHero.value); newHero.value='' ">
+      
+      // преобразование типа событи для извлечения значения
+        onKey(event: KeyboardEvent) { // with type info
+    this.values += (<HTMLInputElement>event.target).value + ' | ';
+  }
+  
+// передача параметров queryParams
+<a [routerLink]="['item', '8']"
+                            [queryParams]="{'product':'tablet'}">item 8</a>
+                            
+// передача параметров вручную
+        this.router.navigate(
+            ['/item', myItem.id], 
+            {
+                queryParams:{
+                    'product': myItem.product, 
+                    'price': myItem.price
+                }
+            }
+        );
+
+// использование атрибутов js тега
+<div [innerHTML]="theHtmlString"></div>
+
+<img [src]="itemImageUrl2">
+        
+привязка к сетеру для изменения или валидации
+--------------
+Angular может не найти некоторые модули node js ( cann't resolve)
+если коротко это потому что удалена поддержка node модулей для web, это можно обойти
+Это происходит для тех модулей авторы которых не правильно их собрали и не указали что кроме node они могут выполняться и в браузере (web)
+
+https://www.amadousall.com/angular-cli-module-not-found-error-cant-resolve/
+--------------
+Только для практики, не для собеседования:
+	В текущей версии zonejs в Angular может препятствовать использованию некоторых функций из-за того что он слишком жестко проверяет код во время выполнения.
+--------------
+остановка распостранения события в angular (false после точки с запятой вместо return false;)
+также отделяя точкой с запятой можно делать вызовы нескольких функций
+
+	<mat-checkbox (click)="doAction(); false"></mat-checkbox>
+	
+--------------
+генерация полифилов в Angular зависит от содержимого browserslist
+удалив оттуда поддержку всех браузеров кроме последних можно сделать так что полифлов почти не будет
+
+Команда npx browserslist в каталоге где лежит файл browserslist покажет для каких браузеров включены полифилы.
+Браузеры можно добавить в исключение добавив not имя_браузера_из_списка
+
+https://www.npmjs.com/package/browserslist
+
+Самих наборов полифилов по умолчанию генерируется два варианта. Один для старых вариантов, другой для новых.
+---------------
+Про zone.js
+
+зона — это контекст выполнения (execution context). Это определение слишком абстрактное и к тому же не все поймут, что значит контекст выполнения. зона — это всего навсего механизм, зоны позволяют нам отслеживать вызовы асинхронных функций. Зоны это просто полифил.
+
+Zone — это просто глобальный объект у которого есть определенные свойства (т.е. просто плагин для js)
+
+подробная статья тут https://medium.com/@overthesanity/zone-js-%D0%BE%D1%82-%D0%B0-%D0%B4%D0%BE-%D1%8F-fdb995917968
+---------------
+Из Angular 8+ полностью удалена поддержка кастомной конфигурации webpack
+для изменения конфигурации теперь нужно реализовать функции builder которые подключать к билду
+эти функции принимают конфиги и данные и могут их подефицировать
+есть готовый неофициальный пакет который может менять конфиги webpack:
+	https://github.com/just-jeb/angular-builders/tree/master/packages/custom-webpack
+статья про это: https://blog.angularindepth.com/angular-cli-under-the-hood-builders-demystified-v2-e73ee0f2d811

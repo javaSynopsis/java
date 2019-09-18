@@ -1,0 +1,9 @@
+https://www.youtube.com/watch?v=IHZwWFHWa-w&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi&index=2
+
+Математика для нейросетей:
+    1. Линейный градиент и градиентный спуск
+    2. Локальный минимум
+    3. Операции с матрицами
+    4. Функции:
+        sigmoid
+        ReCap?
