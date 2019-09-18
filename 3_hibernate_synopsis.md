@@ -51,6 +51,8 @@
   - [Mapping annotations](#mapping-annotations)
   - [Типы Collection в связях](#Типы-collection-в-связях)
   - [`AttributeOverride`](#attributeoverride)
+- [Persistence Context](#persistence-context)
+  - [Hibernate Entity Lifecycle](#hibernate-entity-lifecycle)
   - [Методы Session (включая JPA vs Hibernate методы)](#Методы-session-включая-jpa-vs-hibernate-методы)
 - [Bootstrap](#bootstrap)
 - [Exceptions и их обработка](#exceptions-и-их-обработка)
@@ -1641,11 +1643,11 @@ private Map map = new HashMap();
   }
   ```
   
-  # Persistence Context
-  
-  ## Hibernate Entity Lifecycle
-  
-  Методы `Session` меняют состояние связей Entity с `persistence context`.
+# Persistence Context
+
+## Hibernate Entity Lifecycle
+
+Методы `Session` меняют состояние связей Entity с `persistence context`.
 
 Говорят что entity ассоциирован с `persistence context` или ассоциирован с `Session`. Когда он связан с сессией и его изменения синхронизируются с DB.
 
@@ -2417,7 +2419,7 @@ https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/
 
 Источник [тут](https://www.ibm.com/developerworks/library/j-ts1/index.html) статья старая, но может быть частично актуальна
 
-1. ORM фреймворк выполняет операции через методы **только внутри транзакции**, если транзакция не была начата, то SQL не сгенерируется и запрос в DB не выполнится. Операции будут выполнены над logic transaction, старт транзакции требуется для запуска синхронизации между кэшем Hibernate и DB. Транзакция требуется для integrity и consistency (I и C из ACID)
+1. ORM фреймворк выполняет операции через методы **только внутри транзакции**, если транзакция не была начата, то SQL не сгенерируется и запрос в DB не выполнится. Операции будут выполнены над logic transaction (т.е. физическая транзакция в DB выполнена не будет), старт транзакции требуется для запуска синхронизации между кэшем Hibernate и DB. Транзакция требуется для integrity и consistency (I и C из ACID)
 
    ```java
    public class TradingServiceImpl {
