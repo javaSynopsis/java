@@ -279,26 +279,6 @@
 		private User user;
 	}
 	
-15.
-	@ManyToMany - mappedBy только с одной стороны, иначе будет лишняя связь
-	В результате создаётся 3-я таблица через которую устанавливается связь
-	
-	class User {
-		@Id
-		int userId;
-	
-		@ManyToMany(mappedBy = "user")
-		private Collection<Vehicle> vehicles = new ArrayList<>();  
-	}
-	
-	class Vehicle {
-		@Id
-		int vehicleId;
-		
-		@ManyToMany
-		private Collection<User> users = new ArrayList<>();
-	}
-	
 16.
 
 	class Vehicle {
@@ -423,25 +403,6 @@
 	//main()
 		Query query = session.getNamedQuery("User.byId");
 		query.setInteger(0, Integer.parseInt(id));
-		
-28. Criteria
-	
-	Criteria criteria = session.createCriteria(User.class);
-	criteria.add(Restriction.eq("name", "ivan"))
-		.add(Restriction.or(Restriction.between(12, 13), Restriction.between(2, 6)))
-		.add(Restriction.like("name", "%van"));
-	
-	Criteria criteria = session.createCriteria(User.class)
-		.setProjection(Projections.property("userId")); //берем только одно поле из запроса, тип String
-		
-	Criteria criteria = session.createCriteria(User.class)
-		.setProjection(Projections.max("userId")); //максимальное из свойства userId
-
-	Criteria criteria = session.createCriteria(User.class)
-		.setProjection(Projections.count("userId")); //подсчитать userId
-		
-		
-		.addOrder(Order.desc("userId")); //сортировать результат
 
 29. Шаблоны запросов Example
 
@@ -718,32 +679,6 @@ public class StockDetail implements java.io.Serializable {}
 			}
 		2. При commit() происходит проверка версии в памяти и базе в случае совпадения сохраняется и увеличивает версию. В противном исключение OptimisticLockException
 		
-	
-	Пессимистичное блокирование:
-		1. Делается при использовании спец. параметров при выборке/добавлении из Базы
-			EntityManager entityManager = new EntityManager();
-			entityManager.find(Student.class, student.getId(), LockModeType.PESSIMISTIC_WRITE);
-			1.1 Также можно вызвать блокировку:
-				Session.lock(person, LockModeType.PESSIMISTIC_READ) //первый способ
-				EntityManager em = ...;
-				em.lock(person, LockModeType.PESSIMISTIC_READ); //первый способ
-				Query q = em.createQuery(...);
-				Query.setLockMode(LockModeType.PESSIMISTIC_FORCE_INCREMENT) //второй способ
-		2. Значения LockModeType:
-			PESSIMISTIC_READ - блокирует на запись данные ЧИТАЕМЫЕ ТЕКУЩЕЙ транзакцией
-			PESSIMISTIC_WRITE - в момент ОБНОВЛЕНИЯ данных ТЕКУЩЕЙ транзакцией блокируется чтение/запись/удаление
-			PESSIMISTIC_FORCE_INCREMENT - блокирует данные, которые текущая транзакция читает или для которых увеличивает проаннотированную версию.
-			!!! Есть и другие значения для конкретных баз данных.
-		3. Использование через аннотации:
-			interface WidgetRepository extends Repository<Widget, Long> {
-				@Lock(LockModeType.PESSIMISTIC_WRITE)
-				Widget findOne(Long id);
-			}
-		4. В параметризованных запросах (НАВЕРНОЕ можно применять и для OPTIMISTIC !!!)
-			@NamedQuery(name="lockPersonQuery",
-		  query="SELECT p FROM Person p WHERE p.name LIKE :name",
-		  lockMode=PESSIMISTIC_READ)
-		
 	Примечание:
 		Колонка версии может быть любого типа, при условии, что вы определите и реализуете подходящий UserVersionType.
 
@@ -885,9 +820,6 @@ https://developer.jboss.org/wiki/SessionsAndTransactions#jive_content_id_This_is
 		    }
 		}
 
-41. Можно при связи @ManyToOne указать эту связь с ОДНОЙ стороны.
-	А с другой вообще не делать @OneToMany и не писать никакой коллекции (List, Set и т.д.)
-	Это будет работать (хотя я думаю это не удобно)
 	
 44. (Не проверена!) Связь через @ManyToMany
 	(через @JoinTable можно не только переписывать имена связей, как это сказано в другом пункте)
@@ -985,9 +917,7 @@ https://developer.jboss.org/wiki/SessionsAndTransactions#jive_content_id_This_is
         read = "decrypt( 'AES', '00', pswd  )",
         write = "encrypt('AES', '00', ?)"
     )
-        
-63. ОПИСАТЬ!!! DTO projections
-    https://vladmihalcea.com/the-best-way-to-map-a-projection-query-to-a-dto-with-jpa-and-hibernate/
+       
     		
 66. !!! HibernateTransactionManager vs JtaTransactionManager (управляемые транзакции vs неуправляемые)
 67. Прим. возможно речь о аннотациях @Sort и @OrderBy (или аналоге в свойстве табл. чтобы включить сортировку)

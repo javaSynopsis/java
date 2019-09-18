@@ -103,6 +103,7 @@
 - [Collection vs Bag vs List vs Map vs Set](#collection-vs-bag-vs-list-vs-map-vs-set)
 - [Sorting vs Ordering](#sorting-vs-ordering)
 - [Типы id и их генерация](#Типы-id-и-их-генерация)
+- [Использование дат в Entity](#Использование-дат-в-entity)
 - [Авто подстановка в поле Entity текущей даты при сохранении Entity](#Авто-подстановка-в-поле-entity-текущей-даты-при-сохранении-entity)
 
 # Hibernate
@@ -631,18 +632,22 @@ class Membership {
 **Tip.** Hibernate не блокирует объекты в памяти (Entity) для pessimistic lock, используются блокировки только в DB.
 
 - Cпособ вручную через `setLockOptions()`
-  
-  ```java
-  User user = entityManager.createQuery(
-    "select u from User u where id = :id", User.class)
-  .setParameter("id", id);
-  .unwrap( Query.class )
-  .setLockOptions(
-    new LockOptions( LockMode.PESSIMISTIC_WRITE )
-        .setFollowOnLocking( false ) )
-  .getSingleResult();
-  ```
+    ```java
+    User user = entityManager.createQuery(
+        "select u from User u where id = :id", User.class)
+        .setParameter("id", id);
+        .unwrap( Query.class )
+        .setLockOptions(
+            new LockOptions( LockMode.PESSIMISTIC_WRITE )
+                .setFollowOnLocking(false)
+    ).getSingleResult();
+    ```
+```java
+Session.lock(person, LockModeType.PESSIMISTIC_READ) //первый способ
 
+Query q = em.createQuery(...);
+Query.setLockMode(LockModeType.PESSIMISTIC_FORCE_INCREMENT) //второй способ
+```
 ***
 
 **Типы pessimistic lock** и табл. их использования:
@@ -2016,9 +2021,7 @@ Criteria criteria = session.createCriteria(User.class)
 
 Criteria criteria = session.createCriteria(User.class)
     .setProjection(Projections.count("userId")); //подсчитать userId
-
-
-.addOrder(Order.desc("userId")); //сортировать результат
+    .addOrder(Order.desc("userId")); //сортировать результат
 ```
 
 Пример с **Example** объектом и Criteria API
@@ -3004,4 +3007,6 @@ class User {
 https://thoughts-on-java.org/ordering-vs-sorting-hibernate-use/
 
 # Типы id и их генерация
+
+# Использование дат в Entity
 # Авто подстановка в поле Entity текущей даты при сохранении Entity
