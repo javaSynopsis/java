@@ -1578,11 +1578,12 @@ public class BookFetchModeSubselect extends AbstractBook {
 ## Mapping annotations
 
 Генерированные имена могут быть некрасивыми, чтобы использовать свои нужно указать их явно:
-​```java
-@Table(name = "my_name") class MyTable {}
 
+```java
+@Table(name = "my_name") class MyTable {}
 ```
-​```java
+
+```java
 @ManyToOne
 @JoinColumn(name = "item_type_id")
 ```
@@ -1590,16 +1591,12 @@ public class BookFetchModeSubselect extends AbstractBook {
 ## Типы Collection в связях
 
 - Источник:
-  
   - http://viralpatel.net/blogs/hibernate-one-to-many-xml-mapping-tutorial/
   - https://stackoverflow.com/questions/13812283/difference-between-set-and-bag-in-hibernate
 
 - **Bag** - концепция, НЕУПОРЯДОЧЕННАЯ коллекция, которая может содержать дубликаты.
-  
   - В Java (JPA) ее аналог это List
-
 - **Set** - концепция, НЕУПОРЯДОЧЕННАЯ коллекция (но МОЖЕТ быть отсортирована - через спец. параметр), тоже что и Bag, но хранить может только уникальные объекты. При попытке добавления дубликата, он заменит совпадающий объект.
-  
   - В Java (JPA) ее аналог это Set
 
 Map - тоже можно использовать (вот тут неточно!)
