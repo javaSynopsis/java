@@ -67,7 +67,7 @@
   - [Кавычки в именах Entity, использование зарезервированных имен](#Кавычки-в-именах-entity-использование-зарезервированных-имен)
   - [Тип в котором хранить деньги](#Тип-в-котором-хранить-деньги)
   - [Особенности работы с БД MySQL](#Особенности-работы-с-БД-mysql)
-- [Про спецификацию (Hibernate Criteria API vs JPA Criteria API)](#Про-спецификацию-hibernate-criteria-api-vs-jpa-criteria-api)
+- [Про Hibernate Criteria API vs JPA Criteria API](#Про-hibernate-criteria-api-vs-jpa-criteria-api)
 - [JPA Criteria API](#jpa-criteria-api)
   - [Базовые](#Базовые)
   - [Как работать с этим в целом (примеры)](#Как-работать-с-этим-в-целом-примеры)
@@ -1841,7 +1841,7 @@ SpatialDialect - группа деалектов для работа с геом
 
 4. **Если нужно изменить параметры табл, такие как: encoding set, collation и др.**, то - нужно переопределить MySQL57InnoDBDialect и определить метод который создает конфигурационную строку при создании табл.
 
-# Про спецификацию (Hibernate Criteria API vs JPA Criteria API)
+# Про Hibernate Criteria API vs JPA Criteria API
 
 Есть 2ва варианта Criteria API в Hibernate, **старый** (Hibernate Criteria API) и **новый** (JPA Criteria API). Новый перинят из JPA и считается основным, старый доступен в Hibernate в виде расширения.
 
@@ -1960,7 +1960,7 @@ SELECT e FROM Employee e WHERE e IN (
 **Пример Example**
 
 ```java
-
+// тут будет пример
 ```
 
 **Пример Join**
