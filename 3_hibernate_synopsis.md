@@ -99,7 +99,7 @@
 - [Hypersistence Optimizer](#hypersistence-optimizer)
 - [@DynamicUpdate](#dynamicupdate)
 - [Collection vs Bag vs List vs Map vs Set](#collection-vs-bag-vs-list-vs-map-vs-set)
-- [Sorting and Ordering](#sorting-and-ordering)
+- [Sorting vs Ordering](#sorting-vs-ordering)
 - [Типы id и их генерация](#Типы-id-и-их-генерация)
 - [Авто подстановка в поле Entity текущей даты при сохранении Entity](#Авто-подстановка-в-поле-entity-текущей-даты-при-сохранении-entity)
 
@@ -2597,6 +2597,7 @@ public class Book implements Identifiable<Long> {
 При этом будут использованы множества buckets в HashSet or HashMap (что в теории плохо). Но подразумевается что при работе с Hibernate число entities ограничивается (разработчиком). И **никогда нельзя** (имеется ввиду вообще, а не только этот случай) загружать тысячи entities `@OneToMany` **Set** т.к. performance penalty on the database side is multiple orders of magnitude higher than using a single hashed bucket.
 
 # Кэширование и регионы кэша
+Тут будет описание
 
 # MVCC vs 2PL и про то что MVCC даже с Serializable isolation level может не предотвратить Phantom Read
 
@@ -2838,7 +2839,7 @@ entityManager.merge(post);
 
 # ResultTransformer и про то что он делает SQL запросы эффективнее
 
-**Прим.** _ВОЗМОЖНО_ это слишком сложно и Spring Data JPA делает не таким нужным использование данного механизма.
+**Note.** _ВОЗМОЖНО_ это слишком сложно и Spring Data JPA делает не таким нужным использование данного механизма.
 
 **ResultTransformer** трансформирует результат запроса в DTO (это DTO еще может называться неофициально **DTO projections** и оно эффективно только при read only запросах). Т.е. он кастомизирует **ResultSet**. ResultTransformer **делает генерацию SQL запросав эффективнее.**
 
@@ -2850,7 +2851,7 @@ List<PersonAndCountryDTO> personAndAddressDTOs = entityManager
     "join Country c on p.locale = c.locale " +
     "order by p.id")
 .unwrap( org.hibernate.query.Query.class )
-.setResultTransformer(
+.setResultTransformer( // применяем трансформацию, что заставляет Hibernate генерировать SQL запросы эффективнее
     new ResultTransformer() {
         @Override
         public Object transformTuple(
@@ -3001,7 +3002,7 @@ class User {
 
 Внутри Hibernate использует не стандартные коллекции, а модифицированные классы коллекций, т.е. `new HashSet()` на самом деле будет не `HashSet`, а объектом другого класса, прокси. В документации написано, что-то про то, что hibernate не может различить коллекцию инициализированную `null` или инициализированную `пустой` коллекцией. На практике в коллекции был `null`, поэтому лучше инициализировать пустой коллекцией явно. 
 
-# Sorting and Ordering
+# Sorting vs Ordering
 
 https://thoughts-on-java.org/ordering-vs-sorting-hibernate-use/
 
