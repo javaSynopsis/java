@@ -2561,7 +2561,7 @@ https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/
 https://vladmihalcea.com/the-best-way-to-implement-equals-hashcode-and-tostring-with-jpa-and-hibernate/
 https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
 
-Использовать `@NaturalId` поле в equals и hashCode. Если их нет, то нужно реализовать сравнение на основе id, но при этом добавить проверку `if(id != null)` т.к. пока Entity не начиталась там может быть `null`
+Использовать `@NaturalId` поле в equals и hashCode. Если их нет, то нужно реализовать сравнение на основе id, но при этом добавить проверку `if(id != null)` т.к. пока Entity не начиталась id может быть `null`
 
 Правильная реализация equals и hashCode для Entity не имеющей `@NaturalId`, ключевая особенность это проверка id != null в реализации, т.к. id может быть null пока данные не загружены (31 выбрано как число не делящееся на 2 и поэтому удобнее для хэшей, операции с 31 быстрее на некоторых CPU, занимает 8 бит и нужен только 1 сдвиг для изменения чего-то там. При этом hashCode постоянная, потому что сравнения по id в данном случае достаточно, а когда id == null му можем положиться на сравнение с ссылкой на сам объект):
 
