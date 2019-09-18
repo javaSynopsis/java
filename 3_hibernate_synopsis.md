@@ -2249,14 +2249,14 @@ entityManager.find(Student.class, 1L, LockModeType.PESSIMISTIC_WRITE, properties
 * **PessimisticLockScope.NORMAL** (default) - блокирует только Entity с которой идет работа, при использовании `@Inheritance(strategy = InheritanceType.JOINED)` блокирует и придков класса Entity. Т.е. lock делается на many-to-one and one-to-one foreign keys, но lock на other side parent associations не делается.
 * **PessimisticLockScope.EXTENDED** - как Normal, но в дополнение блокирует связные Entity в **"join table"** (@ElementCollection or @OneToOne, @OneToMany etc. with @JoinTable). Другими словами lock распостраняется и на **junction tables** (связь many-to-many). Этот тип lock (**прим.** видимо! имеется ввиду explicit lock с использованием данного scope) полезен только для защиты против удаления дочерних (children), но разрешает phantom reads и изменение children entity states.
 
-```java
-// PessimisticLockScope.NORMAL
-// Если есть два класса PERSON и EMPLOYEE, то lock будет выглядеть так, как я понял!
+```sql
+-- PessimisticLockScope.NORMAL
+-- Если есть два класса PERSON и EMPLOYEE, то lock будет выглядеть так, как я понял!
 SELECT t0.ID, t0.DTYPE, t0.LASTNAME, t0.NAME, t1.ID, t1.SALARY 
 FROM PERSON t0, EMPLOYEE t1 
 WHERE ((t0.ID = ?) AND ((t1.ID = t0.ID) AND (t0.DTYPE = ?))) FOR UPDATE
 
-// PessimisticLockScope.EXTENDED запрос будет видимо выглядеть так
+-- PessimisticLockScope.EXTENDED запрос будет видимо выглядеть так
 SELECT CUSTOMERID, LASTNAME, NAME
 FROM CUSTOMER WHERE (CUSTOMERID = ?) FOR UPDATE
 
