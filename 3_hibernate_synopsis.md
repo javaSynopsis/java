@@ -66,7 +66,7 @@
 - [Misc](#misc)
   - [Кавычки в именах Entity, использование зарезервированных имен](#Кавычки-в-именах-entity-использование-зарезервированных-имен)
   - [Тип в котором хранить деньги](#Тип-в-котором-хранить-деньги)
-  - [Особенности работы с БД (MySQL)](#Особенности-работы-с-БД-mysql)
+  - [Особенности работы с БД MySQL](#Особенности-работы-с-БД-mysql)
 - [Про спецификацию (Hibernate Criteria API vs JPA Criteria API)](#Про-спецификацию-hibernate-criteria-api-vs-jpa-criteria-api)
 - [JPA Criteria API](#jpa-criteria-api)
   - [Базовые](#Базовые)
@@ -1777,6 +1777,7 @@ public Long saveTask(Long userId) {
   4. Использовать аннотацию `@EnableTransactionManagement` в `@Configuration` чтобы запустить работу с транзакциями (это аналог `<tx:annotation-driven/>` из xml конфигурации)
 
 ## Конфигурация в Spring Boot через файл настроек
+тут будет описание
 
 # Misc
 
@@ -1796,7 +1797,7 @@ class Item {
 }
 ```
 
-## Особенности работы с БД (MySQL)
+## Особенности работы с БД MySQL
 
 Согласно этой статье https://www.thoughts-on-java.org/5-things-you-need-to-know-when-using-hibernate-with-mysql/
 
