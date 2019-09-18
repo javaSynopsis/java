@@ -2100,7 +2100,6 @@ public Object findByName(
         @And({
             @Spec(path="registrationDate", params="registeredBefore", spec=DateBefore.class),
             @Spec(path="lastName", spec=Like.class)}) Specification<Customer> customerSpec) {
-
     return customerRepo.findAll(customerSpec);
 }
 ```
