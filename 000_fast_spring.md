@@ -21,6 +21,13 @@
   - [Когда использовать WebApplicationInitializer или AbstractAnnotationConfigDispatcherServletInitializer](#Когда-использовать-webapplicationinitializer-или-abstractannotationconfigdispatcherservletinitializer)
 - [Spring MVC](#spring-mvc)
   - [Spring MVC Interceptor](#spring-mvc-interceptor)
+  - [Обычные Filter из java ee в Spring](#Обычные-filter-из-java-ee-в-spring)
+- [AOP](#aop)
+  - [Общее](#Общее)
+  - [Если нам все-таки надо добиться, что бы в случае Spring AOP код аспекта выполнялся при вызове proxy метода из другого proxy метода](#Если-нам-все-таки-надо-добиться-что-бы-в-случае-spring-aop-код-аспекта-выполнялся-при-вызове-proxy-метода-из-другого-proxy-метода)
+- [Spring Boot](#spring-boot)
+- [Spring Annotations](#spring-annotations)
+  - [Общее](#Общее-1)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -377,12 +384,12 @@ public class MyWebApplicationInitializer extends AbstractAnnotationConfigDispatc
 
 **Методы: preHandle(), postHandle(), afterCompletion()**
 <br>
-**Для реализации:**
-<br>
+
+**Для реализации нужно:**
 1. extends HandlerInterceptor
-<br>
 2. ИЛИ implements HandlerInterceptorAdapter
-    
+
+**Методы:**
 * **preHandle()** - вернет true / false (передать запрос дальше или нет)
 * **postHandle(..., Model model)** - последний параметр model из view
 * **afterCompletion()** - выполняется после всего в том числе работы view
@@ -411,3 +418,224 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     }
 }
 ```
+
+## Обычные Filter из java ee в Spring
+Кроме Interceptor в Spring Boot можно регестрировать обычные фильтры
+
+```java
+@Component
+@Order(1)
+public class MyFilter implements Filter {
+    @Override
+    public void doFilter(ServletRequest request, 
+      ServletResponse response, 
+      FilterChain chain) throws IOException, ServletException {}
+}
+```
+
+```java
+// регистрируем
+@Bean
+public FilterRegistrationBean<MyFilter> loggingFilter(){
+    var registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new MyFilter());
+    registrationBean.addUrlPatterns("/users/*");
+         
+    return registrationBean; 
+}
+```
+
+```java
+// старый способ регистрации в Spring (ИЛИ через web.xml)
+public class MyWebInitializer extends
+            AbstractAnnotationConfigDispatcherServletInitializer {
+	@Override
+	protected Filter[] getServletFilters() {
+		return new Filter[]{new ErrorHandleFilter()};
+	}
+}
+```
+
+# AOP
+## Общее
+**AOP** - разбиение программы на модули применимые во многих местах
+
+**Spring AOP** - proxy-based фреймворк
+
+**Как работает:** через proxy объект. Если для объекта нужно AOP. То Spring создает для него proxy и возвращает его вместо объекта. Этот proxy может выполнить Advice перед выполнением метода целевого объекта. Поэтому у Spring AOP есть ограничения и он может быть применен только в контексте.
+
+**Ограничения в Spring AOP:** аспекты не применяются к другим аспектам.
+
+**Понятия Spring AOP:**
+* **weaving** - вставка аспекта в точку кода.
+    * Может быть при: компиляции, выполнении, во время загрузки класса load time weaving (LTW) для AspectJ
+    (Spring AOP работает только для method invocation типа)
+* **introduction** - внедрение
+* **target** - изменяемый объект
+
+**типы weaving в AOP:**
+1. **compile time** (AspectJ compiler) - вызовы создаются на этапе компиляции, это дает вызов функции прокси даже если его делает другая функция прокси из того же класса (в отличии от случая с **runtime**)
+2. **load time** (AspectJ compiler)
+3. **runtime** (CGlib или JDK dynamic proxy) - прокси паттерн в который обернуты **вызовы** функций, особенность: если вызвана функция прокси объекта и внутри нее вызвана другая функция прокси объекта, то эта другая функция не вызовется, т.к. вызов будет происходить внутри прокси и следовательно другая функция вызовется из самого объекта, а не прокси и обернута в AOP не будет (**это следствие из самого паттерна proxy**)
+
+* **JDK dynamic proxy** (по умолчанию в старых версиях Spring) - работает если объект реализовывает хотя бы 1 интерфейс у объекта, прокси создается на основе используемых объектом интерфесов. Могут перекрывать только public методы. Проксирует только **public** методы.
+* **CGLib proxy** (по умолчанию в новых версиях Spring) - если интерфесы не реализовываются. Проксирует **public**, **protected** и **package** методы. Если мы явно не указали для среза (pointcut) ограничение «только для public методов», то потенциально можем получить неожиданное поведение.
+
+**Spring AOP** - использует **runtime weaving**.
+
+**Понятия классов и средств:**
+1. **@Aspect** - класс который будет применен (т.е. его методы)
+    (класс со сквазной функциональностью)
+    * **Note:** @Aspect внутри себя содержит @Pointcut
+2. **@Pointcut** - где будет примен родительский ему @Aspect,
+    содержит pattern == класс + методы к которым будет применен аспект
+    (к каким пакетам и методам будет применен)
+    * **Join Point** - конкретное место (метод) для которого будет выполняется @Aspect
+    * **Note:** Join Point это конкретное место, а @Pointcut это набор таких мест
+3. **Advice** - код аспекта, который будет выполняться в местах подключения
+    указывает и КОГДА будет выполняться код (after, before, ...)
+
+**Основные атрибуты аннотации @Pointcut:**
+* `execution` - паттерн методов
+* `within` - к каким типов классов
+* `target` - 
+* `this` - на чем вызывается метод
+* `args` - 
+
+**@target** - ссылка на сам объект (внутри proxy)
+<br>
+**this** - ссылка на AOP proxy в который обернут объект
+
+**Типы advices:** `@Before`, `@After`, `@Around` == @Before + @After, `@AfterReturning`, `@AfterThrowing`
+
+**Внедрений бинов создастся столько сколько instances бинов создано** (для singleton 1 раз, для prototype много)
+<br>
+Сам Proxy ничего не вызывает, он содержит цепочка interceptors.
+
+Не зависимо от того, попадает или нет каждый конкретный метод целевого объекта под действие аспекта, его вызов проходит через прокси-объект.
+<br>
+(**т.е.** AOP будет действовать на все методы цели-класса даже если в аспекте указан только 1ин метод)
+
+Будет создан как минимум один инстанс класса аспекта. (этим можно управлять)
+
+**Пример:**
+```java
+@Around("trackTimeAnnotation()")
+public Object around(ProceedingJoinPoint joinPoint) throws Throwable{
+    Object retVal = joinPoint.proceed();
+    return retVal; // @Around обязательно вернуть, иначе значение может быть потеряно
+}
+```
+```java
+@Aspect // методы этого класса будут применены
+@Component
+class A {
+    @Pointcut("execution(* *.f2(..))") // к чему применить
+    private void f1(){} // должен быть void???
+}
+
+class B {
+    @Before("f1()") // advice, когда и что применить
+    void f2(JoinPoint joinPoint) {} // JoinPoint joinPoint НЕ ОБЯЗАТЕЛЕН
+    
+    // получаем вернутое значение
+    @AfterReturning(poincut = "f1()", returning="retVal")
+    void f2(Object retVal) {} // retVal НЕ ОБЯЗАТЕЛЕН
+}
+```
+
+## Если нам все-таки надо добиться, что бы в случае Spring AOP код аспекта выполнялся при вызове proxy метода из другого proxy метода
+**Варианты:**
+1. надо писать код, так что бы обращения проходили через прокси-объект (В документации написано, что это нерекомендуемое решение).
+2. заинжектить сервис сам в себя (@Autowired private MyServiceImpl myService;) и использовать метод myService.
+    (ТОЛЬКО для scope = singleton, для prototype вызовет БЕСКОНЕЧНО внедрение зависимости и приложенка не запустится)
+
+# Spring Boot
+Работа Spring Boot начинается с запуска SpringApplication, который запускает ApplicationContext:
+```java
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+# Spring Annotations
+## Общее
+* **@SpringBootApplication включает:** @Configuration, @EnableAutoConfiguration, @EnableWebMvc, @ComponentScan
+* **@EnableAutoConfiguration** - пытается угадать и создать конфиги: DataSource, EntityManagerFactory, TransactionManager etc
+* **@ComponentScan** - импортит все @Configuration классы своего пакета + указанные внутри нее, минус (exclude = Blabla.class)
+
+**Stereotyping Annotations это:** @Component, @Controller, @Repository, @Service
+
+`@Value` - **для установки значения выражения в переменную (для работы с properties нужно указать @PropertySource):**
+1. Выражение
+    ```java
+    @Value("${systemValue}")
+    private String systemValue;
+    ```
+2. Строка
+    ```java
+    @Value("string value")
+    private String stringValue;
+    ```
+3. Значение по умолчанию в случае ошибки:
+    ```java
+    @Value("${unknown.param:some default}")
+    private String someDefault;
+    ```
+1. Из системной переменной:
+    ```java
+    @Value("#{systemProperties['priority']}")
+    private String spelValue;
+    ```
+2.  Для Map:
+    ```java
+    @Value("#{${valuesMap}}")
+    private Map<String, Integer> valuesMap;
+    ```
+
+**Стандартны:**
+* JSR-250 - для JSE и JEE, такие как: : `@Resource, @PreDestroy, @PostConstruct, @RolesAllowed, @PermitAll, @DenyAll` etc
+* JSR-299 - из Contexts and Dependency lnjection for the Java ЕЕ Platform 
+* JSR-330 - из пакета `javax.inject.*`
+
+**Spring annotation vs JSR-330 (javax.inject.*)**
+* @Autowired vs @Inject - @Inject не имеет параметра required
+* @Component == @Named
+* @Scope("singleton") == @Singleton - в JSR-330 по умолчанию prototype
+* @Qualifier == @Named
+* @Value, @Required, @Lazy - в JSR-330 нет аналога
+
+**Список популярных аннотаций:**
+* `@Bean({"name1", "name2"})`
+* `@PropertySource("classpath:app.properties")` - properties; переменная: @Autowired Environment env;
+* `@Conditional` - по выражениею с true/false в нем включает или выключает @Bean
+* `@Profile({"p1", "!p2"})` - над методами, задает профиль
+* `@Scope("область_видимости")` - отдельные варианты: @SessionScope, @RequestScope, @ApplicationScope
+    (других отдельных напр. для singleton нету, другие scope задаются параметрами @Scope аннотации)
+* `@Import(AnotherConfiguration.class)`
+* `@ImportResource("classpath:/lessons/xml-config.xml")` - конфиги бинов из xml
+* `@Lazy` - по умолчанию eager для singleton, остальное lazy; рекомендуют eager т.к. ошибки видны сразу (а не через дни...)
+* `@Autowired(required = false)` - рекомендуется @Required вместо этого
+* `@Qualifier("main")` - по имени
+* `@Required` - к setter, что bean должен быть обязательно
+* `@Value("${jdbc.url}")` - внедряет значение (как константа напр. properties)
+* `@Resource(name= "map")` - позволяет внедрять коллекции, в отличии от @Autowired, которая вместо коллекций пытается внедрить коллекции бинов из контейнера. **Другими словами:** связывание по имени бина, а не типу (как @Autowired или @Inject).
+* `@NonNull` - Spring в случае правильного определения класса, но при ошибках может заинжектить `null`, эта аннотация говорит не использовать `null`, может быть применена на **field**, **method parameter**, **method return value**. С этой аннотацией можно распознать проблемы.
+* `@Nullable` - можно применить например чтобы исключить проверку на `null` полей пакета помеченного `@NonNullFields`
+* `@NonNullFields` - применяется на всем пакете в файле `package-info.java`, говорит что все поля в пакете неявно `@NonNull`, применяется к **field**
+* `@NonNullApi` - как `@NonNullFields`, но применяется к **method parameter**,** method return value**
+
+
+**@Resource vs @Autowired или @Inject:**
+<br>
+@Resource сначало связывает по имени, потом по типу. К ней тоже может быть применено ограничение @Qualifier.
+@Autowired и @Qualifier часть Spring и не работают с другими фремворками, но это не важно т.к. перейти с 1го фреймворка на 2гой нереально.
+
+**Обработка исключений:**
+* `@ControllerAdvice` - контрлллер который перехватывает Exceptino глобально
+* `@ExceptionHandler(SQLException.class)` - метод из @ControllerAdvice или @Controller для конкретного типа ошибок
+* **Note.** В некоторых случаях рекомендуется возвращать @ResponseStatus(404) вместо прямого перехвата исключения (эта аннотация для метода контроллера).
+
