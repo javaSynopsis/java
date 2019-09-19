@@ -47,6 +47,10 @@
 - [Spring Data JPA + REST](#spring-data-jpa--rest)
 - [SpEL](#spel)
 - [Resource из Spring](#resource-из-spring)
+- [---------- Ниже новое ----------](#-----------Ниже-новое-----------)
+- [Spring Core](#spring-core-1)
+- [Spring DI](#spring-di)
+  - [FactoryBean](#factorybean)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -954,7 +958,7 @@ public class Application {
 * `@ImportResource("classpath:/lessons/xml-config.xml")` - конфиги бинов из xml
 * `@Lazy` - по умолчанию eager для singleton, остальное lazy; рекомендуют eager т.к. ошибки видны сразу (а не через дни...)
 * `@Autowired(required = false)` - рекомендуется @Required вместо этого
-* `@Qualifier("main")` - по имени
+* `@Qualifier("main")` - по имени, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, прим: `@Component("fooFormatter")`
 * `@Required` - к setter, что bean должен быть обязательно
 * `@Value("${jdbc.url}")` - внедряет значение (как константа напр. properties)
 * `@Resource(name= "map")` - позволяет внедрять коллекции, в отличии от @Autowired, которая вместо коллекций пытается внедрить коллекции бинов из контейнера. **Другими словами:** связывание по имени бина, а не типу (как @Autowired или @Inject).
@@ -962,6 +966,9 @@ public class Application {
 * `@Nullable` - можно применить например чтобы исключить проверку на `null` полей пакета помеченного `@NonNullFields`
 * `@NonNullFields` - применяется на всем пакете в файле `package-info.java`, говорит что все поля в пакете неявно `@NonNull`, применяется к **field**
 * `@NonNullApi` - как `@NonNullFields`, но применяется к **method parameter**, **method return value**
+* `@Primary` - если типы 2х бинов совпадают, то отмеченный этой аннотацией свжется by default и не будет ошибки (остальные `@Qualifier`). Если стоит обе аннотации, то у `@Qualifier` приоритет. Может быть проставлена и в **место инжекта**, и **над классом компонента** (чтобы сделать компонент инжекшеным by default)
+
+**Note.** (@Qualifier vs Autowiring by Name) Если задать имя класса в camelCase, то при конфликте связывание аннотацией @Autowired будет по имени класса совпавшего с именем поля.
 
 **@Resource vs @Autowired или @Inject:**
 <br>
@@ -1232,4 +1239,93 @@ Both are valid, and neither is deprecated.
 4. ServletContextResource - реализация для обработки ServletContext ресурсов относительно корневой директории web-приложения.
 5. InputStreamResource - реализация для обработки InputStream
 6. ByteArrayResource - реализация для обработки массива байтов
+
+# ---------- Ниже новое ----------
+
+# Spring Core
+
+# Spring DI
+## FactoryBean
+В два типа бинов в Spring bean containe, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта.
+
+```java
+// интерфейс
+public interface FactoryBean {
+    T getObject() throws Exception;
+    Class<?> getObjectType();
+    boolean isSingleton();
+}
+
+// пример
+public class ToolFactory implements FactoryBean<Tool> {
+    @Override
+    public Tool getObject() throws Exception {
+        return new Tool(toolId);
+    }
+ 
+    @Override
+    public Class<?> getObjectType() {
+        return Tool.class;
+    }
+ 
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
+}
+```
+**Регистрируем через xml**
+```xml
+<beans ...>
+    <bean id="tool" class="com.baeldung.factorybean.ToolFactory">
+        <property name="factoryId" value="9090"/>
+        <property name="toolId" value="1"/>
+    </bean>
+</beans>
+```
+**Регистрируем через аннотации**
+```java
+@Configuration
+public class FactoryBeanAppConfig {
+    @Bean(name = "tool")
+    public ToolFactory toolFactory() {
+        ToolFactory factory = new ToolFactory();
+        factory.setFactoryId(7070);
+        factory.setToolId(2);
+        return factory;
+    }
+ 
+    @Bean
+    public Tool tool() throws Exception {
+        return toolFactory().getObject();
+    }
+}
+```
+Если нужно исполнить какие-то действия до `getObject()`, но после `FactoryBean`. Тогда нужно использовать `InitializingBean` или `@PostConstruct`.
+
+**AbstractFactoryBean** - более удобный класс для реализации FactoryBean
+```java
+public class NonSingleToolFactory extends AbstractFactoryBean<Tool> {
+    public NonSingleToolFactory() {
+        setSingleton(false);
+    }
+ 
+    @Override
+    public Class<?> getObjectType() {
+        return Tool.class;
+    }
+ 
+    @Override
+    protected Tool createInstance() throws Exception {
+        return new Tool(toolId);
+    }
+}
+```
+Регистрация **AbstractFactoryBean**
+```xml
+<beans ...>
+    <bean id="nonSingleTool" class="com.baeldung.factorybean.NonSingleToolFactory">
+    </bean>
+</beans>
+```
 
