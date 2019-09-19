@@ -775,14 +775,13 @@ session.close();
 3. **SwarmCache** - это просто cluster-based решение, базирующееся на JavaGroups. Поддерживает read-only и нестрогое read/write кэширование. Этот тип кэширование полезен, когда количество операций чтения из БД превышает количество операций записи.
 4. **JBoss TreeCache** - предоставляет полноценный кэш транзакции.
    
-   ```java
-   // 1.
-   session = sessionFactory.openSession();
-   session.beginTransaction();
-   User user = (User) session.get(User.class, 1);
-   session.getTransaction().commit();
-   session.close();
-   ```
+```java
+// 1.
+session = sessionFactory.openSession();
+session.beginTransaction();
+User user = (User) session.get(User.class, 1);
+session.getTransaction().commit();
+session.close();
 
 // 1. Т. к. объект не изменился и включен кэш второго уровня, то и в другой сессии, объект достается из кэша.
 session = sessionFactory.openSession();
@@ -790,7 +789,6 @@ session.beginTransaction();
 User user = (User) session.get(User.class, 1); //тут SELECT не выполнится, достанется из кэша L2
 session.getTransaction().commit();
 session.close();
-
 ```
 
 **3) Query cache (extension of L2)**
@@ -798,7 +796,7 @@ session.close();
 **Включение**
 1. Включить кэш L2
 2. Установить `cache.use_query_cache=true`
-​```java
+```java
 session = sessionFactory.openSession();
 session.beginTransaction();
 Query query = session.createQuery("from User");
