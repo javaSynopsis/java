@@ -1,3 +1,10 @@
+Источники на очереди:
+* https://www.baeldung.com/category/spring/tag/spring-core-basics/
+* https://www.baeldung.com/category/spring/tag/spring-di/
+* https://www.baeldung.com/category/spring/tag/spring-annotations/
+* https://www.baeldung.com/category/spring/tag/spring-5/
+* https://www.baeldung.com/category/spring/tag/spring-mvc-basics/
+
 - [Простое подключение сервлета](#Простое-подключение-сервлета)
 - [Обработка ошибок в Java EE сервлете](#Обработка-ошибок-в-java-ee-сервлете)
 - [ServletConfig vs ServletContext](#servletconfig-vs-servletcontext)
