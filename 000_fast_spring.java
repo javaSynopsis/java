@@ -1,14 +1,4 @@
 --- Spring Core
---- Следствие из Spring AOP
-    
---- Spring Annotations
-
-Аннотации
-    
-Игнорит null???
-void f1(@NonNull var event) {}
-
-Аннотации @Autowired, @Inject, @Resource и @Value обрабатываются Spring реализацией BeanPostProcessor, поэтому вы не можете их применять в своих собственных BeanPostProcessor и BeanFactoryPostProcessor, а только лишь явной инициализацией через XML или @Bean метод. 
 ---
 Путь запроса Spring MVC:
     браузер > DispatcherServlet (сервлет, наз. front controller) >

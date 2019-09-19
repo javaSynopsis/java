@@ -626,8 +626,7 @@ public class Application {
 * `@NonNull` - Spring в случае правильного определения класса, но при ошибках может заинжектить `null`, эта аннотация говорит не использовать `null`, может быть применена на **field**, **method parameter**, **method return value**. С этой аннотацией можно распознать проблемы.
 * `@Nullable` - можно применить например чтобы исключить проверку на `null` полей пакета помеченного `@NonNullFields`
 * `@NonNullFields` - применяется на всем пакете в файле `package-info.java`, говорит что все поля в пакете неявно `@NonNull`, применяется к **field**
-* `@NonNullApi` - как `@NonNullFields`, но применяется к **method parameter**,** method return value**
-
+* `@NonNullApi` - как `@NonNullFields`, но применяется к **method parameter**, **method return value**
 
 **@Resource vs @Autowired или @Inject:**
 <br>
@@ -638,4 +637,6 @@ public class Application {
 * `@ControllerAdvice` - контрлллер который перехватывает Exceptino глобально
 * `@ExceptionHandler(SQLException.class)` - метод из @ControllerAdvice или @Controller для конкретного типа ошибок
 * **Note.** В некоторых случаях рекомендуется возвращать @ResponseStatus(404) вместо прямого перехвата исключения (эта аннотация для метода контроллера).
+
+Аннотации @Autowired, @Inject, @Resource и @Value обрабатываются Spring реализацией BeanPostProcessor, поэтому вы не можете их применять в своих собственных BeanPostProcessor и BeanFactoryPostProcessor, а только лишь явной инициализацией через XML или @Bean метод. 
 
