@@ -1280,13 +1280,35 @@ Both are valid, and neither is deprecated.
 
 **Note.** Под **конфликтом связывания** бинов понимается, когда или **типы бинов совпадают**, или связывание происходит с полем **ссылкой типа общего предка** (и тогда Spring не знает что выбрать). Чтобы решить такие конфликты используется: @Autowired вместе с @Qualifier, @Primary для связывания **по типу** или связывание **по имени** с @Autowired и именем поля как у класса.
 
-**Список:**
-* `@Component` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
-* `@Service` - ничего не делает, просто отмечает бин как бизнес логику
-* `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
-* `@Qualifier("main")` - связывание по имени, используется как пара к @Autowired, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` == `@Qualifier("fooFormatter")`.
-* `@Autowired` - Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**.
-* `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
+Аннотации в пакетах `org.springframework.beans.factory.annotation` и `org.springframework.context.annotation` 
+
+**Core annotations:**
+* **DI-Related Annotations**
+  * `@Component` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
+  * `@Service` - ничего не делает, просто отмечает бин как бизнес логику
+  * `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
+  * `@Qualifier("main")` - связывание по **name** или **id** бина (видимо id это имя генерируемое автоматически, а name заданное), используется как пара к `@Autowired`, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` тоже что и `@Qualifier("fooFormatter")` над **классом**. Можно применять в **constructor параметре**, **setter параметре**, **над setter**, **над field**
+    * `@Autowired Biker(@Qualifier("bike") Vehicle vehicle) {}`
+    * `@Autowired void setVehicle(@Qualifier("bike") Vehicle vehicle) {}` - параметр set
+    * `@Autowired @Qualifier("bike") void setVehicle(Vehicle vehicle) {}` - над методом set
+    * `@Autowired @Qualifier("bike") Vehicle vehicle;`
+  * `@Autowired` - Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**. Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить @Autowired над constructors не обязательно, но обязательно если конструкторов **больше 1го**.
+    * `@Autowired(required = true)` - атрибут **required = true** стоит by default, если зависимости нет при запуске Spring будет exception, если поставить в false, то exception не будет
+  * `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
+  * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе.
+  * `@Required` - уточнить
+  * `@Value` - делает inject файла или переменной property в поле бина. Применяется на **constructor**, **setter**, и **field**. Внутри можно использовать SpEL (выражения начинающиеся не с `$`, а с `#`)
+    * `Engine(@Value("8") int cylinderCount) {}`
+    * `@Autowired void setCylinderCount(@Value("8") int cylinderCount) {}`
+    * `@Value("8") void setCylinderCount(int cylinderCount) {}`
+    * `@Value("8") int cylinderCount;`
+    * `@Value("${engine.fuelType}") String fuelType;` - для файла `engine.fuelType=petrol`
+  * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
+    * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей. 
+    * `@Bean @DependsOn("fuel") Engine engine() {}` - над factory method зависимого бина.
+    * `@Lazy`
+* **Context Configuration Annotations**
+  * 
 
 **Spring MVC**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
@@ -1334,10 +1356,10 @@ Spring bean - обьект который управляется Spring IoC cont
     }
     ```
 3. Создать instance of **ApplicationContext**
-```java
-ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
-Company company = context.getBean("company", Company.class); // проверяем
-```
+    ```java
+    ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+    Company company = context.getBean("company", Company.class); // проверяем
+    ```
 
 # Spring DI
 ## FactoryBean
