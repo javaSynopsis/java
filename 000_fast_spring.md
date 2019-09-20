@@ -49,8 +49,13 @@
 - [Resource из Spring](#resource-из-spring)
 - [---------- Ниже новое ----------](#-----------Ниже-новое-----------)
 - [Spring Core](#spring-core-1)
+  - [Почему нужно выбрать Spring?](#Почему-нужно-выбрать-spring)
+  - [Annotations](#annotations)
+  - [getBean()](#getbean)
+  - [What is a Spring Bean?](#what-is-a-spring-bean)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
+- [Spring MVC](#spring-mvc-3)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -1243,10 +1248,100 @@ Both are valid, and neither is deprecated.
 # ---------- Ниже новое ----------
 
 # Spring Core
+## Почему нужно выбрать Spring?
+**Spring** - начинался как Inversion of Control и сейчас используется в большей степени для этого.
+
+**Плюсы:**
+* Фреймворк помогает избавиться от повторяющегося кода
+* Использует проверенные годами паттерны
+* экосистема с готовыми компонентами
+
+**Минусы:**
+* Заставляет писать код в определенной манере
+* Ограничивает версии языка и библиотек
+* Дополнительное потребление ресурсов
+
+**Модули:**
+* Core - DI, Internationalisation, Validation, AOP
+* Data Access - поддержка доступа к данным через JTA (Java Transaction API), JPA (Java Persistence API), and JDBC (Java Database Connectivity)
+* Web - поддержка Servlet API (Spring MVC) и Reactive API (Spring WebFlux) и дополнительно поддерживаются WebSockets, STOMP, and WebClient
+* Integration - поддержка интеграции с Enterprise Java через JMS (Java Message Service), JMX (Java Management Extension), and RMI (Remote Method Invocation)
+* Testing - unit and integration testing через Mock Objects, Test Fixtures, Context Management, and Caching
+
+**Spring Projects:**
+* **Boot** - template код для быстрого разворачивания приложения в том числе с встроенными контейнерами приложений
+* **Cloud** - легкая разработка с использованием паттернов распределенных систем (distributed system patterns) service discovery, circuit breaker, and API gateway
+* **Security** - authentication and authorization, защита от session fixation, click-jacking, and cross-site request forgery
+* **Mobile** - обнаружение и поддержка мобильных устройств, в том числе особая работа с view (видимо из MVC)
+* **Batch**
+
+## Annotations
+**stereotype** - так еще называют аннотации Spring
+
+**Note.** Под **конфликтом связывания** бинов понимается, когда или **типы бинов совпадают**, или связывание происходит с полем **ссылкой типа общего предка** (и тогда Spring не знает что выбрать). Чтобы решить такие конфликты используется: @Autowired вместе с @Qualifier, @Primary для связывания **по типу** или связывание **по имени** с @Autowired и именем поля как у класса.
+
+**Список:**
+* `@Component` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
+* `@Service` - ничего не делает, просто отмечает бин как бизнес логику
+* `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
+* `@Qualifier("main")` - связывание по имени, используется как пара к @Autowired, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` == `@Qualifier("fooFormatter")`.
+* `@Autowired` - Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**.
+* `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
+
+**Spring MVC**
+* `@RequestParam` - извлекает **parameters**, файлы etc из request
+  * `@RequestParam(name = “id”) fooId` или `@RequestParam(value = “id”) fooId` или `@RequestParam(“id”) fooId` или `@RequestParam String fooId` - разные варианты
+  * `@RequestParam(required = false) String id` - **required = false** чтобы не получить ошибку если параметра нет в request, если параметра нет, то будет установлен **null**
+  * `@RequestParam(defaultValue = "test") String id` - установка значение по умолчанию, после этого **required=false** необязательно
+  * `@RequestParam Map<String,String> allParams` - маппинг всех параметров
+  * `@RequestParam List<String> id` - Multi-Value Parameter, когда один параметр может иметь несколько значений, например `http://localhost:8080/api/foos?id=1,2,3` **или** `http://localhost:8080/api/foos?id=1&id=2`
+* `@PathVariable` - извлекает **URI path parameters** из request, при этом метод или класс `@Controller` должен быть отмечен `@GetMapping("/foos/{id}")` и адрес `http://localhost:8080/foos/abc`
+  * `@PathVariable(required = false) String id` - аналогично как в `@RequestParam`, если параметра нет, то не будет ошибки и переменная будет **null**. **Note:** если использовать **required = false**, то **могут** возникнуть конфликты в путях
+* `@PathVariable` vs `@RequestParam` - в адресе `@RequestParam` параметры **URL encoded**, т.е. спец. символы экранируются и после преобразования в String исчезнут, например `/foos?id=ab+c` будет `ab c`
+
+## getBean()
+**Имеет 5 сигнатур:**
+* `(Tiger) context.getBean("lion");` - by name, нужно вручную использовать приведение типа
+* `context.getBean("lion", Lion.class);` - by Name and Type
+* `context.getBean(Lion.class);` - by Type
+* `(Tiger) context.getBean("tiger", "Siberian");` - by Name with Constructor Parameters, 2ой параметр передается в конструктор
+* `context.getBean(Tiger.class, "Shere Khan");` - by Type With Constructor Parameters
+
+## What is a Spring Bean?
+Spring bean - обьект который управляется Spring IoC container, создается им и управляется
+
+**Inversion of Control** - процесс при котором обьект обьявляет свои зависимости без их явного создания (и IoC контейнер сам их подставляет)
+
+Когда Spring создает обьекты они вызываются в порядке их обьявления в конфигурации.
+
+Этапы создания spring beans:
+1. Обьявить bean (**bean defenition**)
+    ```java
+    @Component
+    public class Company {
+        // this body is the same as before
+    }
+    ```
+2. Создать **конфигурацию** бина (bean metadata)
+    ```java
+    @Configuration
+    @ComponentScan(basePackageClasses = Company.class)
+    public class Config {
+        @Bean
+        public Address getAddress() {
+            return new Address("High Street", 1000);
+        }
+    }
+    ```
+3. Создать instance of **ApplicationContext**
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+Company company = context.getBean("company", Company.class); // проверяем
+```
 
 # Spring DI
 ## FactoryBean
-В два типа бинов в Spring bean containe, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта.
+Есть два типа бинов в Spring bean container, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта.
 
 ```java
 // интерфейс
@@ -1329,3 +1424,4 @@ public class NonSingleToolFactory extends AbstractFactoryBean<Tool> {
 </beans>
 ```
 
+# Spring MVC
