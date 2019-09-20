@@ -1306,11 +1306,21 @@ Both are valid, and neither is deprecated.
   * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
     * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей. 
     * `@Bean @DependsOn("fuel") Engine engine() {}` - над factory method зависимого бина.
-    * `@Lazy`
-* **Context Configuration Annotations**
-  * 
+    * `@Lazy` - отмечаем бины которые нужно создать lazily во время первого обращения к этому bean, by default они создаются eager во время запуска application context. Можно отмечать как `@Lazy(false)` чтобы переопределить глобальные значения и отключить lazy.
+      * над `@Bean factory method` - влияет на этот метод
+      * над `@Configuration class` - влияет на все методы класса
+      * над `@Component class` - влияет на создание этого bean
+      * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
+    * `@Lookup` - 
+    * `@Scope` - обьявление scope над `@Component` или `@Bean`
+* **Context Configuration Annotations** - конфигурирование application context
+  * `@Profile("sportDay")` - отмечаем @Component или @Bean только если хотим, чтобы они создавались при определенном Spring профиле
+  * `@Import(VehiclePartSupplier.class)` - отмечаем `@Configuration` и указываем внутри другой класс `@Configuration` чтобы импортировать один в другой
+  * `@ImportResource("classpath:/annotations.xml")` - отмечаем `@Configuration`, импорт xml конфигов
+  * `@PropertySource` - отмечаем `@Configuration`, после этого можно использовать property внутри класса и в аннотации `@Value`. Начиная с Java 8 эта аннотация Repeatable и можно над классом ставить несколько таких аннотаций.
+  * `@PropertySources({@PropertySource("classpath:/annotations.properties"), @PropertySource("classpath:vehicle-factory.properties")})` - можно указать массив аннотаций `@PropertySource` внутри
 
-**Spring MVC**
+**Spring MVC аннотации**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
   * `@RequestParam(name = “id”) fooId` или `@RequestParam(value = “id”) fooId` или `@RequestParam(“id”) fooId` или `@RequestParam String fooId` - разные варианты
   * `@RequestParam(required = false) String id` - **required = false** чтобы не получить ошибку если параметра нет в request, если параметра нет, то будет установлен **null**
