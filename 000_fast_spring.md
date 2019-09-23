@@ -913,33 +913,6 @@ public class Application {
 
 **Stereotyping Annotations это:** @Component, @Controller, @Repository, @Service
 
-`@Value` - **для установки значения выражения в переменную (для работы с properties нужно указать @PropertySource):**
-1. Выражение
-    ```java
-    @Value("${systemValue}")
-    private String systemValue;
-    ```
-2. Строка
-    ```java
-    @Value("string value")
-    private String stringValue;
-    ```
-3. Значение по умолчанию в случае ошибки:
-    ```java
-    @Value("${unknown.param:some default}")
-    private String someDefault;
-    ```
-1. Из системной переменной:
-    ```java
-    @Value("#{systemProperties['priority']}")
-    private String spelValue;
-    ```
-2.  Для Map:
-    ```java
-    @Value("#{${valuesMap}}")
-    private Map<String, Integer> valuesMap;
-    ```
-
 **Стандартны:**
 * JSR-250 - для JSE и JEE, такие как: : `@Resource, @PreDestroy, @PostConstruct, @RolesAllowed, @PermitAll, @DenyAll` etc
 * JSR-299 - из Contexts and Dependency lnjection for the Java ЕЕ Platform 
@@ -1297,12 +1270,37 @@ Both are valid, and neither is deprecated.
   * `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
   * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе.
   * `@Required` - уточнить
-  * `@Value` - делает inject файла или переменной property в поле бина. Применяется на **constructor**, **setter**, и **field**. Внутри можно использовать SpEL (выражения начинающиеся не с `$`, а с `#`)
+  * `@Value` - делает inject файла или переменной property в поле бина. Применяется на **constructor**, **setter**, и **field**. Внутри можно использовать SpEL (выражения начинающиеся не с `$`, а с `#`). **для установки значения выражения в переменную (для работы с properties нужно указать @PropertySource):**
     * `Engine(@Value("8") int cylinderCount) {}`
     * `@Autowired void setCylinderCount(@Value("8") int cylinderCount) {}`
     * `@Value("8") void setCylinderCount(int cylinderCount) {}`
     * `@Value("8") int cylinderCount;`
     * `@Value("${engine.fuelType}") String fuelType;` - для файла `engine.fuelType=petrol`
+    1. Выражение
+        ```java
+        @Value("${systemValue}")
+        private String systemValue;
+        ```
+    2. Строка
+        ```java
+        @Value("string value")
+        private String stringValue;
+        ```
+    3. Значение по умолчанию в случае ошибки:
+        ```java
+        @Value("${unknown.param:some default}")
+        private String someDefault;
+        ```
+    4. Из системной переменной:
+        ```java
+        @Value("#{systemProperties['priority']}")
+        private String spelValue;
+        ```
+    5.  Для Map:
+        ```java
+        @Value("#{${valuesMap}}")
+        private Map<String, Integer> valuesMap;
+        ```
   * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
     * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей. 
     * `@Bean @DependsOn("fuel") Engine engine() {}` - над factory method зависимого бина.
@@ -1312,13 +1310,13 @@ Both are valid, and neither is deprecated.
       * над `@Component class` - влияет на создание этого bean
       * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
     * `@Lookup` - 
-    * `@Scope` - обьявление scope над `@Component` или `@Bean`
+    * `@Scope("prototype")` - обьявление scope над `@Component` или `@Bean`
 * **Context Configuration Annotations** - конфигурирование application context
   * `@Profile("sportDay")` - отмечаем @Component или @Bean только если хотим, чтобы они создавались при определенном Spring профиле
   * `@Import(VehiclePartSupplier.class)` - отмечаем `@Configuration` и указываем внутри другой класс `@Configuration` чтобы импортировать один в другой
   * `@ImportResource("classpath:/annotations.xml")` - отмечаем `@Configuration`, импорт xml конфигов
   * `@PropertySource` - отмечаем `@Configuration`, после этого можно использовать property внутри класса и в аннотации `@Value`. Начиная с Java 8 эта аннотация Repeatable и можно над классом ставить несколько таких аннотаций.
-  * `@PropertySources({@PropertySource("classpath:/annotations.properties"), @PropertySource("classpath:vehicle-factory.properties")})` - можно указать массив аннотаций `@PropertySource` внутри
+  * `@PropertySources({@PropertySource("classpath:/annotations.properties"), @PropertySource("classpath:vehicle-factory.properties")})` - можно указать массив аннотаций `@PropertySource` внутри `@PropertySources`
 
 **Spring MVC аннотации**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
