@@ -1257,25 +1257,27 @@ Both are valid, and neither is deprecated.
 
 **Core annotations:**
 * **DI-Related Annotations**
-  * `@Component` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
+  * `@Component("fooFormatter")` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
+  * `@ComponentScan("com.baeldung.autowire.sample")`
+    * **в xml** можно использовать `<context:annotation-config/>` вместо этого
   * `@Service` - ничего не делает, просто отмечает бин как бизнес логику
   * `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
-  * `@Qualifier("main")` - связывание по **name** или **id** бина (видимо id это имя генерируемое автоматически, а name заданное), используется как пара к `@Autowired`, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` тоже что и `@Qualifier("fooFormatter")` над **классом**. Можно применять в **constructor параметре**, **setter параметре**, **над setter**, **над field**
+  * `@Qualifier("main")` - связывание по **name** или **id** бина (видимо id это имя генерируемое автоматически, а name заданное), используется как пара к `@Autowired`, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` тоже что и `@Qualifier("fooFormatter")` над **классом**. Можно применять в **constructor параметре**, **setter параметре**, **над setter**, **над field**. Можно создать **свой вариант аннотации @Qualifier** проставив `@Qualifier` над созданной аннотацией.
     * `@Autowired Biker(@Qualifier("bike") Vehicle vehicle) {}`
     * `@Autowired void setVehicle(@Qualifier("bike") Vehicle vehicle) {}` - параметр set
     * `@Autowired @Qualifier("bike") void setVehicle(Vehicle vehicle) {}` - над методом set
     * `@Autowired @Qualifier("bike") Vehicle vehicle;`
-  * `@Autowired` - Отмечает зависимость которую Spring будет resolve. Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**. Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить **@Autowired над constructors не обязательно**, но обязательно если конструкторов **больше 1го**.
+  * `@Autowired` - Отмечает зависимость которую Spring будет resolve. Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени** (это fallback поведение Spring). Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить **@Autowired над constructors не обязательно**, но обязательно если конструкторов **больше 1го**, в классах @Configuration в этом случае constructor тоже может быть пропущен.
     * `@Autowired(required = true)` - атрибут **required = true** стоит by default, если зависимости нет при запуске Spring будет exception, если поставить в false, то exception не будет
     * `@Autowired Car(Engine engine) {}` - constructor
     * `@Autowired void setEngine(Engine engine) {}` - setter
     * `@Autowired Engine engine;` - field
   * `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
-  * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе.
+  * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе. Если `@Bean` проставлена над конструктором, то inject происходит во время запуска контекста, а не по запросу этого бина как зависимости.
     * `@Bean({"name1", "name2"})`
     * `@Bean(name = "name1")`
     * `@Bean(value = "name1")`
-  * `@Required` - уточнить
+  * `@Required void setColor(String color) {}` - отмечает зависимость (e.g. проставляется над set) которая описана в xml, без нее будет BeanInitializationException
   * `@Value` - делает inject файла или переменной property в поле бина. Применяется на **constructor**, **setter**, и **field**. Внутри можно использовать SpEL (выражения начинающиеся не с `$`, а с `#`). **для установки значения выражения в переменную (для работы с properties нужно указать @PropertySource):**
     * `Engine(@Value("8") int cylinderCount) {}`
     * `@Autowired void setCylinderCount(@Value("8") int cylinderCount) {}`
@@ -1308,9 +1310,9 @@ Both are valid, and neither is deprecated.
         private Map<String, Integer> valuesMap;
         ```
   * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
-    * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей. 
+    * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей.
     * `@Bean @DependsOn("fuel") Engine engine() {}` - над factory method зависимого бина.
-    * `@Lazy` - отмечаем бины которые нужно создать lazily во время первого обращения к этому bean, by default они создаются eager во время запуска application context. Можно отмечать как `@Lazy(false)` чтобы переопределить глобальные значения и отключить lazy.
+    * `@Lazy` - отмечаем бины которые нужно создать lazily во время первого обращения к этому bean, by default они создаются eager во время запуска application context (**Note.** тут есть нюанс, что для field и setter они создаются при первом вызове? т.к. при constructor они создаются сразу при запуске контекста). Можно отмечать как `@Lazy(false)` чтобы переопределить глобальные значения и отключить lazy.
       * над `@Bean factory method` - влияет на этот метод
       * над `@Configuration class` - влияет на все методы класса
       * над `@Component class` - влияет на создание этого bean
