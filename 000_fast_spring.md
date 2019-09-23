@@ -1265,10 +1265,16 @@ Both are valid, and neither is deprecated.
     * `@Autowired void setVehicle(@Qualifier("bike") Vehicle vehicle) {}` - параметр set
     * `@Autowired @Qualifier("bike") void setVehicle(Vehicle vehicle) {}` - над методом set
     * `@Autowired @Qualifier("bike") Vehicle vehicle;`
-  * `@Autowired` - Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**. Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить @Autowired над constructors не обязательно, но обязательно если конструкторов **больше 1го**.
+  * `@Autowired` - Отмечает зависимость которую Spring будет resolve. Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени**. Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить **@Autowired над constructors не обязательно**, но обязательно если конструкторов **больше 1го**.
     * `@Autowired(required = true)` - атрибут **required = true** стоит by default, если зависимости нет при запуске Spring будет exception, если поставить в false, то exception не будет
+    * `@Autowired Car(Engine engine) {}` - constructor
+    * `@Autowired void setEngine(Engine engine) {}` - setter
+    * `@Autowired Engine engine;` - field
   * `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
   * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе.
+    * `@Bean({"name1", "name2"})`
+    * `@Bean(name = "name1")`
+    * `@Bean(value = "name1")`
   * `@Required` - уточнить
   * `@Value` - делает inject файла или переменной property в поле бина. Применяется на **constructor**, **setter**, и **field**. Внутри можно использовать SpEL (выражения начинающиеся не с `$`, а с `#`). **для установки значения выражения в переменную (для работы с properties нужно указать @PropertySource):**
     * `Engine(@Value("8") int cylinderCount) {}`
