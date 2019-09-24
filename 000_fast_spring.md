@@ -53,6 +53,7 @@
   - [Annotations](#annotations)
   - [getBean()](#getbean)
   - [What is a Spring Bean?](#what-is-a-spring-bean)
+  - [Базовые приемы работы с xml конфигурацией](#Базовые-приемы-работы-с-xml-конфигурацией)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1487,6 +1488,56 @@ Spring bean - обьект который управляется Spring IoC cont
     ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
     Company company = context.getBean("company", Company.class); // проверяем
     ```
+
+## Базовые приемы работы с xml конфигурацией
+```java
+// Static Factory
+public class StaticServiceFactory {
+    public static IService getNumber(int number) {}
+}
+
+// Factory Method (non static)
+public class InstanceServiceFactory {
+    public IService getNumber(int number) {}
+}
+```
+```xml
+<!-- Using Properties -->
+<bean
+  id="indexService"
+  class="com.baeldung.di.spring.IndexService" />
+<bean
+  id="indexApp"
+  class="com.baeldung.di.spring.IndexApp" >
+    <property name="service" ref="indexService" />
+</bean>
+
+<!-- Using Constructor -->
+<bean
+  id="indexApp"
+  class="com.baeldung.di.spring.IndexApp">
+    <constructor-arg ref="indexService" />
+</bean>
+
+<!-- Static Factory -->
+<bean
+  id="indexApp"
+  class="com.baeldung.di.spring.IndexApp">
+    <constructor-arg ref="indexService" />
+</bean>
+
+<!-- Factory Method (non static) -->
+<bean id="indexServiceFactory"
+  class="com.baeldung.di.spring.InstanceServiceFactory" />
+<bean id="messageService"
+  class="com.baeldung.di.spring.InstanceServiceFactory"
+  factory-method="getService" factory-bean="indexServiceFactory">
+    <constructor-arg value="1" />
+</bean>  
+<bean id="indexApp" class="com.baeldung.di.spring.IndexApp">
+    <property name="service" ref="messageService" />
+</bean>
+```
 
 # Spring DI
 ## FactoryBean
