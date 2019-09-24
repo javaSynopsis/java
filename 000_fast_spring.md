@@ -1299,15 +1299,43 @@ Both are valid, and neither is deprecated.
         @Value("${unknown.param:some default}")
         private String someDefault;
         ```
-    4. Из системной переменной:
+    4. Для Map, значения должны быть в одинарных кавычках:
+        ```java
+        // valuesMap={key1: '1', key2: '2', key3: '3'}
+        @Value("#{${valuesMap}}")
+        private Map<String, Integer> valuesMap;
+        ```
+    5. Если property с одинаковым ключем обьявлены в **system property** и в **property file**, то приоритет у **system property**
+        ```java
+        // значение priority из system property
+        @Value("${priority}")
+        private String prioritySystemProperty;
+        ```
+    6. Массив
+        ```java
+        // listOfValues=A,B,C
+        @Value("${listOfValues}")
+        private String[] valuesArray;
+        ```
+    7. Из системной переменной в SpEL:
         ```java
         @Value("#{systemProperties['priority']}")
         private String spelValue;
         ```
-    5.  Для Map:
+    8. Если в случае ниже **systemProperties** переменной не существует, то value будет **null**
         ```java
-        @Value("#{${valuesMap}}")
-        private Map<String, Integer> valuesMap;
+        @Value("#{systemProperties['unknown'] ?: 'some default'}")
+        private String spelSomeDefault;
+        ```
+    9. Доступ к полю другого бина
+        ```java
+        @Value("#{someBean.someValue}")
+        private Integer someBeanValue;
+        ```
+    10. Разбиваем значения на **List** и устанавливаем
+        ```java
+        @Value("#{'${listOfValues}'.split(',')}")
+        private List<String> valuesList;
         ```
   * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
     * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей.
