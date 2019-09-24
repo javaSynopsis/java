@@ -1317,10 +1317,11 @@ Both are valid, and neither is deprecated.
       * над `@Configuration class` - влияет на все методы класса
       * над `@Component class` - влияет на создание этого bean
       * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
-    * `@Lookup` - для inject prototype bean в singleton bean при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для inject процедурным способом (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup** если не используется **component-scan** или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
+    * `@Lookup` - для **inject prototype bean в singleton bean** при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для **inject процедурным способом** (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup**, если не используется **component-scan** или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
       * **Процесс использоваения @Lookup**
         ```java
-        // 1. создаем метод заглушку в singleton бине
+        // 1. inject prototype bean в singleton bean
+        // создаем метод заглушку в singleton бине
         // Spring внутри создаст наследника этого класса и в нем переопределит этот метод
         // при КАЖДОМ вызове этого метода в singleton бине он будет возвращать новый prototype bean
         // Note. не важно что return из этого метода, оно будет заменено, рекомендуется null
@@ -1329,11 +1330,25 @@ Both are valid, and neither is deprecated.
             return null;
         }
 
-        // 2. можно исопльзовать abstract + @Lookup если не используется component-scan или другое
+        // 2. inject процедурным способом
+        // можно исопльзовать abstract + @Lookup если не используется component-scan или другое
         // @Bean-manage (видимо имеется ввиду что не отрабатывает авто поиск и создание бинов)
         // т.к. component-scan не учитывает abstract бины
+        // 2.0 делаем бин
+        @Component
+        @Scope("prototype")
+        public class SchoolNotification {
+            private String name;
+            public SchoolNotification(String name) {} // передаем параметр при создании и в зависимости от него строим логику
+        }
+        // 2.1 делаем метод источник бинов, принимает параметр который передается в конструктор бина
+        // (abstract не обязательно, но можно в НЕКОТОРЫХ см. выше случаях)
         @Lookup
         protected abstract SchoolNotification getNotification(String name);
+        // 2.2 получаем внутри метода по имени новый бин prototype
+        public String f1(String name) {
+            SchoolNotification notification = getNotification(name);
+        }
         ```
     * `@Scope("prototype")` - обьявление scope над `@Component` или `@Bean`
 * **Context Configuration Annotations** - конфигурирование application context
