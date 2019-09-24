@@ -1317,7 +1317,7 @@ Both are valid, and neither is deprecated.
       * над `@Configuration class` - влияет на все методы класса
       * над `@Component class` - влияет на создание этого bean
       * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
-    * `@Lookup` - для **inject prototype bean в singleton bean** при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для **inject процедурным способом** (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup**, если не используется **component-scan** или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
+    * `@Lookup` - для **inject prototype bean в singleton bean** при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для **inject процедурным способом** (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup**, если **surrounding class** это **component-scan** класс (сканируемый на компоненты) или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
       * **Процесс использоваения @Lookup**
         ```java
         // 1. inject prototype bean в singleton bean
