@@ -1298,6 +1298,26 @@ Both are valid, and neither is deprecated.
         ```java
         @Value("${unknown.param:some default}")
         private String someDefault;
+
+        // пустая строка
+        @Value("${some.key:})"
+        private String stringWithBlankDefaultValue;
+
+        @Value("${some.key:true}")
+        private boolean booleanWithDefaultValue;
+
+        @Value("${some.key:42}")
+        private int intWithDefaultValue;
+
+        @Value("${some.key:one,two,three}")
+        private String[] stringArrayWithDefaults;
+
+        @Value("${some.key:1,2,3}")
+        private int[] intArrayWithDefaults;
+
+        // SpEL
+        @Value("#{systemProperties['some.key'] ?: 'my default system property value'}")
+        private String spelWithDefaultValue;
         ```
     4. Если property с одинаковым ключем обьявлены в **system property** и в **property file**, то приоритет у **system property**
         ```java
