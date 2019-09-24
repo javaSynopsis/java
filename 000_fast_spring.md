@@ -1299,44 +1299,75 @@ Both are valid, and neither is deprecated.
         @Value("${unknown.param:some default}")
         private String someDefault;
         ```
-    4. Для Map, значения должны быть в одинарных кавычках:
-        ```java
-        // valuesMap={key1: '1', key2: '2', key3: '3'}
-        @Value("#{${valuesMap}}")
-        private Map<String, Integer> valuesMap;
-        ```
-    5. Если property с одинаковым ключем обьявлены в **system property** и в **property file**, то приоритет у **system property**
+    4. Если property с одинаковым ключем обьявлены в **system property** и в **property file**, то приоритет у **system property**
         ```java
         // значение priority из system property
         @Value("${priority}")
         private String prioritySystemProperty;
         ```
-    6. Массив
+    5. Массив
         ```java
         // listOfValues=A,B,C
         @Value("${listOfValues}")
         private String[] valuesArray;
         ```
-    7. Из системной переменной в SpEL:
-        ```java
-        @Value("#{systemProperties['priority']}")
-        private String spelValue;
-        ```
-    8. Если в случае ниже **systemProperties** переменной не существует, то value будет **null**
-        ```java
-        @Value("#{systemProperties['unknown'] ?: 'some default'}")
-        private String spelSomeDefault;
-        ```
-    9. Доступ к полю другого бина
-        ```java
-        @Value("#{someBean.someValue}")
-        private Integer someBeanValue;
-        ```
-    10. Разбиваем значения на **List** и устанавливаем
-        ```java
-        @Value("#{'${listOfValues}'.split(',')}")
-        private List<String> valuesList;
-        ```
+    6. **SpEL**
+       1. Из системной переменной:
+           ```java
+           @Value("#{systemProperties['priority']}")
+           private String spelValue;
+           ```
+       2. Если в случае ниже **systemProperties** переменной не существует, то value будет **null**
+           ```java
+           @Value("#{systemProperties['unknown'] ?: 'some default'}")
+           private String spelSomeDefault;
+           ```
+       3. Доступ к полю другого бина
+           ```java
+           @Value("#{someBean.someValue}")
+           private Integer someBeanValue;
+           ```
+       4.  Разбиваем значения на **List** и устанавливаем
+           ```java
+           @Value("#{'${listOfValues}'.split(',')}")
+           private List<String> valuesList;
+           ```
+    7. **Maps**
+       1. Для Map, значения должны быть в одинарных кавычках:
+           ```java
+           // valuesMap={key1: '1', key2: '2', key3: '3'}
+           @Value("#{${valuesMap}}")
+           private Map<String, Integer> valuesMap;
+           ```
+        2. Взять value из map по ключу (key1 имя ключа), если такого ключа нет, то будет **exception**
+            ```java
+            @Value("#{${valuesMap}.key1}")
+            private Integer valuesMapKey1;
+            ```
+        3. Значение по ключу, **без выброса exception** если ключа нету, тогда значение будет **null**
+            ```java
+            @Value("#{${valuesMap}['unknownKey']}")
+            private Integer unknownMapKey;
+            ```
+        4. Значения по умолчанию для определенных ключей
+            ```java
+            @Value("#{${unknownMap : {key1: '1', key2: '2'}}}")
+            private Map<String, Integer> unknownMap;
+            
+            @Value("#{${valuesMap}['unknownKey'] ?: 5}")
+            private Integer unknownMapKeyWithDefaultValue;
+            ```
+        5. Фильтруем (filtered) значения перед inject
+            ```java
+            // только value > 1
+            @Value("#{${valuesMap}.?[value>'1']}")
+            private Map<String, Integer> valuesMapFiltered;
+            ```
+        6. inject всех **systemProperties**
+            ```java
+            @Value("#{systemProperties}")
+            private Map<String, String> systemPropertiesMap;
+            ```
   * `@DependsOn` - в ней можно указать имя зависимости бина, чтобы он загрузился до загрузки зависимого бина
     * `@DependsOn("engine") class Car implements Vehicle {}` - над классом указываем зависимость, которую нужно загрузить до класса. **Нужно** когда зависимость неявная, например JDBC driver loading или static variable initialization. В обычном случае Spring сам оприделяет последовать создания зависимостей.
     * `@Bean @DependsOn("fuel") Engine engine() {}` - над factory method зависимого бина.
