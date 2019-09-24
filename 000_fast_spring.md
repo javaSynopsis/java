@@ -1317,7 +1317,24 @@ Both are valid, and neither is deprecated.
       * над `@Configuration class` - влияет на все методы класса
       * над `@Component class` - влияет на создание этого bean
       * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
-    * `@Lookup` - 
+    * `@Lookup` - для inject prototype bean в singleton bean при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для inject процедурным способом (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup** если не используется **component-scan** или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
+      * **Процесс использоваения @Lookup**
+        ```java
+        // 1. создаем метод заглушку в singleton бине
+        // Spring внутри создаст наследника этого класса и в нем переопределит этот метод
+        // при КАЖДОМ вызове этого метода в singleton бине он будет возвращать новый prototype bean
+        // Note. не важно что return из этого метода, оно будет заменено, рекомендуется null
+        @Lookup
+        public Passenger createPassenger() {
+            return null;
+        }
+
+        // 2. можно исопльзовать abstract + @Lookup если не используется component-scan или другое
+        // @Bean-manage (видимо имеется ввиду что не отрабатывает авто поиск и создание бинов)
+        // т.к. component-scan не учитывает abstract бины
+        @Lookup
+        protected abstract SchoolNotification getNotification(String name);
+        ```
     * `@Scope("prototype")` - обьявление scope над `@Component` или `@Bean`
 * **Context Configuration Annotations** - конфигурирование application context
   * `@Profile("sportDay")` - отмечаем @Component или @Bean только если хотим, чтобы они создавались при определенном Spring профиле
