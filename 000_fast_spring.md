@@ -54,6 +54,7 @@
   - [getBean()](#getbean)
   - [What is a Spring Bean?](#what-is-a-spring-bean)
   - [Базовые приемы работы с xml конфигурацией](#Базовые-приемы-работы-с-xml-конфигурацией)
+  - [Inversion of Control](#inversion-of-control)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1538,6 +1539,9 @@ public class InstanceServiceFactory {
     <property name="service" ref="messageService" />
 </bean>
 ```
+
+## Inversion of Control
+**Inversion of Control** - 
 
 # Spring DI
 ## FactoryBean
