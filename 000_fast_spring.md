@@ -55,6 +55,7 @@
   - [What is a Spring Bean?](#what-is-a-spring-bean)
   - [Базовые приемы работы с xml конфигурацией](#Базовые-приемы-работы-с-xml-конфигурацией)
   - [Inversion of Control](#inversion-of-control)
+  - [Constructor Dependency Injection](#constructor-dependency-injection)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1541,7 +1542,42 @@ public class InstanceServiceFactory {
 ```
 
 ## Inversion of Control
-**Inversion of Control** - 
+**Inversion of Control** - принцип в OOP когда управление обьектами или куском программы передается контейнеру или фреймворку. В противопложность в обычном приложении используются вызовы функций библиотек. Чтобы определить функции нужно extends классы фреймворка.
+
+Фичи:
+* decoupling функционала от их реализации (т.е. можно подставлять разные реализации в runtime)
+* модульность
+* легко тестировать (подставляя fake реализации)
+
+**IoC** - реализуется через паттерны: Strategy, Service Locator, Factory and Dependency Injection (DI)
+
+**DI** - паттерн через который реализован IoC, контроль над зависимостями inverted (передан) конфигурации вместо. Inject одних обьектов в другие (зависимостей) делается на этапе сборки (хотя в некоторых ситуациях может делаться и во время выолпнения).
+
+IoC container - главная характеристика IoC фреймворка. В Spring контейнер IoC это ApplicationContext класс (соотв. и обьект). ApplicationContext создает, конфигурирует, собирает (видимо имеется ввиду инжектит зависимости) обьекты, управляет их lifecycle.
+
+Вариаци ApplicationContext:
+* ClassPathXmlApplicationContext
+* FileSystemXmlApplicationContext
+* WebApplicationContext
+
+Dependency Injection можно сделать через constructors, setters or fields. constructor injection рекомендуется для обязательных зависимостей, setters для необязательных.
+
+**fields injection не рекомендуется** потому что:
+* это более ресурсоемко чем constructor или setters injection, т.к. используется reflection api
+* легко добавить слишком много зависимостей (@Autowire) и нарушить S из SOLID, с конструктором эта ошибка будет видна явно
+
+Wiring - то что Spring IoC использует для inject зависимостей, бывает:
+* no - не используется autowiring, и нужно явно использовать name бина (видимо связывание по имени?)
+* byName - autowiring по имени свойства
+* byType - по типу
+* constructor
+
+Все **singleton** бины создаются и настраиваются контейнером во время **инициализации** (запуска приложения). Можно использовать **lazy**, тогда бин будет создан во время 1го запроса, а не запуска. Плюсы в lazy - быстра инициализация, минусы - ошибки могут быть не найдены часы, дни и больше.
+
+## Constructor Dependency Injection
+Constructor Dependency Injection - когда бины создаются и inject делается во время запуска.
+
+С Spring 4.3 аннотация @Autowired над конструктором может быть пропущена, если конструктор 1ин, тоже самое касается класса @Configuration
 
 # Spring DI
 ## FactoryBean
