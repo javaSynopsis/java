@@ -57,6 +57,8 @@
   - [Inversion of Control](#inversion-of-control)
   - [Constructor Dependency Injection](#constructor-dependency-injection)
   - [Scopes](#scopes)
+  - [Пример обертки аннотации в свое AOP](#Пример-обертки-аннотации-в-свое-aop)
+  - [Spring Profiles](#spring-profiles)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1264,8 +1266,14 @@ Both are valid, and neither is deprecated.
   * `@Component("fooFormatter")` - помечает класс как бин инстанс которого нужно создать, @Service и @Repository наследники @Component и Spring не смотрит на них самих, а только на @Component, когда регестрирует в ApplicationContext
   * `@ComponentScan("com.baeldung.autowire.sample")`
     * **в xml** можно использовать `<context:annotation-config/>` вместо этого
+    * **в xml** `<context:component-scan base-package="com.baeldung" />`
+    * `@ComponentScan(basePackages = "com.baeldung.annotations")` - сканировать пакет
+    * `@ComponentScan(basePackageClasses = VehicleFactoryConfig.class)` - сканировать класс
+    * `@ComponentScan` - сканировать текущий пакет и все под пакеты
+    * можно ставить **несколько** таких аннотаций над одним классом
+    * `@ComponentScans({@ComponentScan(basePackages = "com.baeldung.annotations"), @ComponentScan(basePackageClasses = VehicleFactoryConfig.class)})` - или массив аннотаций
   * `@Service` - ничего не делает, просто отмечает бин как бизнес логику
-  * `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
+  * `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository). SQL Exception транслируются в наследников класса `DataAccessExeption`
   * `@Resource` vs `@Inject` vs `@Autowired` - `@Resource` (JSR-250) и `@Inject` (JSR-330) из Java EE: `javax.annotation.Resource` vs `javax.inject.Inject`, `@Autowired` из Spring `org.springframework.beans.factory.annotation`.
     * `@Resource` - связывает в порядке: Name (имя в `@Bean(name="bla")`), Type, Qualifier (имя в `@Qualifier("bla")`, т.е. использовать нужно `@Resource` + `@Qualifier("bla")` над местом инжекта)
     * `@Inject` порядок связывания: Type, Qualifier, Name
@@ -1458,6 +1466,8 @@ Both are valid, and neither is deprecated.
 * `@PathVariable` - извлекает **URI path parameters** из request, при этом метод или класс `@Controller` должен быть отмечен `@GetMapping("/foos/{id}")` и адрес `http://localhost:8080/foos/abc`
   * `@PathVariable(required = false) String id` - аналогично как в `@RequestParam`, если параметра нет, то не будет ошибки и переменная будет **null**. **Note:** если использовать **required = false**, то **могут** возникнуть конфликты в путях
 * `@PathVariable` vs `@RequestParam` - в адресе `@RequestParam` параметры **URL encoded**, т.е. спец. символы экранируются и после преобразования в String исчезнут, например `/foos?id=ab+c` будет `ab c`
+* `@Repository, @Service, @Configuration, and @Controller` - ведут себя как `@Component` и внутри своей реализации используют его
+* `@Controller`
 
 ## getBean()
 **Имеет 5 сигнатур:**
@@ -1606,6 +1616,112 @@ Constructor Dependency Injection - когда бины создаются и inj
 * `@Scope(scopeName = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)`
 
 `proxyMode = ScopedProxyMode.TARGET_CLASS` - **TARGET_CLASS** при указании **Request Scope** обязателен, т.к. во время создания web application context нету активного **request**, Spring создаст proxy обьект чтобы inject его как зависимость и создать target bean, когда он нужен для request.
+
+## Пример обертки аннотации в свое AOP
+```java
+@Aspect
+@Component
+public class PerformanceAspect {
+    @Pointcut("within(@org.springframework.stereotype.Repository *)")
+    public void repositoryClassMethods() {};
+ 
+    @Around("repositoryClassMethods()")
+    public Object measureMethodExecutionTime(ProceedingJoinPoint joinPoint) 
+      throws Throwable {
+        long start = System.nanoTime();
+        Object returnValue = joinPoint.proceed();
+        long end = System.nanoTime();
+        String methodName = joinPoint.getSignature().getName();
+        System.out.println(
+          "Execution of " + methodName + " took " + 
+          TimeUnit.NANOSECONDS.toMillis(end - start) + " ms");
+        return returnValue;
+    }
+}
+```
+
+## Spring Profiles
+```java
+@Component
+@Profile("dev")
+public class DevDatasourceConfig
+
+@Component
+@Profile("!dev")
+public class DevDatasourceConfig
+```
+```java
+// Programmatically via WebApplicationInitializer interface
+@Configuration
+public class MyWebApplicationInitializer 
+  implements WebApplicationInitializer {
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        servletContext.setInitParameter("spring.profiles.active", "dev");
+    }
+}
+
+// Programmatically via ConfigurableEnvironment
+@Autowired
+private ConfigurableEnvironment env;
+env.setActiveProfiles("someProfile");
+```
+```
+Context Parameter in web.xml:
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/app-config.xml</param-value>
+</context-param>
+<context-param>
+    <param-name>spring.profiles.active</param-name>
+    <param-value>dev</param-value>
+</context-param>
+
+JVM System Parameter:
+-Dspring.profiles.active=dev
+
+Environment Variable:
+export spring_profiles_active=dev
+```
+
+**Maven Profile:**
+```xml
+<profiles>
+    <profile>
+        <id>dev</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+            <spring.profiles.active>dev</spring.profiles.active>
+        </properties>
+    </profile>
+    <profile>
+        <id>prod</id>
+        <properties>
+            <spring.profiles.active>prod</spring.profiles.active>
+        </properties>
+    </profile>
+</profiles>
+```
+```
+spring.profiles.active=@spring.profiles.active@
+```
+```xml
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+        </resource>
+    </resources>
+    ...
+</build>
+```
+
+```
+mvn clean package -Pprod
+```
 
 # Spring DI
 ## FactoryBean
