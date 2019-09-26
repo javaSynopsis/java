@@ -56,6 +56,7 @@
   - [Базовые приемы работы с xml конфигурацией](#Базовые-приемы-работы-с-xml-конфигурацией)
   - [Inversion of Control](#inversion-of-control)
   - [Constructor Dependency Injection](#constructor-dependency-injection)
+  - [Scopes](#scopes)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1265,6 +1266,13 @@ Both are valid, and neither is deprecated.
     * **в xml** можно использовать `<context:annotation-config/>` вместо этого
   * `@Service` - ничего не делает, просто отмечает бин как бизнес логику
   * `@Repository` - ловит persistence exceptions и делает rethrow их как Spring unchecked exception, для этого используется PersistenceExceptionTranslationPostProcessor (т.е. добавляется AOP обработчика исключений к бинам с @Repository)
+  * `@Resource` vs `@Inject` vs `@Autowired` - `@Resource` (JSR-250) и `@Inject` (JSR-330) из Java EE: `javax.annotation.Resource` vs `javax.inject.Inject`, `@Autowired` из Spring `org.springframework.beans.factory.annotation`.
+    * `@Resource` - связывает в порядке: Name (имя в `@Bean(name="bla")`), Type, Qualifier (имя в `@Qualifier("bla")`, т.е. использовать нужно `@Resource` + `@Qualifier("bla")` над местом инжекта)
+    * `@Inject` порядок связывания: Type, Qualifier, Name
+    * `@Autowired` порядок связывания: Type, Qualifier, Name
+    * Что и когда использовать:
+      * По типу. Если есть разные singleton классы одинаковые на все приложение, то `@Inject` или `@Autowired`
+      * По имени. Если приложение Fine-Grained (разделено на мелкие куски), имеет сложное поведение, то `@Resource` (т.е. если есть бины одинакового типа, но с разными именами и реализациями, их много и нужно в каждое конкретное место вставлять нужную реализацию)
   * `@Qualifier("main")` - связывание по **name** или **id** бина (видимо id это имя генерируемое автоматически, а name заданное), используется как пара к `@Autowired`, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, аналогично: `@Component("fooFormatter")` тоже что и `@Qualifier("fooFormatter")` над **классом**. Можно применять в **constructor параметре**, **setter параметре**, **над setter**, **над field**. Можно создать **свой вариант аннотации @Qualifier** проставив `@Qualifier` над созданной аннотацией.
     * `@Autowired Biker(@Qualifier("bike") Vehicle vehicle) {}`
     * `@Autowired void setVehicle(@Qualifier("bike") Vehicle vehicle) {}` - параметр set
@@ -1362,17 +1370,17 @@ Both are valid, and neither is deprecated.
            @Value("#{${valuesMap}}")
            private Map<String, Integer> valuesMap;
            ```
-        2. Взять value из map по ключу (key1 имя ключа), если такого ключа нет, то будет **exception**
+        1. Взять value из map по ключу (key1 имя ключа), если такого ключа нет, то будет **exception**
             ```java
             @Value("#{${valuesMap}.key1}")
             private Integer valuesMapKey1;
             ```
-        3. Значение по ключу, **без выброса exception** если ключа нету, тогда значение будет **null**
+        2. Значение по ключу, **без выброса exception** если ключа нету, тогда значение будет **null**
             ```java
             @Value("#{${valuesMap}['unknownKey']}")
             private Integer unknownMapKey;
             ```
-        4. Значения по умолчанию для определенных ключей
+        3. Значения по умолчанию для определенных ключей
             ```java
             @Value("#{${unknownMap : {key1: '1', key2: '2'}}}")
             private Map<String, Integer> unknownMap;
@@ -1380,13 +1388,13 @@ Both are valid, and neither is deprecated.
             @Value("#{${valuesMap}['unknownKey'] ?: 5}")
             private Integer unknownMapKeyWithDefaultValue;
             ```
-        5. Фильтруем (filtered) значения перед inject
+        4. Фильтруем (filtered) значения перед inject
             ```java
             // только value > 1
             @Value("#{${valuesMap}.?[value>'1']}")
             private Map<String, Integer> valuesMapFiltered;
             ```
-        6. inject всех **systemProperties**
+        5. inject всех **systemProperties**
             ```java
             @Value("#{systemProperties}")
             private Map<String, String> systemPropertiesMap;
@@ -1577,7 +1585,27 @@ Wiring - то что Spring IoC использует для inject зависи�
 ## Constructor Dependency Injection
 Constructor Dependency Injection - когда бины создаются и inject делается во время запуска.
 
-С Spring 4.3 аннотация @Autowired над конструктором может быть пропущена, если конструктор 1ин, тоже самое касается класса @Configuration
+С Spring 4.3 аннотация `@Autowired` над конструктором может быть пропущена, если конструктор 1ин, тоже самое касается класса `@Configuration`
+
+## Scopes
+**Scopes:**
+* **spring core**
+  * `singleton` (default) - один на все, в application context
+  * `prototype` - по запросу каждый раз новый
+* **web-aware application context**
+  * `request` - живет пока жив HTTP request
+  * `session` - живет пока жив HTTP Session
+  * `application` - живет пока жив ServletContext (его lifecycle), как singleton но в ServletContext, может принадлежать нескольким application context (т.к. в одном ServletContext может быть много application context)
+  * `websocket` - живет пока жив WebSocket session
+
+**Способы задания:**
+* `@Scope("singleton")`
+* `@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)`
+* `@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)` - request scope
+* `@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)` - session scope, как и для request scope
+* `@Scope(scopeName = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)`
+
+`proxyMode = ScopedProxyMode.TARGET_CLASS` - **TARGET_CLASS** при указании **Request Scope** обязателен, т.к. во время создания web application context нету активного **request**, Spring создаст proxy обьект чтобы inject его как зависимость и создать target bean, когда он нужен для request.
 
 # Spring DI
 ## FactoryBean
