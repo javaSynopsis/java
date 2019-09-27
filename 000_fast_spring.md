@@ -58,7 +58,10 @@
   - [Constructor Dependency Injection](#constructor-dependency-injection)
   - [Scopes](#scopes)
   - [Пример обертки аннотации в свое AOP](#Пример-обертки-аннотации-в-свое-aop)
-  - [Spring Profiles](#spring-profiles)
+  - [Spring Profiles & Maven Profile](#spring-profiles--maven-profile)
+    - [Spring Profile](#spring-profile)
+    - [Profiles in Spring Boot](#profiles-in-spring-boot)
+    - [Maven Profile](#maven-profile)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1640,7 +1643,9 @@ public class PerformanceAspect {
 }
 ```
 
-## Spring Profiles
+## Spring Profiles & Maven Profile
+### Spring Profile
+**@Profile on a Bean**
 ```java
 @Component
 @Profile("dev")
@@ -1650,8 +1655,15 @@ public class DevDatasourceConfig
 @Profile("!dev")
 public class DevDatasourceConfig
 ```
+**Declare Profiles in XML**
+```xml
+<beans profile="dev">
+    <bean id="devDatasourceConfig"
+      class="org.baeldung.profiles.DevDatasourceConfig" />
+</beans>
+```
+**Set Profiles Programmatically via WebApplicationInitializer interface**
 ```java
-// Programmatically via WebApplicationInitializer interface
 @Configuration
 public class MyWebApplicationInitializer 
   implements WebApplicationInitializer {
@@ -1660,14 +1672,15 @@ public class MyWebApplicationInitializer
         servletContext.setInitParameter("spring.profiles.active", "dev");
     }
 }
-
-// Programmatically via ConfigurableEnvironment
+```
+**Set Profiles Programmatically via ConfigurableEnvironment**
+```java
 @Autowired
 private ConfigurableEnvironment env;
 env.setActiveProfiles("someProfile");
 ```
-```
-Context Parameter in web.xml:
+**Context Parameter in web.xml**
+```xml
 <context-param>
     <param-name>contextConfigLocation</param-name>
     <param-value>/WEB-INF/app-config.xml</param-value>
@@ -1676,15 +1689,82 @@ Context Parameter in web.xml:
     <param-name>spring.profiles.active</param-name>
     <param-value>dev</param-value>
 </context-param>
+```
 
-JVM System Parameter:
+**JVM System Parameter**
+```sh
 -Dspring.profiles.active=dev
+```
 
-Environment Variable:
+**Environment Variable**
+```sh
 export spring_profiles_active=dev
 ```
 
-**Maven Profile:**
+**Устаовка профиля аннотацией**
+```java
+@ActiveProfiles("dev")
+```
+
+**Приоритет активации профилей по убыванию (приоритет у того что выше)**
+1. web.xml
+2. WebApplicationInitializer
+3. JVM System parameter
+4. Environment variable
+5. Maven profile
+
+**Default Profile**
+<br>
+По умолчанию каждый бин принадлежит **default** профилю. Через свойство `spring.profiles.default` можно установить свой профиль по умолчанию.
+
+**list of active profiles programmatically**
+```java
+@Autowired
+private Environment environment;
+// список профилей
+for (String profileName : environment.getActiveProfiles()) {}
+```
+
+**Получить активный профиль** или пустую строку, если default значения пустой строки не будет, то будет `IllegalArgumentException`
+```java
+@Value("${spring.profiles.active:}")
+private String activeProfile;
+```
+
+### Profiles in Spring Boot
+1. через конфиг
+```properties
+spring.profiles.active=dev
+```
+2. Программно
+```java
+SpringApplication.setAdditionalProfiles("dev");
+```
+3. Используя `spring-boot-maven-plugin` в `pom.xml`
+```xml
+<plugins>
+    <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+            <profiles>
+                <profile>dev</profile>
+            </profiles>
+        </configuration>
+    </plugin>
+    ...
+</plugins>
+```
+
+После установки профиля запускаем
+```sh
+mvn spring-boot:run
+```
+4. Задание специфичных properties файлов для профилей (называем добавляя имя профиля через дефиз):
+`applications-{profile}.properties`. Файл `application.properties` будет работать для всех.
+
+### Maven Profile
+Передача Spring профиля через maven в параметре `spring.profiles.active`
 ```xml
 <profiles>
     <profile>
@@ -1704,9 +1784,11 @@ export spring_profiles_active=dev
     </profile>
 </profiles>
 ```
-```
+В `application.properties`
+```properties
 spring.profiles.active=@spring.profiles.active@
 ```
+При этом нужно включить фильтрацию ресурсов
 ```xml
 <build>
     <resources>
@@ -1718,8 +1800,8 @@ spring.profiles.active=@spring.profiles.active@
     ...
 </build>
 ```
-
-```
+Включение профиля передачей параметра в maven
+```sh
 mvn clean package -Pprod
 ```
 
