@@ -66,6 +66,12 @@
   - [Properties with Spring and Spring Boot](#properties-with-spring-and-spring-boot)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
+  - [@Autowired in Abstract Classes](#autowired-in-abstract-classes)
+  - [Autowiring of Generic Types](#autowiring-of-generic-types)
+  - [Spring Component Scanning](#spring-component-scanning)
+  - [Injecting Collections](#injecting-collections)
+  - [Injecting Prototype Beans into a Singleton Instance](#injecting-prototype-beans-into-a-singleton-instance)
+  - [ScopedProxyMode](#scopedproxymode)
 - [Spring MVC](#spring-mvc-3)
 
 # Простое подключение сервлета
@@ -1420,7 +1426,7 @@ Both are valid, and neither is deprecated.
       * над `@Configuration class` - влияет на все методы класса
       * над `@Component class` - влияет на создание этого bean
       * над `@Autowired constructor, setter, field` - влияет на зависимость (via proxy)
-    * `@Lookup` - для **inject prototype bean в singleton bean** при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для **inject процедурным способом** (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup**, если **surrounding class** это **component-scan** класс (сканируемый на компоненты) или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
+  * `@Lookup` - для **inject prototype bean в singleton bean** при каждом вызове какого-то метода этого singleton бина (т.к. каждый раз создается новый prototype бин). И для **inject процедурным способом** (т.е. при вызове метода вручную видимо?). Можно исопльзовать **abstract + @Lookup**, если **surrounding class** это **component-scan** класс (сканируемый на компоненты) или если **surrounding class** является **@Bean-manage** (бин управляемый контейнером).
       * **Процесс использоваения @Lookup**
         ```java
         // 1. inject prototype bean в singleton bean
@@ -1454,6 +1460,8 @@ Both are valid, and neither is deprecated.
         }
         ```
     * `@Scope("prototype")` - обьявление scope над `@Component` или `@Bean`
+    * `@Order(2)` - используется с `@Bean` или `@Component`, чтобы указать какой бин выбрать первым для связывания, чем меньше число тем выше приоритет
+      * `@Order(Ordered.LOWEST_PRECEDENCE)`
 * **Context Configuration Annotations** - конфигурирование application context
   * `@Profile("sportDay")` - отмечаем @Component или @Bean только если хотим, чтобы они создавались при определенном Spring профиле
   * `@Import(VehiclePartSupplier.class)` - отмечаем `@Configuration` и указываем внутри другой класс `@Configuration` чтобы импортировать один в другой
@@ -1966,5 +1974,164 @@ public class NonSingleToolFactory extends AbstractFactoryBean<Tool> {
     </bean>
 </beans>
 ```
+
+## @Autowired in Abstract Classes
+`@Autowired` для **abstract** классов **работает** с setter, **рекомендуется** сделать этот setter **final** (чтобы в наследниках не изменилось поведение). `@Autowired` **не работает** для constructor, но можно **наследовать** этот abstract класс и использовать `@Autowired` и `super(myBean)` в нем.
+
+abstract класс не component-scanned, его нужно наследовать чтобы использовать (т.е. над ним не нужно ставить `@Component`)
+
+## Autowiring of Generic Types
+Начиная с версии 4 используется ResolvableType, инкапсулирует java типы, чтобы потом обработать, возвращает обьект Class нужного класса.
+
+```java
+public abstract class Vehicle {}
+public class Car extends Vehicle {}
+```
+1. Старый способ
+```java
+// 1. Делаем аннотацию
+@Target({
+  ElementType.FIELD, 
+  ElementType.METHOD,
+  ElementType.TYPE, 
+  ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface CarQualifier {
+}
+// 2. Используем в 2х местах: 1) то что связывать и то 2) с чем
+@Autowired
+@CarQualifier // 1) сюда попадут только cars
+private List<Vehicle> vehicles;
+
+public class CustomConfiguration {
+    @Bean
+    @CarQualifier // 2)
+    public Car getMercedes() {}
+}
+```
+2. С Spring 4.0
+```java
+public class Motorcycle extends Vehicle {}
+
+@Autowired
+private List<Car> vehicles; // можно использовать в качестве параметра типа
+```
+
+## Spring Component Scanning
+@SpringBootApplication = @Configuration + @EnableAutoConfiguration + @ComponentScan
+```java
+@SpringBootApplication
+public class SpringBootComponentScanApp {
+    public static void main(String[] args) {
+        ApplicationContext applicationContext = SpringApplication.run(SpringBootComponentScanApp.class, args);
+    }
+}
+```
+Скан с фильтром
+```java
+@ComponentScan(excludeFilters = 
+  @ComponentScan.Filter(type=FilterType.REGEX,
+    pattern="com\\.baeldung\\.componentscan\\.springapp\\.flowers\\..*"))
+
+@ComponentScan(excludeFilters = 
+  @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = Rose.class))
+```
+
+## Injecting Collections
+```java
+// List
+public class CollectionsBean {
+    @Autowired
+    private List<String> nameList;
+}
+@Configuration
+public class CollectionConfig {
+    @Bean
+    public List<String> nameList() {
+        return Arrays.asList("John", "Adam", "Harry");
+    }
+}
+
+// Map
+public class CollectionsBean {
+    private Map<Integer, String> nameMap;
+    @Autowired
+    public void setNameMap(Map<Integer, String> nameMap) {
+        this.nameMap = nameMap;
+    }
+}
+@Bean
+public Map<Integer, String> nameMap() {
+    Map<Integer, String>  nameMap = new HashMap<>();
+    nameMap.put(1, "John");
+    nameMap.put(2, "Adam");
+    nameMap.put(3, "Harry");
+    return nameMap;
+}
+```
+
+Использование пустой коллекции by default (т.е. эту переменную потом используем)
+```java
+@Value("${names.list:}#{T(java.util.Collections).emptyList()}")
+private List<String> nameListWithDefaultValue;
+```
+
+## Injecting Prototype Beans into a Singleton Instance
+1. Через ApplicationContext. Но это нарушает принципы IoC и использует фичи Spring
+```java
+public class SingletonAppContextBean implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
+    public PrototypeBean getPrototypeBean() {
+        return applicationContext.getBean(PrototypeBean.class);
+    }
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) 
+      throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
+```
+2. Получать prototype бин через вызов метода отмеченного `@Lookup`, использует CGLIB, см. выше в списке аннотаций
+3. **javax.inject API** используя Provider
+```java
+public class SingletonProviderBean {
+    @Autowired
+    private Provider<MyPrototypeBean> myPrototypeBeanProvider;
+    public MyPrototypeBean getPrototypeInstance() {
+        return myPrototypeBeanProvider.get();
+    }
+}
+```
+4. **Scoped Proxy. by default Spring** имеет ссылку на реальный обьект чтобы делать injection, способ ниже указывает создавать proxy чтобы связать реальный обьект с зависимым (прим. уточнить инфу)
+```java
+@Scope(
+  value = ConfigurableBeanFactory.SCOPE_PROTOTYPE, 
+  proxyMode = ScopedProxyMode.TARGET_CLASS)
+```
+5. **ObjectFactory Interface**, можно использовать чтобы создавать бины, это часть Spring и поэтому не нужны дополнительные шаги по конфигам
+```java
+public class SingletonObjectFactoryBean {
+    @Autowired
+    private ObjectFactory<PrototypeBean> prototypeBeanObjectFactory;
+    public PrototypeBean getPrototypeInstance() {
+        return prototypeBeanObjectFactory.getObject();
+    }
+}
+```
+6. **Create a Bean at Runtime Using java.util.Function**. Инжектим beanFactory (т.е. функцию) и используем его для создания бинов
+```java
+public class SingletonFunctionBean {
+    @Autowired
+    private Function<String, PrototypeBean> beanFactory;
+    public PrototypeBean getPrototypeInstance(String name) {
+        PrototypeBean bean = beanFactory.apply(name);
+        return bean;
+    }
+}
+```
+
+## ScopedProxyMode
+тут будет описание
 
 # Spring MVC
