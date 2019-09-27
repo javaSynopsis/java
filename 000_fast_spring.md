@@ -62,6 +62,7 @@
     - [Spring Profile](#spring-profile)
     - [Profiles in Spring Boot](#profiles-in-spring-boot)
     - [Maven Profile](#maven-profile)
+  - [Configuaratino](#configuaratino)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1803,6 +1804,28 @@ spring.profiles.active=@spring.profiles.active@
 Включение профиля передачей параметра в maven
 ```sh
 mvn clean package -Pprod
+```
+
+## Configuaratino
+Задание файла конфигов (e.g. файл `persistence-dev.properties`)
+```java
+@PropertySource({ "classpath:persistence-${envTarget:dev}.properties" })
+```
+Установка свойств, где envTarget это
+```sh
+-DenvTarget=dev
+```
+Задание переменной через `pom.xml`
+```xml
+<plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-surefire-plugin</artifactId>
+   <configuration>
+      <systemPropertyVariables>
+         <envTarget>h2_test</envTarget>
+      </systemPropertyVariables>
+   </configuration>
+</plugin>
 ```
 
 # Spring DI
