@@ -1853,6 +1853,12 @@ java -Dproperty.name="value" -jar app.jar
 export name=value
 java -jar app.jar
 ```
+Случайные свойства
+```java
+random.number=${random.int}
+random.long=${random.long}
+random.uuid=${random.uuid}
+```
 Используя бин
 ```java
 @Bean
