@@ -62,7 +62,8 @@
     - [Spring Profile](#spring-profile)
     - [Profiles in Spring Boot](#profiles-in-spring-boot)
     - [Maven Profile](#maven-profile)
-  - [Configuaratino](#configuaratino)
+  - [Project Configuration with Spring](#project-configuration-with-spring)
+  - [Properties with Spring and Spring Boot](#properties-with-spring-and-spring-boot)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
 - [Spring MVC](#spring-mvc-3)
@@ -1762,7 +1763,7 @@ SpringApplication.setAdditionalProfiles("dev");
 mvn spring-boot:run
 ```
 4. Задание специфичных properties файлов для профилей (называем добавляя имя профиля через дефиз):
-`applications-{profile}.properties`. Файл `application.properties` будет работать для всех.
+`applications-{profile}.properties` и предшествует файлу по умолчанию (т.е. файл по умолчанию перекрывает его свойства). Файл `application.properties` будет работать для всех.
 
 ### Maven Profile
 Передача Spring профиля через maven в параметре `spring.profiles.active`
@@ -1806,7 +1807,7 @@ spring.profiles.active=@spring.profiles.active@
 mvn clean package -Pprod
 ```
 
-## Configuaratino
+## Project Configuration with Spring
 Задание файла конфигов (e.g. файл `persistence-dev.properties`)
 ```java
 @PropertySource({ "classpath:persistence-${envTarget:dev}.properties" })
@@ -1827,6 +1828,53 @@ mvn clean package -Pprod
    </configuration>
 </plugin>
 ```
+
+## Properties with Spring and Spring Boot
+Само подключение properties файлов реализовано через старый `PropertyPlaceholderConfigurer` и новый `PropertySourcesPlaceholderConfigurer`
+```java
+@Autowired
+private Environment env;
+dataSource.setUrl(env.getProperty("jdbc.url")); // если нету, вернет null
+```
+Указываем properties файл (по умолчанию `application.properties`)
+```sh
+java -jar app.jar --spring.config.location=classpath:/another-location.properties
+```
+Установка свойства
+```sh
+java -jar app.jar --property="value"
+```
+Установка environment свойства
+```sh
+java -Dproperty.name="value" -jar app.jar
+```
+Установка environment свойства глобально
+```sh
+export name=value
+java -jar app.jar
+```
+Используя бин
+```java
+@Bean
+public static PropertySourcesPlaceholderConfigurer properties(){
+    PropertySourcesPlaceholderConfigurer pspc
+      = new PropertySourcesPlaceholderConfigurer();
+    Resource[] resources = new ClassPathResource[ ]
+      { new ClassPathResource( "foo.properties" ) };
+    pspc.setLocations( resources );
+    pspc.setIgnoreUnresolvablePlaceholders( true );
+    return pspc;
+}
+```
+
+**`<property-placeholder> vs @PropertySource`**
+* **`<property-placeholder>`**
+  * Если свойство в Parent context, то `@Value` не берет значения из Child context
+  * Если свойство в Child context, то `@Value` не берет значения из Parent context
+  * environment.getProperty работать не будет т.к. свойства не пробросятся в environment
+* **`@PropertySource`**
+  * Если свойство в Parent context, то `@Value` работает и в Parent и в Child, `environment.getProperty` работает и в Parent и в Child
+  * Если свойство в Child context, то `@Value` работает только в Child, `environment.getProperty` работает только в Child
 
 # Spring DI
 ## FactoryBean
