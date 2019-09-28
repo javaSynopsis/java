@@ -73,6 +73,8 @@
   - [Injecting Prototype Beans into a Singleton Instance](#injecting-prototype-beans-into-a-singleton-instance)
   - [ScopedProxyMode](#scopedproxymode)
   - [Circular Dependencies](#circular-dependencies)
+  - [Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию](#Внедрение-сразу-всех-бинов-определенного-типа-которые-есть-в-приложении-в-коллекцию)
+  - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
 - [Spring MVC](#spring-mvc-3)
 
 # Простое подключение сервлета
@@ -2173,5 +2175,31 @@ public class SingletonFunctionBean {
         context = ctx;
     }
     ```
+
+## Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию
+Можно внедрить все созданные бины приложения определенного типа в коллекцию, например если имя не известно.
+```java
+@Autowired // или @Inject, или @Resource
+private List<Fine> fine;
+```
+
+## Создание своего варианта @Qualifier
+Суть: создаем свою аннотацию и используем в ней обычный @Qualifier, но зависимость и место куда ее внедрить свяжутся только если имя **нашей** аннотации и там, и там будет проставлено.
+```java
+@Qualifier
+@Retention(RUNTIME)
+@Target({METHOD, FIELD, PARAMETER, TYPE})
+public @interface FineDayQualifier {}
+
+@FineDayQualifier
+public class FineDay implements Fine {}
+
+@Component
+public class AmbiguousInjectFine {
+    @Inject
+    @FineDayQualifier
+    private Fine fine;
+}
+```
 
 # Spring MVC
