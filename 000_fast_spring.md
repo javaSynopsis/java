@@ -72,6 +72,7 @@
   - [Injecting Collections](#injecting-collections)
   - [Injecting Prototype Beans into a Singleton Instance](#injecting-prototype-beans-into-a-singleton-instance)
   - [ScopedProxyMode](#scopedproxymode)
+  - [Circular Dependencies](#circular-dependencies)
 - [Spring MVC](#spring-mvc-3)
 
 # Простое подключение сервлета
@@ -1298,7 +1299,8 @@ Both are valid, and neither is deprecated.
     * `@Autowired @Qualifier("bike") void setVehicle(Vehicle vehicle) {}` - над методом set
     * `@Autowired @Qualifier("bike") Vehicle vehicle;`
   * `@Autowired` - Отмечает зависимость которую Spring будет resolve. Связывание **по типу по умолчанию**. `NoUniqueBeanDefinitionException` будет, если есть больше 1го кандидата на связывание и нет @Qualifier или @Primary. Если поле класса отмеченное @Autowired имеет имя такое как у связываемого бины, но в camelCase, то конфликта тоже не будет и связывание произойдет **по имени** (это fallback поведение Spring). Применяется к **constructor**, **setter**, or **field**. При использовании **constructor injection** (над конструктором) все аргументы конструктора обязательны. Начиная с Spring 4.3 ставить **@Autowired над constructors не обязательно**, но обязательно если конструкторов **больше 1го**, в классах @Configuration в этом случае constructor тоже может быть пропущен.
-    * `@Autowired(required = true)` - атрибут **required = true** стоит by default, если зависимости нет при запуске Spring будет exception, если поставить в false, то exception не будет
+    * `@Autowired(required = true)` - атрибут **required = true** стоит by default, если зависимости нет при запуске Spring будет exception, если поставить в false, то exception не будет и если нет зависимости будет **null**
+    * Можно использовать `@Autowired` над **несколькими constructors**, если на всех конструкторах **кроме 1го** стоит **required = false**, Spring использует самый жадный конструктор (с большим количеством параметров) чьи параметры (все) могут быть удовлетворены. Spring вызовет только 1ин конструктор для создания обьекта.
     * `@Autowired Car(Engine engine) {}` - constructor
     * `@Autowired void setEngine(Engine engine) {}` - setter
     * `@Autowired Engine engine;` - field
@@ -2133,5 +2135,37 @@ public class SingletonFunctionBean {
 
 ## ScopedProxyMode
 тут будет описание
+
+## Circular Dependencies
+Это когда бины одновременно и зависимости и зависимые (Bean A → Bean B → Bean A → ...). При **constructor injection** в этом случае появится `BeanCurrentlyInCreationException`, при остальных типах injection ошибок не будет, т.к. при **constructor injection** внедрение бина случается во время context loading, а в других случаях во время обращения.
+
+Решения:
+1. Правильно спроектировать приложение, тогда проблем не будет, но не во всех случаяъх то возможно: старый код, нет доступа к коду
+2. Использовать @Lazy, тогда будет создан proxy и бин будет создан только при первом обращении к нему
+    ```java
+    @Autowired
+    public CircularDependencyA(@Lazy CircularDependencyB circB) {
+        this.circB = circB;
+    }
+    ```
+3. Использовать **Setter/Field Injection**
+4. Установить недостающие зависимости в `@PostConstruct`
+    ```java
+    @PostConstruct
+    public void init() {
+        circB.setCircA(this);
+    }
+    ```
+5. Использовать `ApplicationContextAware` и `InitializingBean`: получить `ApplicationContext` в `ApplicationContextAware`, вытащить из него бин методом `context.getBean(MyBean.class)` и установить зависимость в методе `afterPropertiesSet()`
+    ```java
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        circB = context.getBean(CircularDependencyB.class);
+    }
+    @Override
+    public void setApplicationContext(final ApplicationContext ctx) throws BeansException {
+        context = ctx;
+    }
+    ```
 
 # Spring MVC
