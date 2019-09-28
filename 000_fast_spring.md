@@ -957,7 +957,8 @@ public class Application {
 * `@Qualifier("main")` - по имени, если типы совпадают чтобы не получить `NoUniqueBeanDefinitionException`, если стоит над классом, то работает как назначение имени, прим: `@Component("fooFormatter")`
 * `@Required` - к setter, что bean должен быть обязательно
 * `@Value("${jdbc.url}")` - внедряет значение (как константа напр. properties)
-* `@Resource(name= "map")` - позволяет внедрять коллекции, в отличии от @Autowired, которая вместо коллекций пытается внедрить коллекции бинов из контейнера. **Другими словами:** связывание по имени бина, а не типу (как @Autowired или @Inject).
+* `@Resource(name = "map")` - позволяет внедрять коллекции, в отличии от `@Autowired`, которая вместо коллекций пытается внедрить коллекции бинов из контейнера. **Другими словами:** связывание по имени бина, а не типу (как `@Autowired` или `@Inject`). В отличии от `@Autowired` и `@Inject` имя можно задать в его атрибуте `name`
+  * `@Resource @Named("fineDay") Fine fine;`
 * `@NonNull` - Spring в случае правильного определения класса, но при ошибках может заинжектить `null`, эта аннотация говорит не использовать `null`, может быть применена на **field**, **method parameter**, **method return value**. С этой аннотацией можно распознать проблемы.
 * `@Nullable` - можно применить например чтобы исключить проверку на `null` полей пакета помеченного `@NonNullFields`
 * `@NonNullFields` - применяется на всем пакете в файле `package-info.java`, говорит что все поля в пакете неявно `@NonNull`, применяется к **field**
@@ -1304,6 +1305,11 @@ Both are valid, and neither is deprecated.
     * `@Autowired Car(Engine engine) {}` - constructor
     * `@Autowired void setEngine(Engine engine) {}` - setter
     * `@Autowired Engine engine;` - field
+    * `@Autowired @Named("fineDay") Fine fine;`
+  * `@Inject` - как `@Autowired`
+    * `@Inject @Named("fineDay") Fine fine;`
+  * `@Named("myname")` - может работать и как @Component если стоит над классом и как `@Qualifier` если стоит вместе с `@Inject`, `@Autowire` или `@Resource`
+  * `@Named` vs `@Qualifier` vs `@Resource`
   * `@Primary` - отмечает бин который будет выбран для авто связывания по умолчанию в случае конфликта. Если есть и @Qualifier, и @Primary, то **у @Qualifier приоритет**. Можно ставить рядом с @Bean или @Component (для класса)
   * `@Bean` - отмечает factory methode который создает bean. Это метода вызывается когда **bean зависимость запрошена** другим бином, имя бина такое как имя у factory method или указанное как `@Bean("engine")`. Все методы отмеченные `@Bean` должны быть в `@Configuration` классе. Если `@Bean` проставлена над конструктором, то inject происходит во время запуска контекста, а не по запросу этого бина как зависимости.
     * `@Bean({"name1", "name2"})`
