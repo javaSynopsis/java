@@ -2612,7 +2612,7 @@ Oracle, PostgreSQL, and MySQL InnoDB - **MVCC**
 
 # Связи
 
-`@ManyToOne` связь рекомендуется ставить **EAGER** почти всегда (в отличии от `@...ToMany` которые **LAZY** по умолчанию).
+`@ManyToOne` связь рекомендуется ставить **LAZY** почти всегда (в отличии от `@...ToMany` которые **LAZY** по умолчанию).
 
 **bidirectional collections** считаются лучшей практикой чем **unidirectional**
 

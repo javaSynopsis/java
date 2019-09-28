@@ -1,10 +1,3 @@
-Источники на очереди:
-* https://www.baeldung.com/category/spring/tag/spring-core-basics/
-* https://www.baeldung.com/category/spring/tag/spring-di/
-* https://www.baeldung.com/category/spring/tag/spring-annotations/
-* https://www.baeldung.com/category/spring/tag/spring-5/
-* https://www.baeldung.com/category/spring/tag/spring-mvc-basics/
-
 - [Простое подключение сервлета](#Простое-подключение-сервлета)
 - [Обработка ошибок в Java EE сервлете](#Обработка-ошибок-в-java-ee-сервлете)
 - [ServletConfig vs ServletContext](#servletconfig-vs-servletcontext)
@@ -76,6 +69,8 @@
   - [Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию](#Внедрение-сразу-всех-бинов-определенного-типа-которые-есть-в-приложении-в-коллекцию)
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
 - [Spring MVC](#spring-mvc-3)
+- [Spring Security](#spring-security-1)
+  - [Annotations](#annotations-1)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -2203,3 +2198,16 @@ public class AmbiguousInjectFine {
 ```
 
 # Spring MVC
+
+# Spring Security
+## Annotations
+**List**
+* `@PreAuthorize` vs `@Secured` - в `@PreAuthorize` можно использовать SpEL, получать доступ к свойствам `SecurityExpressionRoot`, получать доступ к параметрам метода (аналогично для `@PostAuthorize`, `@PreFilter`, `@PostFilter`)
+    ```java
+    @PreAuthorize("#contact.name == principal.name")
+    // @PreAuthorize("hasRole('ADMIN OR hasRole('USER')")
+    public void doSomething(Contact contact)
+
+    @Secured("ROLE_ADMIN")
+    void а1(){}
+    ```
