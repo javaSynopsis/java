@@ -57,6 +57,8 @@
     - [Maven Profile](#maven-profile)
   - [Project Configuration with Spring](#project-configuration-with-spring)
   - [Properties with Spring and Spring Boot](#properties-with-spring-and-spring-boot)
+  - [Наследование @Transactional](#Наследование-transactional)
+  - [Как работает транзакция?](#Как-работает-транзакция)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
   - [@Autowired in Abstract Classes](#autowired-in-abstract-classes)
@@ -70,6 +72,7 @@
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
 - [Spring MVC](#spring-mvc-3)
 - [Spring Security](#spring-security-1)
+  - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
 
 # Простое подключение сервлета
@@ -1129,9 +1132,11 @@ configureJacksonObjectMapper(ObjectMapper objectMapper) {
     `public void setupModule(SetupContext context) {}`
 
 **Классы repository:**
-* `CrudRepository`
-* `PagingAndSortingRepository<T, ID>`
-* `JpaRepository`
+* `CrudRepository` - delete, count, find, save
+* `PagingAndSortingRepository<T, ID>` - `findAll(pageable)` и `findAll(sort)`
+* `JpaRepository` - getOne, дополнительные групповые методы `...All(...)`
+
+**getOne vs findById** - getOne возвращает proxy и использует внутри себя `EntityManager.getReference(Class, Object)` и это **lazy** и работает быстрее, findById возвращает реальный обьект или null и это **eager** и использует дополнительный round-trip в DB
 
 ```java
 // делаем невидимым по ссылка, напр. чтобы защитить важную инфу. и используем в др. repo
@@ -1158,7 +1163,7 @@ interface PersonRepository extends CrudRepository<Person, Long>
 @RepositoryEventHandler(Author.class) 
 ```
 ```
-// @NoRepositoryBean Проставляется над базовым классом CrusRepository, чтобы не создалась его сущность
+// @NoRepositoryBean Проставляется над базовым классом CrudRepository, чтобы не создалась его сущность
 ```
 ```java
 // 1. помечаем repository
@@ -1189,6 +1194,27 @@ ResponseEntity<?> createBatch(
         PersistentEntityResourceAssembler assembler
 ) {}
 ```
+
+В старой версии Spring Data JPA названия методов были другими
+```
+╔═════════════════════╦═══════════════════════╗
+║      Old name       ║       New name        ║
+╠═════════════════════╬═══════════════════════╣
+║ findOne(…)          ║ findById(…)           ║
+╠═════════════════════╬═══════════════════════╣
+║ save(Iterable)      ║ saveAll(Iterable)     ║
+╠═════════════════════╬═══════════════════════╣
+║ findAll(Iterable)   ║ findAllById(…)        ║
+╠═════════════════════╬═══════════════════════╣
+║ delete(ID)          ║ deleteById(ID)        ║
+╠═════════════════════╬═══════════════════════╣
+║ delete(Iterable)    ║ deleteAll(Iterable)   ║
+╠═════════════════════╬═══════════════════════╣
+║ exists()            ║ existsById(…)         ║
+╚═════════════════════╩═══════════════════════╝
+```
+
+Методы Spring Data JPA, те которые в repository, по умолчанию транзакционные. Аннотацию `@Repository` над  классом реализующим интерфесы `...Repository` ставить не нужно.
 
 # SpEL
 ```java
@@ -1486,6 +1512,14 @@ Both are valid, and neither is deprecated.
 * `@PathVariable` vs `@RequestParam` - в адресе `@RequestParam` параметры **URL encoded**, т.е. спец. символы экранируются и после преобразования в String исчезнут, например `/foos?id=ab+c` будет `ab c`
 * `@Repository, @Service, @Configuration, and @Controller` - ведут себя как `@Component` и внутри своей реализации используют его
 * `@Controller`
+* `@Cacheable("books")` - включается простановкой `@EnableCaching` над `@Configuration`
+  * Создаем бин
+    ```java
+    @Bean
+    public CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager("books");
+    }
+    ```
 
 ## getBean()
 **Имеет 5 сигнатур:**
@@ -1895,9 +1929,20 @@ public static PropertySourcesPlaceholderConfigurer properties(){
   * Если свойство в Parent context, то `@Value` работает и в Parent и в Child, `environment.getProperty` работает и в Parent и в Child
   * Если свойство в Child context, то `@Value` работает только в Child, `environment.getProperty` работает только в Child
 
+## Наследование @Transactional
+Spring рекомендует чтобы `@Transactional` проставляли над классами и методами, а не интерфейсами. Ставить эту аннотацию над интерфейсами и их методами можно только если используется interface-based proxies (видимо имеется ввиду repository классы из spring data?). `@Transactional` - отмечена как @Inherited т.е. она наследуется классами. Но она не наследуется от методов интерфейса.
+
+Только **public** методы **Java Dynamic Proxy** могут быть `@Transactional`, не public методы можно отметить, но при их вызове вообще ничего не произойдет в том числе ошибки. Прим. в новых версиях Spring по идеи используется CGLIB и поведение возможно будет другим. Но это поведение можно изменить используя AspectJ и связывание на этапе компиляции.
+
+## Как работает транзакция?
+**Используется:**
+* EntityManager Proxy - вызывает SessinoFactory и достает Session из thread
+* Transactional Aspect - класс TransactionInterceptor реализует саму логику и around из AOP.
+* Transaction Manager - если нужно создает Session и отвечает за создание транзакции на уровнt DB. 
+
 # Spring DI
 ## FactoryBean
-Есть два типа бинов в Spring bean container, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта.
+Есть два типа бинов в Spring bean container, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта. 
 
 ```java
 // интерфейс
@@ -1925,6 +1970,7 @@ public class ToolFactory implements FactoryBean<Tool> {
     }
 }
 ```
+
 **Регистрируем через xml**
 ```xml
 <beans ...>
@@ -1934,6 +1980,7 @@ public class ToolFactory implements FactoryBean<Tool> {
     </bean>
 </beans>
 ```
+
 **Регистрируем через аннотации**
 ```java
 @Configuration
@@ -2200,6 +2247,11 @@ public class AmbiguousInjectFine {
 # Spring MVC
 
 # Spring Security
+## Как работает filter chain
+Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
+
+
+
 ## Annotations
 **List**
 * `@PreAuthorize` vs `@Secured` - в `@PreAuthorize` можно использовать SpEL, получать доступ к свойствам `SecurityExpressionRoot`, получать доступ к параметрам метода (аналогично для `@PostAuthorize`, `@PreFilter`, `@PostFilter`)
