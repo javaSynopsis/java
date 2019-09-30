@@ -2307,3 +2307,5 @@ public class AmbiguousInjectFine {
 ```properties
 spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration, org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 ```
+
+Авто конфигурация включается по `@ConditionOn` условию.
