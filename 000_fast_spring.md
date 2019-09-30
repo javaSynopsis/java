@@ -36,6 +36,7 @@
 - [Spring Security](#spring-security)
   - [Общее](#Общее-2)
   - [AuthenticationManagerBuilder vs HttpSecurity vs WebSecurity](#authenticationmanagerbuilder-vs-httpsecurity-vs-websecurity)
+- [Spring Data](#spring-data)
 - [Spring Data REST](#spring-data-rest)
 - [Spring Data JPA + REST](#spring-data-jpa--rest)
 - [SpEL](#spel)
@@ -59,6 +60,7 @@
   - [Properties with Spring and Spring Boot](#properties-with-spring-and-spring-boot)
   - [Наследование @Transactional](#Наследование-transactional)
   - [Как работает транзакция?](#Как-работает-транзакция)
+  - [NoSuchBeanDefinitionException](#nosuchbeandefinitionexception)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
   - [@Autowired in Abstract Classes](#autowired-in-abstract-classes)
@@ -74,6 +76,8 @@
 - [Spring Security](#spring-security-1)
   - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
+- [Spring Boot](#spring-boot-1)
+  - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -1091,6 +1095,14 @@ configure(AuthenticationManagerBuilder) - можно добавить users и �
 configure(HttpSecurity) - для http
 configure(WebSecurity) - глобально
 
+# Spring Data
+Это проект содержащий разные модули. Слой доступа к данным с шаблонным кодом. Облегчает разработку.
+
+**Известные модули:**
+* Spring Data Commons - ядро
+* Spring Data JPA
+* Spring Data REST
+
 # Spring Data REST
 **Принципы:**
 1. **@RequestBody** добавляет авто deserialization HttpRequest body в Java object:
@@ -1782,35 +1794,50 @@ private String activeProfile;
 
 ### Profiles in Spring Boot
 1. через конфиг
-```properties
-spring.profiles.active=dev
-```
+    ```properties
+    spring.profiles.active=dev
+    ```
 2. Программно
-```java
-SpringApplication.setAdditionalProfiles("dev");
-```
+    ```java
+    SpringApplication.setAdditionalProfiles("dev");
+    ```
 3. Используя `spring-boot-maven-plugin` в `pom.xml`
-```xml
-<plugins>
-    <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-            <profiles>
-                <profile>dev</profile>
-            </profiles>
-        </configuration>
-    </plugin>
-    ...
-</plugins>
-```
+    ```xml
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <profiles>
+                    <profile>dev</profile>
+                </profiles>
+            </configuration>
+        </plugin>
+        ...
+    </plugins>
+    ```
 
-После установки профиля запускаем
-```sh
-mvn spring-boot:run
-```
+    После установки профиля запускаем
+    ```sh
+    mvn spring-boot:run
+    ```
 4. Задание специфичных properties файлов для профилей (называем добавляя имя профиля через дефиз):
 `applications-{profile}.properties` и предшествует файлу по умолчанию (т.е. файл по умолчанию перекрывает его свойства). Файл `application.properties` будет работать для всех.
+5. Через один файл
+    ```yaml
+    server:
+        port: 9000
+    ---
+    spring:
+        profiles: development
+    server:
+        port: 9001
+    ---
+    spring:
+        profiles: production
+    server:
+        port: 0
+    ```
 
 ### Maven Profile
 Передача Spring профиля через maven в параметре `spring.profiles.active`
@@ -1939,6 +1966,9 @@ Spring рекомендует чтобы `@Transactional` проставляли
 * EntityManager Proxy - вызывает SessinoFactory и достает Session из thread
 * Transactional Aspect - класс TransactionInterceptor реализует саму логику и around из AOP.
 * Transaction Manager - если нужно создает Session и отвечает за создание транзакции на уровнt DB. 
+
+## NoSuchBeanDefinitionException
+`NoSuchBeanDefinitionException` будет если бин не найден и autowired стоит true (по умолчанию)
 
 # Spring DI
 ## FactoryBean
@@ -2250,8 +2280,6 @@ public class AmbiguousInjectFine {
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
 
-
-
 ## Annotations
 **List**
 * `@PreAuthorize` vs `@Secured` - в `@PreAuthorize` можно использовать SpEL, получать доступ к свойствам `SecurityExpressionRoot`, получать доступ к параметрам метода (аналогично для `@PostAuthorize`, `@PreFilter`, `@PostFilter`)
@@ -2263,3 +2291,15 @@ public class AmbiguousInjectFine {
     @Secured("ROLE_ADMIN")
     void а1(){}
     ```
+
+# Spring Boot
+## Отключение авто конфигурации
+Через аннотации
+```java
+@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+```
+
+Через application.properties
+```properties
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration, org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+```
