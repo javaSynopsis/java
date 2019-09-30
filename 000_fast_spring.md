@@ -77,6 +77,7 @@
   - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
 - [Spring Boot](#spring-boot-1)
+  - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
 
 # Простое подключение сервлета
@@ -2293,13 +2294,16 @@ public class AmbiguousInjectFine {
     ```
 
 # Spring Boot
+## Common
+**starter** - это пакет у которого в зависимостях другие пакеты, чтобы подключать зависимости можно было несколькими строчками
+
 ## Отключение авто конфигурации
 Через аннотации
 ```java
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 ```
 
-Через application.properties
+Через **application.properties**
 ```properties
 spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration, org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 ```
