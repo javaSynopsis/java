@@ -3006,5 +3006,27 @@ https://thoughts-on-java.org/ordering-vs-sorting-hibernate-use/
 
 # Типы id и их генерация
 
+**Относительно основные типы:**
+* `GenerationType.AUTO` - jpa provider сам решает что делать
+* `GenerationType.IDENTITY` - не очень для производительности, использует механизм DB которая сама генерирует id при insert
+* `GenerationType.SEQUENCE` - использует SEQUENCE из DB чтобы взять уникальный id, по умолчанию делает отдельный select для начитки этого уникального значения (это можно поменять в настройках), работает быстро
+* `GenerationType.TABLE` - редко используется, медленная, эмулирует SEQUENCE, использует pessimistic locks.
+
+**Другие типы:**
+* UUID
+
 # Использование дат в Entity
+тут будет описание
+
 # Авто подстановка в поле Entity текущей даты при сохранении Entity
+```java
+@CreationTimestamp
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = "create_date")
+private Date createDate;
+
+@UpdateTimestamp
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = "modify_date")
+private Date modifyDate;
+```
