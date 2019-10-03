@@ -78,6 +78,7 @@
 - [Еще про транзакции (из блога Vlad Mihalcea)](#Еще-про-транзакции-из-блога-vlad-mihalcea)
   - [Блокировки и то как они относятся к транзакциям](#Блокировки-и-то-как-они-относятся-к-транзакциям)
   - [optimistic locking, Version-less optimistic locking и @Source](#optimistic-locking-version-less-optimistic-locking-и-source)
+  - [detached entities anomaly при Version-less optimistic locking](#detached-entities-anomaly-при-version-less-optimistic-locking)
   - [работа с OptimisticLockException и о том что detached entities могут](#работа-с-optimisticlockexception-и-о-том-что-detached-entities-могут)
   - [Lock Scope](#lock-scope)
   - [Lock Timeout](#lock-timeout)
@@ -2266,6 +2267,10 @@ class MyEntity {
 ```
 
 **Version-less optimistic locking** - 
+
+## detached entities anomaly при Version-less optimistic locking
+
+**detached entities anomaly** при **Version-less optimistic locking** возникает когда закрывается Persistence Context (Session). Изменить состояние **Entity** можно только **merge** и **update**, обе эти операции делают **select** чтобы получить последний snapshot из DB (видимо имеется ввиду версия в виде полей чтобы сравнить при version less optimistic lock нужно ли что-то делать) и сравнить ее с текущей Entity (видимо речь о образце entity в памяти). Но это (использование этого типа блокировки после update или merge) может привести к **lost update**. Это происходит потому что как только Session закрыта мы не можем использовать оригинальное состояние Entity в `UPDATE ... WHERE` запросе и поэтому новые данные могут быть перезаписаны старыми (т.е. случится **lost update**).
 
 ## работа с OptimisticLockException и о том что detached entities могут
 https://vladmihalcea.com/how-to-prevent-optimisticlockexception-using-hibernate-versionless-optimistic-locking/
