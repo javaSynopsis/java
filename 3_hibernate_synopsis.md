@@ -77,6 +77,8 @@
 - [specification-arg-resolver](#specification-arg-resolver)
 - [Еще про транзакции (из блога Vlad Mihalcea)](#Еще-про-транзакции-из-блога-vlad-mihalcea)
   - [Блокировки и то как они относятся к транзакциям](#Блокировки-и-то-как-они-относятся-к-транзакциям)
+  - [optimistic locking, Version-less optimistic locking и @Source](#optimistic-locking-version-less-optimistic-locking-и-source)
+  - [работа с OptimisticLockException и о том что detached entities могут](#работа-с-optimisticlockexception-и-о-том-что-detached-entities-могут)
   - [Lock Scope](#lock-scope)
   - [Lock Timeout](#lock-timeout)
   - [Phisical and logical transaction](#phisical-and-logical-transaction)
@@ -2233,6 +2235,43 @@ public Optional<Customer> findById(Long customerId);
 * https://habr.com/ru/post/238513/
 * [REPEATABLE-READ and READ-COMMITTED Transaction Isolation Levels](https://www.percona.com/blog/2012/08/28/differences-between-read-committed-and-repeatable-read-transaction-isolation-levels/) (про InnoDB)
 
+## optimistic locking, Version-less optimistic locking и @Source
+Во время оптимистичной блокировки hibernate при изменении любого поля Entity увеличивает номер версии. Чтобы исключить поле чтобы оно не вызывало изменение версии нужно использовать.
+```java
+@Entity
+class MyEntity {
+    @OptimisticLock(exclude = true) String field;
+    @Version long version;
+}
+```
+
+Кроме числового поле `@Version` может быть **Date** или **Calendar**.
+
+**OptimisticLockType**
+* `NONE` - optimistic lock отключена даже если есть `@Version`
+* `VERSION` (default)
+* `ALL` - все столбцы будут использованы для проверки version, т.е. будут использованы в качестве version поля (т.е. использована будут использованы они все)
+* `DIRTY` - только измененные будут использованы для проверки version, т.е. будут использованы в качестве version поля (т.е. использована будут использованы они все)
+
+`ALL` or `DIRTY` - включают **version-less optimistic locking**. version-less optimistic locking нужен для поддержки optimistic lock старого варианта optimistic lock в DB (в статье не ясно написано для поддержки optimistic lock на уровне старых DB т.к. у новых есть поддержка каких-то механизмов optimistic lock или это просто старый вариант optimistic lock сам по себе). В этих случаях нужно добавлять аннотацию `@DynamicUpdate` т.к. Hibernate включает все столбцы в SQL запрос при каждом update даже если они не изменились, потому что использует переиспользуется кэшированный SQL prepared statement. Если `DIRTY` нужно добавить еще и `@SelectBeforeUpdate`.
+```java
+@Entity
+@OptimisticLocking(type = OptimisticLockType.DIRTY)
+@DynamicUpdate // для ALL и DIRTY
+@SelectBeforeUpdate // для DIRTY
+class MyEntity {
+    @OptimisticLock(exclude = true) String field;
+    @Version long version;
+}
+```
+
+**Version-less optimistic locking** - 
+
+## работа с OptimisticLockException и о том что detached entities могут
+https://vladmihalcea.com/how-to-prevent-optimisticlockexception-using-hibernate-versionless-optimistic-locking/
+
+https://vladmihalcea.com/an-entity-modeling-strategy-for-scaling-optimistic-locking/
+
 ## Lock Scope
 
 https://www.baeldung.com/jpa-pessimistic-locking
@@ -2961,7 +3000,13 @@ Tuple postDTO = postDTOs.get( 0 );
 
 # @DynamicUpdate
 
-тут будет описание
+Hibernate при update делает update **всех** полей Entity даже если изменилось только **одно**. Аннотация `@DynamicUpdate` делает так что в update запросе только те поля которые изменились. Эта аннотация **обязательна при использовании optimistic locking** (видимо под обязательно тут имеется ввиду рекомендуется?)
+```java
+@Entity(name = "Post")
+@Table(name = "post")
+@DynamicUpdate
+public class Post {}
+```
 
 # Collection vs Bag vs List vs Map vs Set
 

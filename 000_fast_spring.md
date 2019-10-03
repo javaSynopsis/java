@@ -298,6 +298,12 @@ Note: есть еще интерфейс BeanFactoryAware, но он немно�
 
 Note: у бинов prototype НЕ вызывается метод с анотацией @PreDestroy. НО вызывает @PostConstruc
 
+https://habr.com/ru/post/222579/
+
+https://habr.com/ru/post/334448/
+
+https://www.youtube.com/watch?v=BmBr5diz8WA
+
 **BeanPostProcessor** interface часть жизненного цикла, но используется и чтобы расширить функциональность самих модулей. Нужно наследовать и переопределить метод. напр.:
 * CommonAnnotationBeanPostProcessor
 * RequiredAnnotationBeanPostProcessor
