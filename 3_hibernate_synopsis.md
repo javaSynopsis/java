@@ -102,7 +102,7 @@
 - [StatelessSession](#statelesssession)
 - [Зачем нужно делать Detached объекты в hibernate Session](#Зачем-нужно-делать-detached-объекты-в-hibernate-session)
 - [Hypersistence Optimizer](#hypersistence-optimizer)
-- [@DynamicUpdate](#dynamicupdate)
+- [@DynamicUpdate и @DynamicInsert](#dynamicupdate-и-dynamicinsert)
 - [Collection vs Bag vs List vs Map vs Set](#collection-vs-bag-vs-list-vs-map-vs-set)
 - [Sorting vs Ordering](#sorting-vs-ordering)
 - [Типы id и их генерация](#Типы-id-и-их-генерация)
@@ -3003,15 +3003,18 @@ Tuple postDTO = postDTOs.get( 0 );
 
 Это неофициальный инструмент проверки того правильно ли используется mapping c Hibernate ORM
 
-# @DynamicUpdate
+# @DynamicUpdate и @DynamicInsert
 
 Hibernate при update делает update **всех** полей Entity даже если изменилось только **одно**. Аннотация `@DynamicUpdate` делает так что в update запросе только те поля которые изменились. Эта аннотация **обязательна при использовании optimistic locking** (видимо под обязательно тут имеется ввиду рекомендуется?)
 ```java
 @Entity(name = "Post")
 @Table(name = "post")
 @DynamicUpdate
+@DynamicInsert(value = true)
 public class Post {}
 ```
+
+Аннотацию `@DynamicUpdate` рекомендуется использовать с **version less optimistic lock** (Note. Возможно это обязательно).
 
 # Collection vs Bag vs List vs Map vs Set
 
