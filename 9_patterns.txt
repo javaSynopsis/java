@@ -31,7 +31,7 @@ Structural patterns (Структурные)
 	Adapter / Wrapper - оборачивает вызов метода в свой метод и перед передачей параметров в обернутый метод "адаптирует" их (меняет формат, напр. xml в json). Может "оборачивать" object или class.
 	Имеет общий interface со всеми необходимыми методами РАЗНЫХ объектов, так что наследовать Adapter может любой из них, а не нужный метод интерфейса можно просто не использовать.
 	
-	Decorator - альтернатива наследованию классов. Класс-обертка получающая ссылку на классы того же типа что и он сам (т.е. ). Вызывает какие-то другие методы "до, во время или после" вызова "обернутого" метода.
+	Decorator - альтернатива наследованию классов. Класс-обертка получающая ссылку на классы того же типа что и он сам (т.е. все получаемые декоратором классы и сам декоратор наследуют общий интерфейс). Вызывает какие-то другие методы "до, во время или после" вызова "обернутого" метода.
 	
 	Facade - содержит ссылки на несколько разных объектов. Его метод скрывает вызов нескольких методов этих разных объектов.
 
@@ -169,3 +169,50 @@ IMath p = new MathProxy();
 ---
 Пример decorator
 
+public interface InterfaceComponent {
+	void doOperation();
+}
+
+class MainComponent implements InterfaceComponent {
+	@Override
+	public void doOperation() {
+		System.out.print("World!");
+	}	
+}
+
+abstract class Decorator implements InterfaceComponent {
+	protected InterfaceComponent component;
+	
+	public Decorator (InterfaceComponent c) {
+		component = c;
+	}
+	
+	@Override
+	public void doOperation() {
+		component.doOperation();
+	}
+
+	public void newOperation() {
+		System.out.println("Do Nothing");
+	}
+}
+
+class DecoratorSpace extends Decorator {
+	public DecoratorSpace(InterfaceComponent c) {
+		super(c);
+	}
+	
+	@Override
+	public void doOperation() {
+		System.out.print(" ");
+		super.doOperation();
+	}
+	
+	@Override
+	public void newOperation() {
+		System.out.println("New space operation");
+	}
+}
+
+// использование
+Decorator c = new DecoratorHello(new DecoratorComma(new DecoratorSpace(new MainComponent())));

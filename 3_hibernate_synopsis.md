@@ -108,6 +108,13 @@
 - [Типы id и их генерация](#Типы-id-и-их-генерация)
 - [Использование дат в Entity](#Использование-дат-в-entity)
 - [Авто подстановка в поле Entity текущей даты при сохранении Entity](#Авто-подстановка-в-поле-entity-текущей-даты-при-сохранении-entity)
+- [@Size, @Length, and @Column(length=value)](#size-length-and-columnlengthvalue)
+- [@Immutable](#immutable)
+- [Custom Types and @Type](#custom-types-and-type)
+- [Hibernate Interceptors](#hibernate-interceptors)
+- [Hibernate Second-Level Cache](#hibernate-second-level-cache)
+- [3 Common Hibernate Performance Issues and How to Find Them in Your Log File](#3-common-hibernate-performance-issues-and-how-to-find-them-in-your-log-file)
+- [Hibernate Pagination](#hibernate-pagination)
 
 # Hibernate
 
@@ -2248,6 +2255,8 @@ class MyEntity {
 
 Кроме числового поле `@Version` может быть **Date** или **Calendar**.
 
+При **optimistic locking** в табл есть поле version с номером версии. Но при **version less optimistick locking** его нет (уточнить инфу!!!)
+
 **OptimisticLockType**
 * `NONE` - optimistic lock отключена даже если есть `@Version`
 * `VERSION` (default)
@@ -3081,3 +3090,24 @@ private Date createDate;
 @Column(name = "modify_date")
 private Date modifyDate;
 ```
+
+# @Size, @Length, and @Column(length=value)
+https://www.baeldung.com/jpa-size-length-column-differences
+
+# @Immutable
+https://www.baeldung.com/hibernate-immutable
+
+# Custom Types and @Type
+https://www.baeldung.com/hibernate-custom-types
+
+# Hibernate Interceptors
+https://www.baeldung.com/hibernate-interceptor
+
+# Hibernate Second-Level Cache
+https://www.baeldung.com/hibernate-second-level-cache
+
+# 3 Common Hibernate Performance Issues and How to Find Them in Your Log File
+https://www.baeldung.com/hibernate-common-performance-problems-in-logs
+
+# Hibernate Pagination
+https://www.baeldung.com/hibernate-pagination
