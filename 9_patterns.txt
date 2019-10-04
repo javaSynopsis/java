@@ -216,3 +216,5 @@ class DecoratorSpace extends Decorator {
 
 // использование
 Decorator c = new DecoratorHello(new DecoratorComma(new DecoratorSpace(new MainComponent())));
+---
+пример observer
