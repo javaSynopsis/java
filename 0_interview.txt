@@ -1,3 +1,12 @@
+plan2
+1. collection + их o(n), concurent collection, thread, valotile, GC, stream api, generics
+1. spring fast + lifecycle
+2. sql, hibernate (isolation, propagation, inherit strategies, optimistick lock, pessimistick lock, L2 кэш, основные аннотации, связи, fetching & n+1)
+2. patterns, proxy, decorator, acid, rest, soap
+3. git, maven, junit + mock
+4. простые алгоритмы: конечный автомат, плюс те что с собеса, и из common fast
+5. CSRF, CSP, refresh token, docker
+
 Обязательное:
     0 текущее основное:        
         Англ: составить план собеседования:
