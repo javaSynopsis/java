@@ -3092,7 +3092,9 @@ private Date modifyDate;
 ```
 
 # @Size, @Length, and @Column(length=value)
-https://www.baeldung.com/jpa-size-length-column-differences
+* `@Size(min = 3, max = 15)` - из JPA
+* `@Length(min = 3, max = 15)` - аналог @Size из Hibernate
+* `@Column(length=5)` - используется для задания физической длинны строки столбца при DDL (генерации схемы столбца табл.) и преобразуется в `varchar(5)`, т.е. валидации на уровне Java приложения не будет, при вставке большего размера появится SQL exception. Ее можно использовать совмесно с `@Size` для валидации на уровне Java приложения
 
 # @Immutable
 https://www.baeldung.com/hibernate-immutable

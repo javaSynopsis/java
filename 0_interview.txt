@@ -1,5 +1,5 @@
 plan2
-1. collection + их o(n), concurent collection, thread, valotile, GC, stream api, generics
+1. collection + их o(n), concurent collection, thread, valotile, GC, stream api, generics, references
 1. spring fast + lifecycle
 2. sql, hibernate (isolation, propagation, inherit strategies, optimistick lock, pessimistick lock, L2 кэш, основные аннотации, связи, fetching & n+1)
 2. patterns, proxy, decorator, acid, rest, soap
