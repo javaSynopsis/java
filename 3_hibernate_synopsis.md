@@ -116,6 +116,7 @@
 - [3 Common Hibernate Performance Issues and How to Find Them in Your Log File](#3-common-hibernate-performance-issues-and-how-to-find-them-in-your-log-file)
 - [Hibernate Pagination](#hibernate-pagination)
 - [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
+- [JPA vs Hibernate](#jpa-vs-hibernate)
 
 # Hibernate
 
@@ -1687,6 +1688,8 @@ session.getTransaction().commit();
 
 **JPA vs Hibernate методы** - изначально в Hibernate и JPA были свои методы. Затем в Hibernate добавили методы JPA, для большей совместимости. Некоторые методы похожи по функционалу, но их работа в может отличаться.
 
+Важно понимать, что методы `persist, save, update, merge, saveOrUpdate` не меняют данные в DB сразу. Запросы SQL такие как UPDATE or INSERT отправляются только после flush и commit (т.е. в рамках Spring приложения это в конце методов сервиса отмеченных `@Transactional`)
+
 - **save vs persist**
   - **save** генерирует и возвращает id, **persist** ничего не возвращает и может создать id когда захочет до flush(). При типе генерации id `Identity`, вне transaction или с `Flush.MANUAL` для **persist** Hibernate задержит выполнение insert и создаст временный id, но для **save** выполнит insert сразу и получит id из DB.
 - **update vs merge** - **update** называют `Reattaching` и оно работает только в Hibernate, . Если обьекта нет в Session, то **рекомендуется update**, если был или не известно был ли, то **рекомендуется merge**. При **update** если Entity будет **detached**, то выбросится `NonUniqueObjectException`
@@ -3116,3 +3119,6 @@ https://www.baeldung.com/hibernate-common-performance-problems-in-logs
 https://www.baeldung.com/hibernate-pagination
 
 # Способы создания query в одном разделе, могут спросить на собеседовании
+
+# JPA vs Hibernate
+https://stackoverflow.com/a/26825931
