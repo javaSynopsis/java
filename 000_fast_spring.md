@@ -2329,3 +2329,4 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSou
 Авто конфигурация включается по `@ConditionOn` условию.
 
 ## Способы обработки exceptions
+https://www.baeldung.com/exception-handling-for-rest-with-spring

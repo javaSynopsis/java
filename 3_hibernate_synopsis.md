@@ -1689,7 +1689,7 @@ session.getTransaction().commit();
 
 - **save vs persist**
   - **save** генерирует и возвращает id, **persist** ничего не возвращает и может создать id когда захочет до flush(). При типе генерации id `Identity`, вне transaction или с `Flush.MANUAL` для **persist** Hibernate задержит выполнение insert и создаст временный id, но для **save** выполнит insert сразу и получит id из DB.
-- **update vs merge**
+- **update vs merge** - **update** называют `Reattaching` и оно работает только в Hibernate, . Если обьекта нет в Session, то **рекомендуется update**, если был или не известно был ли, то **рекомендуется merge**. При **update** если Entity будет **detached**, то выбросится `NonUniqueObjectException`
 - **saveOrUpdate**
 - **replicate** — преобразует объект из detached в persistent, при этом у объекта обязательно должен быть заранее установлен Id. Данный метод предназначен для сохранения в БД объекта с заданным Id, чего не позволяют сделать persist() и merge(). Если объект с данным Id уже существует в БД, то поведение определяется согласно правилу из перечисления `org.hibernate.ReplicationMode`: 
   - `ReplicationMode.IGNORE` — ничего не меняется в базе.
