@@ -117,6 +117,12 @@
 - [Hibernate Pagination](#hibernate-pagination)
 - [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
 - [JPA vs Hibernate](#jpa-vs-hibernate)
+- [Second-Level Cache](#second-level-cache)
+  - [источники](#источники)
+  - [common](#common)
+  - [про сброс кэша](#про-сброс-кэша)
+  - [пошаговая настройка](#пошаговая-настройка)
+  - [Query Cache](#query-cache)
 
 # Hibernate
 
@@ -3122,3 +3128,105 @@ https://www.baeldung.com/hibernate-pagination
 
 # JPA vs Hibernate
 https://stackoverflow.com/a/26825931
+
+# Second-Level Cache
+## источники
+[источник](https://www.baeldung.com/hibernate-second-level-cache)
+
+## common
+Кэш особенно эффективен для Entities с большим количеством связных сущностей.
+
+**Cache Concurrency Strategy**
+* `READ_ONLY`
+* `NONSTRICT_READ_WRITE`
+* `READ_WRITE`
+* `TRANSACTIONAL`
+
+**Entities хранятся в disassembled (hydrated) состоянии:**
+* Id (primary key) is not stored (it is stored as part of the cache key)
+* Transient properties are not stored
+* Collections are not stored (see below for more details)
+* Non-association property values are stored in their original form
+* Only id (foreign key) is stored for ToOne associations
+
+## про сброс кэша
+При использовании HQL кэш сбрасывается только для Entity к которой обращается запрос. При native query кэш сбрасывается целиком. Чтобы сброса кэша не произошло нужно указать Hibernate
+
+```java
+// кэш для Foo сбросится сам
+entityManager.createQuery("update Foo set … where …").executeUpdate();
+
+// сбросится весь кэш
+session.createNativeQuery("update FOO set … where …").executeUpdate();
+
+// указываем какой кэш сбросить чтобы остальной остался нетронутым
+Query nativeQuery = entityManager.createNativeQuery("update FOO set ... where ...");
+nativeQuery.unwrap(org.hibernate.SQLQuery.class).addSynchronizedEntityClass(Foo.class);
+nativeQuery.executeUpdate();
+```
+
+## пошаговая настройка
+1. Включаем кэш и указываем его реализацию
+    ```properties
+    hibernate.cache.use_second_level_cache=true
+    hibernate.cache.region.factory_class=org.hibernate.cache.ehcache.EhCacheRegionFactory
+    ```
+
+2. Указываем класс для L2 кэша
+    ```java
+    @Entity
+    @Cacheable // не обязательно в Hibernate
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE) // включаем кэш и определяем стратегию
+    public class Foo {
+        @Id
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        @Column(name = "ID")
+        private long id;
+    
+        @Column(name = "NAME")
+        private String name;
+    }
+    ```
+
+3. Проверяем состояние кэша, используя `CacheManager` для доступа к кэшу
+    ```java
+    Foo foo = new Foo();
+    fooService.create(foo);
+    fooService.findOne(foo.getId());
+    int size = CacheManager.ALL_CACHE_MANAGERS.get(0)
+    .getCache("com.baeldung.hibernate.cache.model.Foo").getSize();
+    ```
+
+4. Настраиваем сам **ehcache** кэш по себе 
+    ```xml
+    <ehcache>
+        <cache name="com.baeldung.persistence.model.Foo" maxElementsInMemory="1000" />
+    </ehcache>
+    ```
+
+5. Collection Cache не работает по умолчанию, его нужно включать в классе отдельно. И хранятся они в отдельных регионах кэша. Им региона это FQN (пакет + класс) + имя свойства - это дает гибкость в настраиваимости параметров кэширования для каждого случая (e.g. eviction/expiration policy). **Причем** только ids сущностей в кэшируемой collection кэшуруются, что означает что помечать коллекцию из Entity как кэшируемую (т.е. видимо имеется ввиду, что хранить id дешево и поэтому ничего плохого не будет если закэшировать связанные коллекции?)
+    ```java
+    @Entity
+    @Cacheable
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    public class Foo {
+        @Cacheable
+        @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE) // указываем отдельно
+        @OneToMany
+        private Collection<Bar> bars;
+    }
+    ```
+
+## Query Cache
+дополнить https://www.baeldung.com/hibernate-second-level-cache
+
+1. включени
+```properties
+hibernate.cache.use_query_cache=true
+```
+2. Для каждого запроса нужно включить query кэш
+```java
+entityManager.createQuery("select f from Foo f")
+  .setHint("org.hibernate.cacheable", true)
+  .getResultList();
+```
