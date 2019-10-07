@@ -3230,3 +3230,10 @@ entityManager.createQuery("select f from Foo f")
   .setHint("org.hibernate.cacheable", true)
   .getResultList();
 ```
+
+**Query Cache Best Practices** (относится к ЭТОМУ кэшу)
+* для коллекций внутри Entities кэшируются только ids, поэтому очень рекомендуется включать L2 кэш для таких коллекций
+* каждый entry результата связан с одним набором параметров query (как сигнатура метода), поэтому кэшировать запросы где с большим набором комбинаций параметров не рекомендуется
+* entities которые часто меняются не рекомендуется кэшировать, т.к. кэш будет invalidate как только поменяется даже просто что-то связанное с ними, при этом не важно что поменяется только часть данных, invalidate будет весь кэш
+* по умолчанию **query cache** результаты хранятся в `org.hibernate.cache.internal.StandardQueryCache`
+* для всех query cache результатов в org.hibernate.cache.spi.UpdateTimestampsCache хранятся last update timestamps (время последнего обновления кэша). Пока идет работа с query cache этот конкретный кэш с timestamps не должен быть evicted/expired. Рекомендуется отключить **automatic eviction and expiration**, т.к. это не потребляет много памяти
