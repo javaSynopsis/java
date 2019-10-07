@@ -79,6 +79,7 @@
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
+  - [Способы обработки exceptions](#Способы-обработки-exceptions)
 
 # Простое подключение сервлета
 **Аннотации**
@@ -2326,3 +2327,5 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSou
 ```
 
 Авто конфигурация включается по `@ConditionOn` условию.
+
+## Способы обработки exceptions

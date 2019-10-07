@@ -1226,7 +1226,7 @@ List<A> listFullV1 = listStream.collect(
 	() -> new LinkedList<>(), //constructor 
 	(listA, element) -> listA.add(element), //adder (2 parametrs)
 	(listA, listB) -> listA.addAll(listB), //joiner (2 parameters) - нужен для параллельной работы потоков, чтобы join результаты
-    StringBuilder::toString // post precess, НЕОБЯЗАТЕЛЕН, это то, что преобразует в КОНЕЧНЫЙ результат, как Collectors.toString()
+    StringBuilder::toString // post process, НЕОБЯЗАТЕЛЕН, это то, что преобразует в КОНЕЧНЫЙ результат, как Collectors.toString()
         // (т.е. мы можем что-то поделать с этой своей коллекцией из collect, а потом объект этой коллекции преобразовать во что-то другое)
 );
 --			

@@ -115,6 +115,7 @@
 - [Hibernate Second-Level Cache](#hibernate-second-level-cache)
 - [3 Common Hibernate Performance Issues and How to Find Them in Your Log File](#3-common-hibernate-performance-issues-and-how-to-find-them-in-your-log-file)
 - [Hibernate Pagination](#hibernate-pagination)
+- [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
 
 # Hibernate
 
@@ -3113,3 +3114,5 @@ https://www.baeldung.com/hibernate-common-performance-problems-in-logs
 
 # Hibernate Pagination
 https://www.baeldung.com/hibernate-pagination
+
+# Способы создания query в одном разделе, могут спросить на собеседовании
