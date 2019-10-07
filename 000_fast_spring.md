@@ -304,6 +304,17 @@ https://habr.com/ru/post/334448/
 
 https://www.youtube.com/watch?v=BmBr5diz8WA
 
+1. парсинг конфигов (аннотаций, xml)
+   1. AnnotationBeanDefinitionReader
+   2. BeanDefinitionReader
+   3. ClassPathBeanDefinitinoScanner
+2. Настройка созданных BeanDefinition
+   1. BeanFactoryPostProcessor
+3. создание кастомных FactoryBean
+   1. интерфейс FactoryBean<T>
+4. BeanFactory создает бины, если нужно для создания вызвается FactoryBean
+5. Настройка бинов через BeanPostProcessor
+
 **BeanPostProcessor** interface часть жизненного цикла, но используется и чтобы расширить функциональность самих модулей. Нужно наследовать и переопределить метод. напр.:
 * CommonAnnotationBeanPostProcessor
 * RequiredAnnotationBeanPostProcessor
@@ -1964,9 +1975,9 @@ public static PropertySourcesPlaceholderConfigurer properties(){
   * Если свойство в Child context, то `@Value` работает только в Child, `environment.getProperty` работает только в Child
 
 ## Наследование @Transactional
-Spring рекомендует чтобы `@Transactional` проставляли над классами и методами, а не интерфейсами. Ставить эту аннотацию над интерфейсами и их методами можно только если используется interface-based proxies (видимо имеется ввиду repository классы из spring data?). `@Transactional` - отмечена как @Inherited т.е. она наследуется классами. Но она не наследуется от методов интерфейса.
+Spring рекомендует чтобы `@Transactional` проставляли над классами и методами, а не интерфейсами. Ставить эту аннотацию над интерфейсами и их методами можно только если используется interface-based proxies (видимо имеется ввиду repository классы из spring data?). `@Transactional` - отмечена как `@Inherited` т.е. она наследуется классами. Но она не наследуется от методов интерфейса.
 
-Только **public** методы **Java Dynamic Proxy** могут быть `@Transactional`, не public методы можно отметить, но при их вызове вообще ничего не произойдет в том числе ошибки. Прим. в новых версиях Spring по идеи используется CGLIB и поведение возможно будет другим. Но это поведение можно изменить используя AspectJ и связывание на этапе компиляции.
+Только **public** методы **Java Dynamic Proxy** могут быть `@Transactional`, не public методы можно отметить, но при их вызове вообще ничего не произойдет в том числе ошибки. **Note.** в новых версиях Spring по идеи используется CGLIB и поведение возможно будет другим. Но это поведение можно изменить используя AspectJ и связывание на этапе компиляции.
 
 ## Как работает транзакция?
 **Используется:**
