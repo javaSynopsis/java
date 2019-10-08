@@ -118,7 +118,6 @@
 - [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
 - [JPA vs Hibernate](#jpa-vs-hibernate)
 - [Second-Level Cache](#second-level-cache)
-  - [источники](#источники)
   - [common](#common)
   - [про сброс кэша](#про-сброс-кэша)
   - [пошаговая настройка](#пошаговая-настройка)
@@ -3130,9 +3129,6 @@ https://www.baeldung.com/hibernate-pagination
 https://stackoverflow.com/a/26825931
 
 # Second-Level Cache
-## источники
-[источник](https://www.baeldung.com/hibernate-second-level-cache)
-
 ## common
 Кэш особенно эффективен для Entities с большим количеством связных сущностей.
 
