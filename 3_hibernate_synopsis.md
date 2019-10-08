@@ -3142,7 +3142,7 @@ https://stackoverflow.com/a/26825931
 * `READ_WRITE` - гарантирует **strong consistency**, достигается путем lock, который отпускается когда transaction уже commited. Все параллельные транзакции которые обращаются к entities на которых lock загружают эти данные из DB
 * `TRANSACTIONAL` - для distributed XA transactions **Note.** уточнить как оно работает, по идеи это самый строгий и медленная стратегия
 
-**Note.** В блоге vla mihalcen есть инфа которую сюда нужно перенести, [тут](https://vladmihalcea.com/how-does-hibernate-read_write-cacheconcurrencystrategy-work/)
+**Note.** В блоге vlad mihalcen есть инфа которую сюда нужно перенести, [тут](https://vladmihalcea.com/how-does-hibernate-read_write-cacheconcurrencystrategy-work/)
 
 **Entities хранятся в disassembled (hydrated) состоянии:**
 * Id (primary key) is not stored (it is stored as part of the cache key)
