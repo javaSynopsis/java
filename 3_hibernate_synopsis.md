@@ -3216,9 +3216,9 @@ nativeQuery.executeUpdate();
     ```
 
 ## Query Cache
-[источник](https://www.baeldung.com/hibernate-second-level-cache)
 
-1. включени
+**Использование:**
+1. включение
     ```properties
     hibernate.cache.use_query_cache=true
     ```
