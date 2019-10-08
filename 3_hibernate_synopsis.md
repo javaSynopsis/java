@@ -3135,7 +3135,7 @@ https://stackoverflow.com/a/26825931
 **Cache Concurrency Strategy**
 * `READ_ONLY` - для данных которые не меняются, изменение вызовет exception, работает быстро. Рекомендуется при редких операциях чтения
 * `NONSTRICT_READ_WRITE` - не гарантирует **strong consistency**, работает как **eventual consistency**, т.е. есть временное окно пока данные в кэше будут актуальными. Рекомендуется если **update** данных редкий
-* `READ_WRITE` - гарантирует **strong consistency**, достигается путем lock, который отпускается когда transaction уже commited. Все параллельные транзакции которые обращаются к entities на которых lock загружают эти данные из DB. Нельзя использовать если нужен serializable isolation level, т.к. эта стратегия кэширования его не поддерживает (т.е. могут случаться phantom reads). Рекомендуется если данные могут быть прочитаны или изменены
+* `READ_WRITE` - гарантирует **strong consistency**, достигается путем lock, который отпускается когда transaction уже commited. Все параллельные транзакции которые обращаются к entities на которых **в данный момент** lock загружают эти данные из DB. Нельзя использовать если нужен serializable isolation level, т.к. эта стратегия кэширования его не поддерживает (т.е. могут случаться phantom reads). Рекомендуется если данные могут быть прочитаны или изменены
 * `TRANSACTIONAL` - для distributed XA transactions **Note.** уточнить как оно работает, по идеи это самый строгий и медленная стратегия. Работает только с JTA транзакциями.
 
 **Note.** В блоге vlad mihalcen есть инфа которую сюда нужно перенести, [тут](https://vladmihalcea.com/how-does-hibernate-read_write-cacheconcurrencystrategy-work/)
