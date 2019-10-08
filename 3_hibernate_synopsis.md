@@ -3218,18 +3218,18 @@ nativeQuery.executeUpdate();
     ```
 
 ## Query Cache
-дополнить https://www.baeldung.com/hibernate-second-level-cache
+[источник](https://www.baeldung.com/hibernate-second-level-cache)
 
 1. включени
-```properties
-hibernate.cache.use_query_cache=true
-```
+    ```properties
+    hibernate.cache.use_query_cache=true
+    ```
 2. Для каждого запроса нужно включить query кэш
-```java
-entityManager.createQuery("select f from Foo f")
-  .setHint("org.hibernate.cacheable", true)
-  .getResultList();
-```
+    ```java
+    entityManager.createQuery("select f from Foo f")
+    .setHint("org.hibernate.cacheable", true)
+    .getResultList();
+    ```
 
 **Query Cache Best Practices** (все относится к Query Cache)
 * для коллекций внутри Entities кэшируются только ids, поэтому очень рекомендуется включать L2 кэш для таких коллекций
