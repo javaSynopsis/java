@@ -199,13 +199,15 @@ src/site - site
 # CDI — это Contexts and Dependency Injection
 
 # Scope
-1. **singleton** - По умолчанию. Spring IoC контейнер создает единственный экземпляр бина. Как правило, используется для бинов без сохранения состояния (stateless)
-2. **prototype** - Spring IoC контейнер создает любое количество экземпляров бина. Новый экземпляр бина создается каждый раз, когда бин необходим в качестве зависимости, либо через вызов getBean(). Как правило, используется для бинов с сохранением состояния (stateful)
-3. **request** - Жизненный цикл экземпляра ограничен единственным HTTP запросом; для каждого нового HTTP запроса создается новый экземпляр бина. Действует, только если вы используете web-aware `ApplicationContext`
-4. **session** - Жизненный цикл экземпляра ограничен в пределах одной и той же HTTP Session. Действует, только если вы используете web-aware `ApplicationContext`
-5. **global session** - Жизненный цикл экземпляра ограничен в пределах глобальной HTTP Session (обычно при использовании portlet контекста). Действует, только если вы используете web-aware `ApplicationContext`
-6. **application** - Жизненный цикл экземпляра ограничен в пределах ServletContext. Действует, только если вы используете web-aware `ApplicationContext`. Как **singleton**, но привязан к `ApplicationContext`, а не `ServletContext`. Т.к. `ApplicationContext` может быть несколько на 1но приложение, т.к. у каждого `DispatcherServlet` может быть только 1ин `ApplicationContext`, но самих `DispatcherServlet` может быть много в приложении.
-7. **websocket** - 
+* Основные
+  1. **singleton** - По умолчанию. Spring IoC контейнер создает единственный экземпляр бина. Как правило, используется для бинов без сохранения состояния (stateless)
+  2. **prototype** - Spring IoC контейнер создает любое количество экземпляров бина. Новый экземпляр бина создается каждый раз, когда бин необходим в качестве зависимости, либо через вызов getBean(). Как правило, используется для бинов с сохранением состояния (stateful)
+* web aware
+  1. **request** - Жизненный цикл экземпляра ограничен единственным HTTP запросом; для каждого нового HTTP запроса создается новый экземпляр бина. Действует, только если вы используете web-aware `ApplicationContext`
+  2. **session** - Жизненный цикл экземпляра ограничен в пределах одной и той же HTTP Session. Действует, только если вы используете web-aware `ApplicationContext`
+  3. **global session** - Жизненный цикл экземпляра ограничен в пределах глобальной HTTP Session (обычно при использовании portlet контекста). Действует, только если вы используете web-aware `ApplicationContext`
+  4. **application** - Жизненный цикл экземпляра ограничен в пределах ServletContext. Действует, только если вы используете web-aware `ApplicationContext`. Как **singleton**, но привязан к `ApplicationContext`, а не `ServletContext`. Т.к. `ApplicationContext` может быть несколько на 1но приложение, т.к. у каждого `DispatcherServlet` может быть только 1ин `ApplicationContext`, но самих `DispatcherServlet` может быть много в приложении.
+  5. **websocket** - 
 
 **prototype vs singleton** - `@PreDestroy` не вызвается для prototype, потому что бин не в контексте. Spring не удаляет prototype бины.
 
@@ -241,10 +243,11 @@ public class DestroyPrototypeBeansPostProcessor implements BeanPostProcessor, Be
 * **DI** - взаимодействие с объектом через интерфейм, не зная о реализации. IoC один из видом DI, реализован через паттерн ServiceLocator.
 * Легко тестировать с DI, подставляя фективную реализацию. 
 
-**DI** - лучше
-<br>
-**DL** (Dependency Lookup) - нужно использовать, когда невозможно DI, **e.g.** при инициализации через `ApplicationContext` автономного приложения (в случае MVC он сам все запускает)
+**Типы связывания:**
+* **DI** - лучше
+* **DL** (Dependency Lookup) - нужно использовать, когда невозможно DI, **e.g.** при инициализации через `ApplicationContext` автономного приложения (в случае MVC он сам все запускает)
 
+**Типы Factory:**
 1. **BeanFactory** - ядро DI (в т.ч. зависимости и life cycle). Позволяет РАЗДЕЛИТЬ конфиги и код.
 2. **ApplicationContext** - расширение BeanFactory, кроме того содержит сервисы JMS, AOP, i18n, Event listeners, transactions, properties, MessageSource (для i18n) etc; регистрацию в BeanPostProcessor, BeanFactoryPostProcessor
 
