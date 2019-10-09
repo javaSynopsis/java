@@ -298,9 +298,38 @@ person.setCar(car); // устанавливаем там где инициали
 4. приложение использующее ф-цию интерфеса
 
 ## life cycle
-Note: есть еще интерфейс BeanFactoryAware, но он немного не то.
+**Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
-Note: у бинов prototype НЕ вызывается метод с анотацией @PreDestroy. НО вызывает @PostConstruc
+**Жизненный цикл:**
+- Spring IoC **start**
+  1. Instantiation - создание бинов
+     1. constructor + constructor injection
+  2. Property Injection - связывание
+     1. setter + setter injection
+  3. Вызов `...Aware` интерфейсов
+     1. setBeanName() из BeanNameAware
+     2. setBeanClassLoader() из BeanClassLoaderAware
+     3. setBeanFactory() из BeanFactoryAware
+     4. setApplicationContext() из ApplicationContextAware
+     5. ...
+  4. postProcessBeforeInitialization() из BeanPostProcessor
+  5. @PostConstruct
+  6. afterPropertiesSet() из InitializingBean интерфейса
+  7. init-method из xml конфигов
+  8. postProcessAfterInitialization() из BeanPostProcessor интерфейса
+- Spring IoC **shutdown**
+  1. @PreDestroy
+  2. destroy() из DisposableBean интерфейса
+  3. destroy-method из xml конфигов
+  4. finalize()
+
+**Note.** Можно обьявить методы **init** и **destroy** глобально для всех бинов внутри:
+```xml
+<beans default-init-method="customInit" default-destroy-method="customDestroy">  
+    <bean id="demoBean" class="com.howtodoinjava.task.DemoBean"></bean>
+</beans>
+```
+
 
 https://habr.com/ru/post/222579/
 
@@ -1984,6 +2013,8 @@ Spring рекомендует чтобы `@Transactional` проставляли
 Только **public** методы **Java Dynamic Proxy** могут быть `@Transactional`, не public методы можно отметить, но при их вызове вообще ничего не произойдет в том числе ошибки. **Note.** в новых версиях Spring по идеи используется CGLIB и поведение возможно будет другим. Но это поведение можно изменить используя AspectJ и связывание на этапе компиляции.
 
 ## Как работает транзакция?
+Транзакцию можно проставлять только на public методах, т.к. JDK Dynamic Proxy срабатывает только для public. Хотя если используется CGLIB или AcpectJ, то возможно все будет работать по другому.
+
 **Используется:**
 * EntityManager Proxy - вызывает SessinoFactory и достает Session из thread
 * Transactional Aspect - класс TransactionInterceptor реализует саму логику и around из AOP.
