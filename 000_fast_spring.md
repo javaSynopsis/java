@@ -82,7 +82,7 @@
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
 
 # Простое подключение сервлета
-**Аннотации**
+**Создание сервлета**
 ```java
 @WebServlet(UrlPatterns = {"/index"}, , loadOnStartup = 1,
     initParams = {
@@ -2300,7 +2300,7 @@ public class AmbiguousInjectFine {
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
 
 ## Annotations
-**List**
+**Список**
 * `@PreAuthorize` vs `@Secured` - в `@PreAuthorize` можно использовать SpEL, получать доступ к свойствам `SecurityExpressionRoot`, получать доступ к параметрам метода (аналогично для `@PostAuthorize`, `@PreFilter`, `@PostFilter`)
     ```java
     @PreAuthorize("#contact.name == principal.name")
