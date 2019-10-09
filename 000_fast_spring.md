@@ -298,6 +298,8 @@ person.setCar(car); // устанавливаем там где инициали
 4. приложение использующее ф-цию интерфеса
 
 ## life cycle
+Источники: [тут](https://habr.com/ru/post/222579/), [тут](https://habr.com/ru/post/334448/), [тут](https://www.youtube.com/watch?v=BmBr5diz8WA)
+
 **Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
 **Жизненный цикл:**
@@ -330,24 +332,6 @@ person.setCar(car); // устанавливаем там где инициали
 </beans>
 ```
 
-
-https://habr.com/ru/post/222579/
-
-https://habr.com/ru/post/334448/
-
-https://www.youtube.com/watch?v=BmBr5diz8WA
-
-1. парсинг конфигов (аннотаций, xml)
-   1. AnnotationBeanDefinitionReader
-   2. BeanDefinitionReader
-   3. ClassPathBeanDefinitinoScanner
-2. Настройка созданных BeanDefinition
-   1. BeanFactoryPostProcessor
-3. создание кастомных FactoryBean
-   1. интерфейс FactoryBean<T>
-4. BeanFactory создает бины, если нужно для создания вызвается FactoryBean
-5. Настройка бинов через BeanPostProcessor
-
 **BeanPostProcessor** interface часть жизненного цикла, но используется и чтобы расширить функциональность самих модулей. Нужно наследовать и переопределить метод. напр.:
 * CommonAnnotationBeanPostProcessor
 * RequiredAnnotationBeanPostProcessor
@@ -357,7 +341,7 @@ https://www.youtube.com/watch?v=BmBr5diz8WA
     (напр @Autowired через AutowiredAnnotationBeanPostProcessor)
 
 **BeanPostProcessor vs BeanFactoryPostProcessor**
-1. **BeanFactoryPostProcessor** - вызывает переопределлный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста.
+1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста.
 2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???)
 
 **Последовательность вызовов:**
@@ -366,19 +350,9 @@ https://www.youtube.com/watch?v=BmBr5diz8WA
 3. `BeanPostProcessor.postProcessAfterInitialization()`
 4. `@PreDestroy or DisposibleBean.destroy() or destroy-method`
 
-**@PostConstruct** - в отличии от конструктора вызван когда зависимости заинжекчены.
-**afterPropertiesSet** и destroy более завязаны на Spring в отличии от...
+Note. **@PostConstruct** - в отличии от конструктора вызван когда зависимости заинжекчены.
 
-**Вызовы init:**
-1. constructor
-2. @PostConstruct
-3. InitializingBean.afterPropertiesSet()
-4. initMethod() аннотации @Bean
-
-**Вызовы destroy:**
-1. @PreDestroy
-2. DisposibleBean.destroy()
-3. destroyMethod() аннотации @Bean
+Note. **afterPropertiesSet** и **destroy** более завязаны на Spring в отличии от...
 
 **Реализация своего life cycle:**
  1. Наследовать Lifecycle и/или Phased
