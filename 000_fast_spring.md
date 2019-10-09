@@ -303,25 +303,35 @@ person.setCar(car); // устанавливаем там где инициали
 
 **Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
+Как происходит запуск Spring и создание бинов в целом:
+1. Чтение конфигов классами `AnnotationConfigApplicationContext`, `ClassPathXmlApplicationContext` и прочими. Создаются `BeanDefinition` на основе конфигурации  (id, name, class, alias, init-method, destroy-method и др.), которая читается через обьекты реализации интерйеса `BeanDefinitionReader` (`XmlBeanDefinitionReader`, `AnnotatedBeanDefinitionReader`). Хранятся `BeanDefinition` в `Map<String, BeanDefinition> beanDefinitionMap`.
+   * **Note.** При работе `AnnotatedBeanDefinitionReader` **1ый этап** это регистрация всех @Configuration для дальнейшего парсирования. **2ой этап** это регистрация специального `BeanFactoryPostProcessor`, а именно `BeanDefinitionRegistryPostProcessor`, который при помощи класса `ConfigurationClassParser` парсирует JavaConfig и создает `BeanDefinition`.
+2. Настройка `BeanDefinition` через встроенные `BeanFactoryPostProcessor`
+3. Создание кастомных `FactoryBean`, которые на следующем этапе будут использованы для создания бинов в случае если эти `FactoryBean` указаны для использования при создании каких-то бинов.
+4. Создание бинов на основе `BeanDefinition`, бины создаются `BeanFactory` объектом, если для бина указан `FactoryBean`, то создание делегируется ему.
+5. Настройка бинов через `BeanPostProcessor`, вызов экзепляров `BeanPostProcessor` последовательный. (e.g. тут происходит связывание). Например можно создать свою аннотацию, а потом обработчик этой своей аннотации. Класс реализующий `BeanPostProcessor` обязательно **должен быть бином**, а не просто обьектом.
+
+**Note.** При `SCOPE_PROTOTYPE` вызов `BeanPostProcessor` будет происходить каждый раз при создании бина.
+
 **Жизненный цикл:** (hooks)
 - Spring IoC **start**
   1. Instantiation - создание бинов
      1. `constructor` + constructor injection
   2. Property Injection - связывание
      1. `setter` + setter injection
-  3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - до создания даже eager бинов, можно поменять BeanDefinition, например для inject строк в `@Value` поля
+  3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - вызывается до создания даже eager бинов, можно поменять BeanDefinition, например для inject встроенным классом строк в `@Value` поля
   4. Вызов `...Aware` интерфейсов
      1. `setBeanName()` из BeanNameAware
      2. `setBeanClassLoader()` из BeanClassLoaderAware
      3. `setBeanFactory()` из BeanFactoryAware
      4. `setApplicationContext()` из ApplicationContextAware
      5. ...
-  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов
+  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод должен сделать `return bean;` 
   6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены
   7. `afterPropertiesSet()` из InitializingBean интерфейса
   8. `init-method` из xml конфигов
-  9. `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)`
-- Spring IoC **shutdown**
+  9. `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
+- Spring IoC **shutdown**. Метод должен сделать `return bean;` 
   1. `@PreDestroy` - не вызывается для **prototype**
   2. `destroy()` из DisposableBean интерфейса
   3. `destroy-method` из xml конфигов
@@ -352,7 +362,6 @@ person.setCar(car); // устанавливаем там где инициали
 **Реализация своего life cycle:**
  1. Наследовать Lifecycle и/или Phased
  2. Переопределить методы
-
 
 ```java
 public interface Lifecycle {
