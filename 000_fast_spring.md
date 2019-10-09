@@ -72,6 +72,7 @@
   - [Circular Dependencies](#circular-dependencies)
   - [Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию](#Внедрение-сразу-всех-бинов-определенного-типа-которые-есть-в-приложении-в-коллекцию)
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
+  - [static бины помеченные @Bean](#static-бины-помеченные-bean)
 - [Spring MVC](#spring-mvc-3)
 - [Spring Security](#spring-security-1)
   - [Как работает filter chain](#Как-работает-filter-chain)
@@ -302,28 +303,29 @@ person.setCar(car); // устанавливаем там где инициали
 
 **Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
-**Жизненный цикл:**
+**Жизненный цикл:** (hooks)
 - Spring IoC **start**
   1. Instantiation - создание бинов
-     1. constructor + constructor injection
+     1. `constructor` + constructor injection
   2. Property Injection - связывание
-     1. setter + setter injection
-  3. Вызов `...Aware` интерфейсов
-     1. setBeanName() из BeanNameAware
-     2. setBeanClassLoader() из BeanClassLoaderAware
-     3. setBeanFactory() из BeanFactoryAware
-     4. setApplicationContext() из ApplicationContextAware
+     1. `setter` + setter injection
+  3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - до создания даже eager бинов, можно поменять BeanDefinition, например для inject строк в `@Value` поля
+  4. Вызов `...Aware` интерфейсов
+     1. `setBeanName()` из BeanNameAware
+     2. `setBeanClassLoader()` из BeanClassLoaderAware
+     3. `setBeanFactory()` из BeanFactoryAware
+     4. `setApplicationContext()` из ApplicationContextAware
      5. ...
-  4. postProcessBeforeInitialization() из BeanPostProcessor
-  5. @PostConstruct
-  6. afterPropertiesSet() из InitializingBean интерфейса
-  7. init-method из xml конфигов
-  8. postProcessAfterInitialization() из BeanPostProcessor интерфейса
+  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов
+  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены
+  7. `afterPropertiesSet()` из InitializingBean интерфейса
+  8. `init-method` из xml конфигов
+  9. `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)`
 - Spring IoC **shutdown**
-  1. @PreDestroy
-  2. destroy() из DisposableBean интерфейса
-  3. destroy-method из xml конфигов
-  4. finalize()
+  1. `@PreDestroy` - не вызывается для **prototype**
+  2. `destroy()` из DisposableBean интерфейса
+  3. `destroy-method` из xml конфигов
+  4. `finalize()`
 
 **Note.** Можно обьявить методы **init** и **destroy** глобально для всех бинов внутри:
 ```xml
@@ -337,16 +339,15 @@ person.setCar(car); // устанавливаем там где инициали
 * RequiredAnnotationBeanPostProcessor
 * AutowiredAnnotationBeanPostProcessor
 
-**BeanPostProcessor** - то место где бины связываются
-    (напр @Autowired через AutowiredAnnotationBeanPostProcessor)
+**BeanPostProcessor** - то место где бины связываются (напр @Autowired через AutowiredAnnotationBeanPostProcessor)
 
 **BeanPostProcessor vs BeanFactoryPostProcessor**
-1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста.
-2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???)
+1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста. Предустановленные BeanFactoryPostProcessor **меняют** само BeanDefinition, например устанавливает значение в `@Value`.
+2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???). Предустановленные BeanPostProcessor **меняют** уже созданные бины.
 
-Note. **@PostConstruct** - в отличии от **constructor** вызван когда зависимости заинжекчены.
+**Note.** **@PostConstruct** - в отличии от **constructor** вызван когда зависимости заинжекчены.
 
-Note. **afterPropertiesSet** и **destroy** более завязаны на Spring в отличии от...
+**Note.** **afterPropertiesSet** и **destroy** более завязаны на Spring в отличии от...
 
 **Реализация своего life cycle:**
  1. Наследовать Lifecycle и/или Phased
@@ -1995,6 +1996,8 @@ Spring рекомендует чтобы `@Transactional` проставляли
 ## FactoryBean
 Есть два типа бинов в Spring bean container, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта. 
 
+FactoryBean был придуман во времена xml конфигураций, чтобы можно было управлять созданием бинов. Считается что при JavaConfig использовать это нет необходимости.
+
 ```java
 // интерфейс
 public interface FactoryBean {
@@ -2294,6 +2297,8 @@ public class AmbiguousInjectFine {
     private Fine fine;
 }
 ```
+
+## static бины помеченные @Bean
 
 # Spring MVC
 
