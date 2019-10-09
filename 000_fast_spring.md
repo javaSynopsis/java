@@ -344,13 +344,7 @@ person.setCar(car); // устанавливаем там где инициали
 1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста.
 2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???)
 
-**Последовательность вызовов:**
-1. `BeanPostProcessor.postProcessBeforeInitilazation()`
-2. ` @PostConstruct or InitializingBean.afterPropertiesSet() or init-method`
-3. `BeanPostProcessor.postProcessAfterInitialization()`
-4. `@PreDestroy or DisposibleBean.destroy() or destroy-method`
-
-Note. **@PostConstruct** - в отличии от конструктора вызван когда зависимости заинжекчены.
+Note. **@PostConstruct** - в отличии от **constructor** вызван когда зависимости заинжекчены.
 
 Note. **afterPropertiesSet** и **destroy** более завязаны на Spring в отличии от...
 
