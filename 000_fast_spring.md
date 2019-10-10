@@ -305,7 +305,7 @@ person.setCar(car); // устанавливаем там где инициали
 **Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
 Как происходит запуск Spring и создание бинов в целом:
-1. Чтение конфигов классами `AnnotationConfigApplicationContext`, `ClassPathXmlApplicationContext` и прочими. Создаются `BeanDefinition` на основе конфигурации  (id, name, class, alias, init-method, destroy-method и др.), которая читается через обьекты реализации интерйеса `BeanDefinitionReader` (`XmlBeanDefinitionReader`, `AnnotatedBeanDefinitionReader`). Хранятся `BeanDefinition` в `Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String, BeanDefinition>(64);`.
+1. Чтение конфигов классами `AnnotationConfigApplicationContext`, `ClassPathXmlApplicationContext` и прочими. Создаются `BeanDefinition` на основе конфигурации  (id, name, class, alias, init-method, destroy-method и др.), которая читается через обьекты реализации интерйеса `BeanDefinitionReader` (`XmlBeanDefinitionReader`, `AnnotatedBeanDefinitionReader`). Класс `ClassPathBeanDefinitionScanner` сканирует все `@Component` и находит `BeanDefinition`. Хранятся `BeanDefinition` в `Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String, BeanDefinition>(64);`.
    * **Note.** При работе `AnnotatedBeanDefinitionReader` **1ый этап** это регистрация всех @Configuration для дальнейшего парсирования. **2ой этап** это регистрация специального `BeanFactoryPostProcessor`, а именно `BeanDefinitionRegistryPostProcessor`, который при помощи класса `ConfigurationClassParser` парсирует JavaConfig и создает `BeanDefinition`.
    * **Note.** Порядок чтения конфигов: **1)** xml, **2)** аннотации с указанием пакета для сканирования, **3)** аннотации с указанием класса (Java Config), **4)** Groovy конфиги. Spring также умеет читать Groovy конфиги через `GenericGroovyApplicationContext`
 2. Настройка `BeanDefinition` через встроенные `BeanFactoryPostProcessor`
@@ -2266,7 +2266,21 @@ public class SingletonFunctionBean {
 ```
 
 ## ScopedProxyMode
-тут будет описание
+Изменение ScopedProxyMode может решить проблему inject бина с более узким scope в бин с более широким scope. Т.е. например сделать inject бина prototype в бин singleton путем inject прокси этого бина.
+
+**Скоупы:**
+* `ScopedProxyMode.NO` (default)
+* `ScopedProxyMode.TARGET_CLASS` - используется CGLIB для создания proxy бина
+* `ScopedProxyMode.INTERFACES` - используется JDK dynamic proxy для создания прокси бина (т.е. видимо прокси создастся только для public методов)
+
+```java
+@Bean
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE,
+proxyMode = ScopedProxyMode.TARGET_CLASS)
+public MyPrototypeBean prototypeBean () {
+    return new MyPrototypeBean();
+}
+```
 
 ## Circular Dependencies
 Это когда бины одновременно и зависимости и зависимые (Bean A → Bean B → Bean A → ...). При **constructor injection** в этом случае появится `BeanCurrentlyInCreationException`, при остальных типах injection ошибок не будет, т.к. при **constructor injection** внедрение бина случается во время context loading, а в других случаях во время обращения.
