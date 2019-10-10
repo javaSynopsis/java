@@ -61,6 +61,7 @@
   - [Наследование @Transactional](#Наследование-transactional)
   - [Как работает транзакция?](#Как-работает-транзакция)
   - [NoSuchBeanDefinitionException](#nosuchbeandefinitionexception)
+  - [Как работают @Transactional, @Cacheable и в каком случае они могут не работать](#Как-работают-transactional-cacheable-и-в-каком-случае-они-могут-не-работать)
 - [Spring DI](#spring-di)
   - [FactoryBean](#factorybean)
   - [@Autowired in Abstract Classes](#autowired-in-abstract-classes)
@@ -354,6 +355,18 @@ person.setCar(car); // устанавливаем там где инициали
 **BeanPostProcessor vs BeanFactoryPostProcessor**
 1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста. Предустановленные BeanFactoryPostProcessor **меняют** само BeanDefinition, например устанавливает значение в `@Value`.
 2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???). Предустановленные BeanPostProcessor **меняют** уже созданные бины.
+
+Пример
+```java
+public class CustomBeanFactory implements BeanFactoryPostProcessor {
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        for (String beanName : beanFactory.getBeanDefinitionNames()) {
+            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+        }
+    }
+}
+```
 
 **Note.** **@PostConstruct** - в отличии от **constructor** вызван когда зависимости заинжекчены.
 
@@ -1991,7 +2004,6 @@ Spring рекомендует чтобы `@Transactional` проставляли
 Только **public** методы **Java Dynamic Proxy** могут быть `@Transactional`, не public методы можно отметить, но при их вызове вообще ничего не произойдет в том числе ошибки. **Note.** в новых версиях Spring по идеи используется CGLIB и поведение возможно будет другим. Но это поведение можно изменить используя AspectJ и связывание на этапе компиляции.
 
 ## Как работает транзакция?
-Транзакцию можно проставлять только на public методах, т.к. JDK Dynamic Proxy срабатывает только для public. Хотя если используется CGLIB или AcpectJ, то возможно все будет работать по другому.
 
 **Используется:**
 * EntityManager Proxy - вызывает SessinoFactory и достает Session из thread
@@ -2000,6 +2012,11 @@ Spring рекомендует чтобы `@Transactional` проставляли
 
 ## NoSuchBeanDefinitionException
 `NoSuchBeanDefinitionException` будет если бин не найден и autowired стоит true (по умолчанию)
+
+## Как работают @Transactional, @Cacheable и в каком случае они могут не работать
+Транзакцию можно проставлять только на public методах, т.к. `JDK Dynamic Proxy` срабатывает только для public. Хотя если используется CGLIB или AcpectJ, то возможно все будет работать по другому т.к. они создают прокси не только для public методов.
+
+Если метод помеченный `@Transactional` класса вызывает другой такой же метод этого же класса, то новая транзакция **не запустится** (и вообще во всех подобных случаях AOP не сработает) даже с `REQUIRES_NEW` уровнем изоляции, это осбенность работы proxy паттерна в Spring AOP, т.к. вызов метода прокси будет из того же прокси и следовательно вызовется не прокси метод, а настоящий без AOP обертки. Чтобы решить эту проблему можно использовать вместо Spring AOP например AspectJ и связывание AOP на этапе компиляции (а не на этапе вызова как это делается по умолчанию).
 
 # Spring DI
 ## FactoryBean
