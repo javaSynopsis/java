@@ -321,21 +321,22 @@ person.setCar(car); // устанавливаем там где инициали
   2. Property Injection - связывание
      1. `setter` + setter injection
   3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - вызывается до создания даже eager бинов, можно поменять BeanDefinition, например для inject встроенным классом строк в `@Value` поля
+    * **Note.** В ConfigurableListableBeanFactory есть метод **getBeanDefinitionNames**
   4. Вызов `...Aware` интерфейсов
      1. `setBeanName()` из BeanNameAware
      2. `setBeanClassLoader()` из BeanClassLoaderAware
      3. `setBeanFactory()` из BeanFactoryAware
      4. `setApplicationContext()` из ApplicationContextAware
      5. ...
-  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод должен сделать `return bean;` 
-  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. Note. видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. нельзя вызвать метод из реализованного Repository т.к. для него не отработает AOP).
+  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод **должен** сделать `return bean;` иначе бин не будет создан.
+  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. **Note.** видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. на этом этапе нельзя вызвать метод из реализованного Repository в Spring Data JPA т.к. для него не отработает AOP).
   7. `afterPropertiesSet()` из `InitializingBean` интерфейса
-  8. `init-method` из xml конфигов
-  9. `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
+  8. `init-method` из xml конфигов и `@Bean(initMethod = "customInitMethod")`
+  9.  `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
 - Spring IoC **shutdown**. Метод должен сделать `return bean;` 
   1. `@PreDestroy` - не вызывается для **prototype**
   2. `destroy()` из `DisposableBean` интерфейса
-  3. `destroy-method` из xml конфигов
+  3. `destroy-method` из xml конфигов и `@Bean(destroyMethod = "customDestroyMethod")`
   4. `finalize()`
 
 **Note.** Можно обьявить методы **init** и **destroy** глобально для всех бинов внутри:
