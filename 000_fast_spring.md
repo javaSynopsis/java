@@ -305,7 +305,7 @@ person.setCar(car); // устанавливаем там где инициали
 **Note:** у бинов `prototype` НЕ вызывается метод с анотацией `@PreDestroy`. НО вызывает `@PostConstruct`
 
 Как происходит запуск Spring и создание бинов в целом:
-1. Чтение конфигов классами `AnnotationConfigApplicationContext`, `ClassPathXmlApplicationContext` и прочими. Создаются `BeanDefinition` на основе конфигурации  (id, name, class, alias, init-method, destroy-method и др.), которая читается через обьекты реализации интерйеса `BeanDefinitionReader` (`XmlBeanDefinitionReader`, `AnnotatedBeanDefinitionReader`). Хранятся `BeanDefinition` в `Map<String, BeanDefinition> beanDefinitionMap`.
+1. Чтение конфигов классами `AnnotationConfigApplicationContext`, `ClassPathXmlApplicationContext` и прочими. Создаются `BeanDefinition` на основе конфигурации  (id, name, class, alias, init-method, destroy-method и др.), которая читается через обьекты реализации интерйеса `BeanDefinitionReader` (`XmlBeanDefinitionReader`, `AnnotatedBeanDefinitionReader`). Хранятся `BeanDefinition` в `Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String, BeanDefinition>(64);`.
    * **Note.** При работе `AnnotatedBeanDefinitionReader` **1ый этап** это регистрация всех @Configuration для дальнейшего парсирования. **2ой этап** это регистрация специального `BeanFactoryPostProcessor`, а именно `BeanDefinitionRegistryPostProcessor`, который при помощи класса `ConfigurationClassParser` парсирует JavaConfig и создает `BeanDefinition`.
 2. Настройка `BeanDefinition` через встроенные `BeanFactoryPostProcessor`
 3. Создание кастомных `FactoryBean`, которые на следующем этапе будут использованы для создания бинов в случае если эти `FactoryBean` указаны для использования при создании каких-то бинов.
@@ -328,13 +328,13 @@ person.setCar(car); // устанавливаем там где инициали
      4. `setApplicationContext()` из ApplicationContextAware
      5. ...
   5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод должен сделать `return bean;` 
-  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены
-  7. `afterPropertiesSet()` из InitializingBean интерфейса
+  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. Note. видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. нельзя вызвать метод из реализованного Repository т.к. для него не отработает AOP).
+  7. `afterPropertiesSet()` из `InitializingBean` интерфейса
   8. `init-method` из xml конфигов
   9. `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
 - Spring IoC **shutdown**. Метод должен сделать `return bean;` 
   1. `@PreDestroy` - не вызывается для **prototype**
-  2. `destroy()` из DisposableBean интерфейса
+  2. `destroy()` из `DisposableBean` интерфейса
   3. `destroy-method` из xml конфигов
   4. `finalize()`
 
