@@ -2266,7 +2266,7 @@ public class SingletonFunctionBean {
 ```
 
 ## ScopedProxyMode
-Изменение ScopedProxyMode может решить проблему inject бина с более узким scope в бин с более широким scope. Т.е. например сделать inject бина prototype в бин singleton путем inject прокси этого бина.
+Изменение ScopedProxyMode может решить проблему inject бина с более узким scope в бин с более широким scope. Т.е. например сделать inject бина prototype в бин singleton путем inject прокси этого бина. (Note. более узкий scope возможно можно назвать как более короткое время жизни бина с этим scope)
 
 **Скоупы:**
 * `ScopedProxyMode.NO` (default)
