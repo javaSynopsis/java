@@ -78,6 +78,7 @@
 - [Spring Security](#spring-security-1)
   - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
+  - [Authentication Basic vs Bearer](#authentication-basic-vs-bearer)
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
@@ -322,18 +323,18 @@ person.setCar(car); // устанавливаем там где инициали
   2. Property Injection - связывание
      1. `setter` + setter injection
   3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - вызывается до создания даже eager бинов, можно поменять BeanDefinition, например для inject встроенным классом строк в `@Value` поля
-    * **Note.** В ConfigurableListableBeanFactory есть метод **getBeanDefinitionNames**
-  4. Вызов `...Aware` интерфейсов
+     * **Note.** В ConfigurableListableBeanFactory есть метод **getBeanDefinitionNames** через него можно проучмит BeanDefinitions и в цикле получить к ним доступ
+  1. Вызов `...Aware` интерфейсов
      1. `setBeanName()` из BeanNameAware
      2. `setBeanClassLoader()` из BeanClassLoaderAware
      3. `setBeanFactory()` из BeanFactoryAware
      4. `setApplicationContext()` из ApplicationContextAware
      5. ...
-  5. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод **должен** сделать `return bean;` иначе бин не будет создан.
-  6. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. **Note.** видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. на этом этапе нельзя вызвать метод из реализованного Repository в Spring Data JPA т.к. для него не отработает AOP).
-  7. `afterPropertiesSet()` из `InitializingBean` интерфейса
-  8. `init-method` из xml конфигов и `@Bean(initMethod = "customInitMethod")`
-  9.  `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
+  2. `BeanPostProcessor.postProcessBeforeInitialization(Object bean, String beanName)` - **BeanPostProcessor** вклинивается в процесс инициализации перед поподанием бина в контейнер, например для связывания бинов. Метод **должен** сделать `return bean;` иначе бин не будет создан.
+  3. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. **Note.** видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. на этом этапе нельзя вызвать метод из реализованного Repository в Spring Data JPA т.к. для него не отработает AOP).
+  4. `afterPropertiesSet()` из `InitializingBean` интерфейса
+  5. `init-method` из xml конфигов и `@Bean(initMethod = "customInitMethod")`
+  6.  `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
 - Spring IoC **shutdown**. Метод должен сделать `return bean;` 
   1. `@PreDestroy` - не вызывается для **prototype**
   2. `destroy()` из `DisposableBean` интерфейса
@@ -2359,6 +2360,13 @@ public class AmbiguousInjectFine {
     @Secured("ROLE_ADMIN")
     void а1(){}
     ```
+
+## Authentication Basic vs Bearer
+
+Эти схемы не относятся только к Spring, это стандарт источник [тут](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication)
+
+* Basic - использует username и password (base64-encoded credentials)
+* Bearer - использует token, это лучший выбор для JWT
 
 # Spring Boot
 ## Common
