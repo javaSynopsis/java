@@ -323,7 +323,7 @@ person.setCar(car); // устанавливаем там где инициали
   2. Property Injection - связывание
      1. `setter` + setter injection
   3. `BeanFactoryPostProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)` - вызывается до создания даже eager бинов, можно поменять BeanDefinition, например для inject встроенным классом строк в `@Value` поля
-     * **Note.** В ConfigurableListableBeanFactory есть метод **getBeanDefinitionNames** через него можно проучмит BeanDefinitions и в цикле получить к ним доступ
+     * **Note.** В ConfigurableListableBeanFactory есть метод **getBeanDefinitionNames** через него можно получить BeanDefinitions и в цикле получить к ним доступ
   1. Вызов `...Aware` интерфейсов
      1. `setBeanName()` из BeanNameAware
      2. `setBeanClassLoader()` из BeanClassLoaderAware
