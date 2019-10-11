@@ -334,8 +334,8 @@ person.setCar(car); // устанавливаем там где инициали
   3. `@PostConstruct` - в отличии от **constructor** вызван когда зависимости заинжекчены. **Note.** видимо proxy на этом этапе еще не созданы, т.к. они создаются в `postProcessAfterInitialization` и следовательно вызвать их нельзя (e.g. на этом этапе нельзя вызвать метод из реализованного Repository в Spring Data JPA т.к. для него не отработает AOP).
   4. `afterPropertiesSet()` из `InitializingBean` интерфейса
   5. `init-method` из xml конфигов и `@Bean(initMethod = "customInitMethod")`
-  6.  `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`
-- Spring IoC **shutdown**. Метод должен сделать `return bean;` 
+  6.  `BeanPostProcessor.postProcessAfterInitialization(Object bean, String beanName)` - если нужно сделать proxy над обьектом, то его нужно делать **после** метода `init`, т.е. в этом методе, а не в `postProcessBeforeInitialization`. Метод **должен** сделать `return bean;` иначе бин не будет создан.
+- Spring IoC **shutdown**
   1. `@PreDestroy` - не вызывается для **prototype**
   2. `destroy()` из `DisposableBean` интерфейса
   3. `destroy-method` из xml конфигов и `@Bean(destroyMethod = "customDestroyMethod")`
