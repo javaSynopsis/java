@@ -134,7 +134,7 @@ public class StaticBlockSingleton {
 
 4. Thread Safe Singleton, с double check locking в Java для которой выполняется happen before
 public class ThreadSafeSingleton {
-    private static volatile ThreadSafeSingleton instance; // volatile чтобы взять переменную не из кэша CPU, а актуальную
+    private static volatile ThreadSafeSingleton instance; // volatile чтобы взять переменную не из кэша CPU, а актуальную; вызывает happens before
     private ThreadSafeSingleton(){}
     public static synchronized ThreadSafeSingleton getInstance(){
         if (instance == null) {	// сначало проверяем, только потом захватываем монитор
@@ -179,9 +179,9 @@ public class Math implements IMath {
 public class MathProxy implements IMath {
 	private Math math;
 	public double add(double x, double y) {
-		 if(math == null) {
-                     math = new Math();                      
-                }
+		if(math == null) {
+			math = new Math(); // отложенная инициализация для экономии ресурсов
+        }
 		return math.add(x, y);
 	}
 }

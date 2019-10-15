@@ -334,19 +334,19 @@ tg1.list(); - получить список потоков
 --
 Реализация start/stop:
 	static Object sync = new Object();
-	static boolean cond = true;
+	boolean started = true;
 
 	static void stop() {
-		cond = true;
+		started = true;
 		synchronized(sync) {
-			while(cond2)
+			while(started)
 				try { sync.wait(); }
 				catch(InterruptedException e) {}
 		}
 	}
 
 	static void start() {
-		cond = false;
+		started = false;
 		synchronized(sync) {
 				sync.notify();
 		}
@@ -658,41 +658,41 @@ spl2.forEachRemaining((n) -> System.out.println(n));
 --
 
 
-	5. Через Statement выполняем запрос:
-		new Statement().executeQuery("SELECT * FROM users WHERE user='...")
-		new Statement().executeUpdate("INSERT, UPDATE, DELETE ...");
-		execute("any SQL or procedure"); // любой  SQL или процедура возвращающая много результатов
-		
-        try {
-			Connection con = (Connection) DataSourceSingleton.getInstance();
+5. Через Statement выполняем запрос:
+	new Statement().executeQuery("SELECT * FROM users WHERE user='...")
+	new Statement().executeUpdate("INSERT, UPDATE, DELETE ...");
+	execute("any SQL or procedure"); // любой  SQL или процедура возвращающая много результатов
+	
+	try {
+		Connection con = (Connection) DataSourceSingleton.getInstance();
+		try {
+			Statement stat = (Statement) con.createStatement();
 			try {
-				Statement stat = (Statement) con.createStatement();
-				try {
-					ResultSet res = new Statement().executeQuery("SELECT ...");
-					while(res.next()) str = res.getString("filePath");
-				} finally { if (res != null) res.close(); }
-			} finally {if (stat != null) stat.close();}
-		} catch(SQLException e) { e.printStackTrace(); }
-		finally { if (con != null) con.close(); }
+				ResultSet res = new Statement().executeQuery("SELECT ...");
+				while(res.next()) str = res.getString("filePath");
+			} finally { if (res != null) res.close(); }
+		} finally {if (stat != null) stat.close();}
+	} catch(SQLException e) { e.printStackTrace(); }
+	finally { if (con != null) con.close(); }
 		
 --
-	--batch-команда из PreparedStatement
-		Выполняет группу SQL
-		conn.setAutoCommit(false); //отключаем автовыполнение запроса сразу?
-		Statement st = conn.createStatement();
-		st.addBatch("INSERT INTO ...");
-		st.addBatch("INSERT INTO...");
-		int [] sqlCount = st.executeBatch(); //число строк изменное конкретным запросом
-		
-		//в цикле, БД в зависимости от настроек может кэшировать PreparedStatement
-		PreparedStatement ps = conn.preparedStatement("insert ... values(?,?,?)");
-		for( : ) {
-			ps.setInt(1, 354);
-			ps.setString(2, "bla");
-			ps.setInt(3, 1231);
-			ps.addBatch(); //добавляем процедуру с новыми значениями
-		}
-		int rowCount[] = ps.executeBatch();
+batch-команда из PreparedStatement
+	Выполняет группу SQL
+	conn.setAutoCommit(false); //отключаем автовыполнение запроса сразу?
+	Statement st = conn.createStatement();
+	st.addBatch("INSERT INTO ...");
+	st.addBatch("INSERT INTO...");
+	int [] sqlCount = st.executeBatch(); //число строк изменное конкретным запросом
+	
+	//в цикле, БД в зависимости от настроек может кэшировать PreparedStatement
+	PreparedStatement ps = conn.preparedStatement("insert ... values(?,?,?)");
+	for( : ) {
+		ps.setInt(1, 354);
+		ps.setString(2, "bla");
+		ps.setInt(3, 1231);
+		ps.addBatch(); //добавляем процедуру с новыми значениями
+	}
+	int rowCount[] = ps.executeBatch();
 --
 	--CallableStatement (extends PreparedStatement)
 		Используется для вызова хранимых процедур БД.
