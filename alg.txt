@@ -29,6 +29,9 @@ https://habr.com/post/323650/
 	(три эвристики расчёта расстояния: Manhattan (расстояние городских кварталов), евклидова метрика и расстояние Чебышёва)
 https://habr.com/post/238001/
 
+Процентили и квартили
+https://docs.tibco.com/pub/spotfire_web_player/6.0.0-november-2013/ru-RU/WebHelp/GUID-10AD38BA-A888-4CEB-B716-44E2E02C8B03.html
+
 -------- битовые алгоритмы
 https://stackoverflow.com/questions/20695586/casting-uint8-to-uint32
 https://stackoverflow.com/questions/6499183/converting-a-uint32-value-into-a-uint8-array4
