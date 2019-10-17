@@ -76,9 +76,12 @@
   - [static бины помеченные @Bean](#static-бины-помеченные-bean)
 - [Spring MVC](#spring-mvc-3)
 - [Spring Security](#spring-security-1)
+  - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
   - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
   - [Authentication Basic vs Bearer](#authentication-basic-vs-bearer)
+  - [Spring Method Security](#spring-method-security)
+  - [Custom Security Expression](#custom-security-expression)
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
@@ -2346,6 +2349,33 @@ public class AmbiguousInjectFine {
 # Spring MVC
 
 # Spring Security
+## Ключевые объекты контекста Spring Security
+Источник: (допписать) https://spring.io/guides/topicals/spring-security-architecture
+
+**Это Core концепция, которая используется в реализациях таких как те что для Web и основаны на `Servlet Filters`.** Основной интерфейс `AuthenticationManager`, метод `authenticate=true` если аутенцифицироован, exception если нет и null если нельзя определить. `ProviderManager implement AuthenticationManager` делегирует к цепочке состоящей из `AuthenticationProvider` (он как `AuthenticationManager`). ProviderManager может поддерживать отдновременно много разных механизмов. Причем `ProviderManager` может быть родительским для других `ProviderManager` которые тоже указывают на свои версии `AuthenticationProviders` (получатся дерево из `ProviderManager`). Когда user аутенцифицироован дальше происходит авторизация (проверка прав доступа) для этого используется `AccessDecisionManager`, где `ConfigAttribute` это SpEL такие как `hasRole('FOO')`. Чтобы создать свои методы которые можно использовать внутри аннотаций таких как `@PreFilter` нужно extends класс `SecurityExpressionRoot` или `SecurityExpressionHandler`.
+
+**Web Security**. Основана на Filters из JavaEE и использует внутри механизм из ядра Spring Security такие как `AuthenticationManager`. Путь request примерно: `User -> Filter -> Filter -> Filter -> Servlet`
+
+```java
+// примеры интерфейсов и методов из Spring Security
+public interface AuthenticationManager {
+  Authentication authenticate(Authentication authentication)
+    throws AuthenticationException;
+}
+
+public interface AuthenticationProvider {
+	Authentication authenticate(Authentication authentication)
+			throws AuthenticationException;
+	boolean supports(Class<? extends Authentication> authentication); // группа обьектов с разными методами authentication
+}
+
+// пример AccessDecisionManager
+boolean supports(ConfigAttribute attribute);
+boolean supports(Class<?> clazz);
+int vote(Authentication authentication, S object,
+        Collection<ConfigAttribute> attributes);
+```
+
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
 
@@ -2367,6 +2397,12 @@ public class AmbiguousInjectFine {
 
 * Basic - использует username и password (base64-encoded credentials)
 * Bearer - использует token, это лучший выбор для JWT
+
+## Spring Method Security
+https://www.baeldung.com/spring-security-method-security
+
+## Custom Security Expression
+https://www.baeldung.com/spring-security-create-new-custom-security-expression
 
 # Spring Boot
 ## Common
