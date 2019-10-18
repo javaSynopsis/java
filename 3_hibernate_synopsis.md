@@ -13,6 +13,8 @@
     - [Isolation level для денег и пр.](#isolation-level-для-денег-и-пр)
   - [Propagation level](#propagation-level)
   - [Global (XA) vs local transactions vs distributed transactions](#global-xa-vs-local-transactions-vs-distributed-transactions)
+  - [Two-Phase Locking (2PL)](#two-phase-locking-2pl)
+- [Lock](#lock)
   - [Описание](#Описание)
   - [optimistic lock](#optimistic-lock)
   - [pessimistic lock](#pessimistic-lock)
@@ -118,7 +120,7 @@
 - [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
 - [JPA vs Hibernate](#jpa-vs-hibernate)
 - [Second-Level Cache](#second-level-cache)
-  - [common](#common)
+  - [common, Cache Concurrency Strategy](#common-cache-concurrency-strategy)
   - [про сброс кэша](#про-сброс-кэша)
   - [пошаговая настройка](#пошаговая-настройка)
   - [Query Cache](#query-cache)
@@ -3129,7 +3131,7 @@ https://www.baeldung.com/hibernate-pagination
 https://stackoverflow.com/a/26825931
 
 # Second-Level Cache
-## common
+## common, Cache Concurrency Strategy
 Кэш особенно эффективен для Entities с большим количеством связных сущностей.
 
 **Cache Concurrency Strategy**
@@ -3148,8 +3150,7 @@ https://stackoverflow.com/a/26825931
 * Only id (foreign key) is stored for ToOne associations
 
 ## про сброс кэша
-При использовании HQL кэш сбрасывается только для Entity к которой обращается запрос. При native query кэш сбрасывается целиком. Чтобы сброса кэша не произошло нужно указать Hibernate
-
+При использовании HQL кэш сбрасывается только для Entity к которой обращается запрос. При native query кэш сбрасывается целиком (т.к. hibernate не может определить что именно изменилось в DB и на всякий случай сбрасывает весь кэш). Чтобы сброса кэша не произошло нужно указать Hibernate что выкинуть из кэша, остальное не указанное он не тронет.
 ```java
 // кэш для Foo сбросится сам
 entityManager.createQuery("update Foo set … where …").executeUpdate();
@@ -3202,7 +3203,7 @@ nativeQuery.executeUpdate();
     </ehcache>
     ```
 
-5. Collection Cache не работает по умолчанию, его нужно включать в классе отдельно. И хранятся они в отдельных регионах кэша. Им региона это FQN (пакет + класс) + имя свойства - это дает гибкость в настраиваимости параметров кэширования для каждого случая (e.g. eviction/expiration policy). **Причем** только ids сущностей в кэшируемой collection кэшуруются, что означает что помечать коллекцию из Entity как кэшируемую (т.е. видимо имеется ввиду, что хранить id дешево и поэтому ничего плохого не будет если закэшировать связанные коллекции?)
+5. **Collection Cache** (кэш List, Set и прочих полей collection в Entity) не работает по умолчанию, его нужно включать в классе отдельно. И хранятся они в отдельных регионах кэша. Им региона это FQN (пакет + класс) + имя свойства - это дает гибкость в настраиваимости параметров кэширования для каждого случая (e.g. eviction/expiration policy). **Причем** только ids сущностей в кэшируемой collection кэшуруются, что означает что помечать коллекцию из Entity как кэшируемую (т.е. видимо имеется ввиду, что хранить id дешево и поэтому ничего плохого не будет если закэшировать связанные коллекции?)
     ```java
     @Entity
     @Cacheable

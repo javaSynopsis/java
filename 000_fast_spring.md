@@ -76,6 +76,7 @@
   - [static бины помеченные @Bean](#static-бины-помеченные-bean)
 - [Spring MVC](#spring-mvc-3)
 - [Spring Security](#spring-security-1)
+  - [Как работает Spring Security](#Как-работает-spring-security)
   - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
   - [Как работает filter chain](#Как-работает-filter-chain)
   - [Annotations](#annotations-1)
@@ -2349,12 +2350,12 @@ public class AmbiguousInjectFine {
 # Spring MVC
 
 # Spring Security
-## Ключевые объекты контекста Spring Security
+## Как работает Spring Security
 Источник: (допписать) https://spring.io/guides/topicals/spring-security-architecture
 
-**Это Core концепция, которая используется в реализациях таких как те что для Web и основаны на `Servlet Filters`.** Основной интерфейс `AuthenticationManager`, метод `authenticate=true` если аутенцифицироован, exception если нет и null если нельзя определить. `ProviderManager implement AuthenticationManager` делегирует к цепочке состоящей из `AuthenticationProvider` (он как `AuthenticationManager`). ProviderManager может поддерживать отдновременно много разных механизмов. Причем `ProviderManager` может быть родительским для других `ProviderManager` которые тоже указывают на свои версии `AuthenticationProviders` (получатся дерево из `ProviderManager`). Когда user аутенцифицироован дальше происходит авторизация (проверка прав доступа) для этого используется `AccessDecisionManager`, где `ConfigAttribute` это SpEL такие как `hasRole('FOO')`. Чтобы создать свои методы которые можно использовать внутри аннотаций таких как `@PreFilter` нужно extends класс `SecurityExpressionRoot` или `SecurityExpressionHandler`.
+**Это Core концепция, которая используется в реализациях таких как те что для Web и основаны на `Servlet Filters`.** Основной интерфейс `AuthenticationManager`, метод `authenticate=true` если аутенцифицироован, exception если нет и null если нельзя определить. `ProviderManager implement AuthenticationManager` делегирует к цепочке состоящей из `AuthenticationProvider` (он как `AuthenticationManager`). ProviderManager может поддерживать отдновременно много разных механизмов. Причем `ProviderManager` может быть родительским для других `ProviderManager` которые тоже указывают на свои версии `AuthenticationProviders` (получатся дерево из `ProviderManager`). Когда user аутенцифицироован дальше происходит авторизация (проверка прав доступа) для этого используется `AccessDecisionManager`, где `ConfigAttribute` это SpEL такие как `hasRole('FOO')`. Чтобы создать свои методы которые можно использовать внутри аннотаций таких как `@PreFilter` нужно **extends** класс `SecurityExpressionRoot` или `SecurityExpressionHandler`.
 
-**Web Security**. Основана на Filters из JavaEE и использует внутри механизм из ядра Spring Security такие как `AuthenticationManager`. Путь request примерно: `User -> Filter -> Filter -> Filter -> Servlet`
+**Web Security** - один из механизмов для Web, внутри использует `AuthenticationManager`. Основана на **Filters** из JavaEE. Путь request примерно: `User -> Filter -> Filter -> Filter -> Servlet`
 
 ```java
 // примеры интерфейсов и методов из Spring Security
@@ -2375,6 +2376,8 @@ boolean supports(Class<?> clazz);
 int vote(Authentication authentication, S object,
         Collection<ConfigAttribute> attributes);
 ```
+
+## Ключевые объекты контекста Spring Security
 
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
