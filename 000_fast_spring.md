@@ -78,7 +78,18 @@
 - [Spring Security](#spring-security-1)
   - [Как работает Spring Security](#Как-работает-spring-security)
   - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
+  - [Spring Security Context Propagation with @Async](#spring-security-context-propagation-with-async)
   - [Как работает filter chain](#Как-работает-filter-chain)
+  - [AbstractSecurityWebApplicationInitializer и как он работает](#abstractsecuritywebapplicationinitializer-и-как-он-работает)
+  - [Session Fixation Attack Protection (поведение сессии)](#session-fixation-attack-protection-поведение-сессии)
+  - [AOP Alliance (MethodInvocation) Security Interceptor](#aop-alliance-methodinvocation-security-interceptor)
+  - [Web Security Expressions](#web-security-expressions)
+  - [Domain Object Security (ACLs)](#domain-object-security-acls)
+  - [Cache Control](#cache-control)
+  - [X-Frame-Options, X-XSS-Protection, CSRF, CSP, Referrer Policy, Feature Policy, CORS](#x-frame-options-x-xss-protection-csrf-csp-referrer-policy-feature-policy-cors)
+  - [Custom Headers](#custom-headers)
+  - [Localization](#localization)
+  - [WebSocket Security](#websocket-security)
   - [Annotations](#annotations-1)
   - [Authentication Basic vs Bearer](#authentication-basic-vs-bearer)
   - [Spring Method Security](#spring-method-security)
@@ -2377,10 +2388,99 @@ int vote(Authentication authentication, S object,
         Collection<ConfigAttribute> attributes);
 ```
 
+**Note.** При Spring AOP на этапе вызова используется паттерн proxy и вызов security метода класса другого security метода из того же класса не будет обернут в AOP (это особенность proxy паттерна).
+
+**Note.** По умолчанию Spring SecurityContext is thread-bound, т.е. не распостраняется на дочерние Thread
+
+Включение
+```java
+@Configuration
+@EnableGlobalMethodSecurity(
+  prePostEnabled = true, // Spring Security pre/post annotations
+  securedEnabled = true, // @Secured
+  jsr250Enabled = true) // @RoleAllowed
+public class MethodSecurityConfig 
+  extends GlobalMethodSecurityConfiguration {
+}
+
+// Переопределяем UserDetailsService и его метод loadUserByUserName и в нем читаем пользователя из DB
+
+// устанавливаем если нужно PasswordEncoder бин, например с алгоритмом BCrypt
+```
+Использование
+```java
+// returnObject
+@PostAuthorize
+  ("returnObject.username == authentication.principal.nickName")
+public CustomUser loadUserDetail(String username) {
+    return userRoleRepository.loadUserByUserName(username);
+}
+
+// filterObject и filterTarget (указывает какой аргумент фильтровать)
+@PreFilter
+  (value = "filterObject != authentication.principal.username",
+  filterTarget = "usernames")
+public String joinUsernamesAndRoles(
+  List<String> usernames, List<String> roles) {
+  
+    return usernames.stream().collect(Collectors.joining(";")) 
+      + ":" + roles.stream().collect(Collectors.joining(";"));
+}
+
+// создание custom аннотации
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@PreAuthorize("hasRole('VIEWER')")
+public @interface IsViewer {
+}
+
+// исползование custom аннотации
+@IsViewer
+public String getUsername4() {
+    //...
+}
+```
+
 ## Ключевые объекты контекста Spring Security
+https://ru.wikibooks.org/wiki/Spring_Security/%D0%A2%D0%B5%D1%85%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9_%D0%BE%D0%B1%D0%B7%D0%BE%D1%80_Spring_Security
+
+## Spring Security Context Propagation with @Async
+https://www.baeldung.com/spring-security-async-principal-propagation
 
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
+
+https://www.baeldung.com/spring-security-custom-filter
+
+## AbstractSecurityWebApplicationInitializer и как он работает
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#using-literal-abstractsecuritywebapplicationinitializer-literal
+
+## Session Fixation Attack Protection (поведение сессии)
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#ns-session-fixation
+
+## AOP Alliance (MethodInvocation) Security Interceptor
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#aop-alliance
+
+## Web Security Expressions
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#el-access-web
+
+## Domain Object Security (ACLs)
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#domain-acls
+
+## Cache Control
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#headers-cache-control
+
+## X-Frame-Options, X-XSS-Protection, CSRF, CSP, Referrer Policy, Feature Policy, CORS
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#headers-cache-control
+
+## Custom Headers
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#headers-cache-control
+
+## Localization
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#headers-cache-control
+
+## WebSocket Security
+https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#headers-cache-control
 
 ## Annotations
 **Список**
