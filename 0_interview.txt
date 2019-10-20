@@ -1,6 +1,6 @@
 plan2
 1. collection + их o(n), concurent collection, thread, valotile, GC, stream api, generics, references, пуллы, immutable
-1. spring fast + lifecycle
+1. spring fast
 2. sql, hibernate (lifecycle, isolation, propagation, inherit strategies и пример полиморфного запроса, пример lock и lock types и Lock Scope, optimistick lock и OptimisticLockType и version less lock, pessimistick lock, L2 кэш и query cache, основные аннотации, связи, fetching & n+1, типы id, CascadeType, transaction pitfalls, способы создания запросов, стратегия кэширования и @org.hibernate.annotations.Cache, FlushModeType)
 2. patterns, proxy, decorator, acid, cap, rest, soap
 3. git, maven, junit + mock fast
