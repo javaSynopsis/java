@@ -79,9 +79,9 @@
   - [Как работает Spring Security](#Как-работает-spring-security)
   - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
   - [Spring Security Context Propagation with @Async](#spring-security-context-propagation-with-async)
-  - [Как работает filter chain](#Как-работает-filter-chain)
+  - [Как работает filter chain (источник)](#Как-работает-filter-chain-источник)
   - [Custom Filter in the Spring Security Filter Chain (источник)](#custom-filter-in-the-spring-security-filter-chain-источник)
-  - [Custom Security Expression](#custom-security-expression)
+  - [Custom Security Expression (источник)](#custom-security-expression-источник)
   - [AbstractSecurityWebApplicationInitializer и как он работает](#abstractsecuritywebapplicationinitializer-и-как-он-работает)
   - [Session Fixation Attack Protection (поведение сессии)](#session-fixation-attack-protection-поведение-сессии)
   - [AOP Alliance (MethodInvocation) Security Interceptor](#aop-alliance-methodinvocation-security-interceptor)
@@ -2448,8 +2448,37 @@ https://ru.wikibooks.org/wiki/Spring_Security/%D0%A2%D0%B5%D1%85%D0%BD%D0%B8%D1%
 ## Spring Security Context Propagation with @Async
 https://www.baeldung.com/spring-security-async-principal-propagation
 
-## Как работает filter chain
-Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
+## Как работает filter chain ([источник](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works))
+Фильтр Spring Security встраивается как **один** фильтр в цепочке наследующий `Filter` из JavaEE, а уже внутри него определены свои наборы фильтров из Spring Security.
+
+**Ключевые фильтры:**
+- `SecurityContextPersistenceFilter` (restores Authentication from JSESSIONID)
+- `UsernamePasswordAuthenticationFilter` (performs authentication)
+- `ExceptionTranslationFilter` (catch security exceptions from FilterSecurityInterceptor)
+- `FilterSecurityInterceptor` (may throw authentication and authorization exceptions)
+
+**Порядок фильтров:**
+1. `ChannelProcessingFilter`, because it might need to redirect to a different protocol
+2. `SecurityContextPersistenceFilter`, so a SecurityContext can be set up in the SecurityContextHolder at the beginning of a web request, and any changes to the SecurityContext can be copied to the HttpSession when the web request ends (ready for use with the next web request)
+`ConcurrentSessionFilter`, because it uses the SecurityContextHolder functionality and needs to update the SessionRegistry to reflect ongoing requests from the principal
+3. Authentication processing mechanisms - `UsernamePasswordAuthenticationFilter`, `CasAuthenticationFilter`, `BasicAuthenticationFilter` etc - so that the SecurityContextHolder can be modified to contain a valid Authentication request token
+4. The `SecurityContextHolderAwareRequestFilter`, if you are using it to install a Spring Security aware HttpServletRequestWrapper into your servlet container
+5. The `JaasApiIntegrationFilter`, if a JaasAuthenticationToken is in the SecurityContextHolder this will process the FilterChain as the Subject in the JaasAuthenticationToken
+6. `RememberMeAuthenticationFilter`, so that if no earlier authentication processing mechanism updated the SecurityContextHolder, and the request presents a cookie that enables remember-me services to take place, a suitable remembered Authentication object will be put there
+7. `AnonymousAuthenticationFilter`, so that if no earlier authentication processing mechanism updated the SecurityContextHolder, an anonymous Authentication object will be put there
+8. `ExceptionTranslationFilter`, to catch any Spring Security exceptions so that either an HTTP error response can be returned or an appropriate AuthenticationEntryPoint can be launched
+9. `FilterSecurityInterceptor`, to protect web URIs and raise exceptions when access is denied
+
+Получаем фильтры и работаем с ними:
+```java
+    @Autowired private FilterChainProxy filterChainProxy; // получаем бин
+
+    public void getSecurityFilterChainProxy(){
+        for(SecurityFilterChain secfc :  this.filterChainProxy.getFilterChains()){ // в цикле получаем цепочки
+            for(Filter filter : secfc.getFilters()){   }
+        }
+    }
+```
 
 ## Custom Filter in the Spring Security Filter Chain ([источник](https://www.baeldung.com/spring-security-custom-filter))
 Создается реализацией `GenericFilterBean` которая наследует `javax.servlet.Filter`, но является Spring aware.
@@ -2478,24 +2507,130 @@ public class CustomWebSecurityConfigurerAdapter
   extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterAfter(new CustomFilter(), BasicAuthenticationFilter.class); // 
+        http.addFilterAfter(new CustomFilter(), BasicAuthenticationFilter.class); // место в цепочке, до, после, вместо
     }
 }
 ```
-В xml
+<details>
+<summary>Регистрация в xml конфигурации</summary>
+
 ```xml
 <http>
     <custom-filter after="BASIC_AUTH_FILTER" ref="myFilter" />
 </http>
 <beans:bean id="myFilter" class="org.baeldung.security.filter.CustomFilter"/>
 ```
+**Позиции в xml:**
 - `after` – describes the filter immediately after which a custom filter will be placed in the chain
 - `before` – defines the filter before which our filter should be placed in the chain
 - `position` – allows replacing a standard filter in the explicit position by a custom filter
+</details>
 
+## Custom Security Expression ([источник](https://www.baeldung.com/spring-security-create-new-custom-security-expression))
+Деляться на 2 типа:
+1. Наследованные от готового `PermissionEvaluator` и используемые для проверки прав доступа в своих собственных выражениях, но они немного ограничены в семантике.
+2. Полностью свои выражения со своей логикой, наследуются от `SecurityExpressionRoot` и `MethodSecurityExpressionOperations` (с помощью него же можно переопределить готовые выражения и всегда возвращать из них `RuntimeException`, чтобы их отключить).
 
-## Custom Security Expression
-https://www.baeldung.com/spring-security-create-new-custom-security-expression
+**1. Пример PermissionEvaluator**
+```java
+// реализация PermissionEvaluator
+public class CustomPermissionEvaluator implements PermissionEvaluator {
+    @Override
+    public boolean hasPermission(Authentication auth, Object targetDomainObject, Object permission) {}
+    @Override
+    public boolean hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission) {}
+    private boolean hasPrivilege(Authentication auth, String targetType, String permission) {}
+}
+
+// регистрируем PermissionEvaluator
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+    @Override
+    protected MethodSecurityExpressionHandler createExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler expressionHandler = 
+          new DefaultMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(new CustomPermissionEvaluator());
+        return expressionHandler;
+    }
+}
+
+// примеры использования аннотация над методами @Controller или других классов
+@PostAuthorize("hasAuthority('FOO_READ_PRIVILEGE')")
+@PostAuthorize("hasPermission(returnObject, 'read')") // returnObject это возвращаемый методом обьект
+@PreAuthorize("hasPermission(#id, 'Foo', 'read')") // #id это имя параметра метода
+```
+
+**2. Пример MethodSecurityExpressionOperations**
+```java
+// реализуем выражение
+// реализуем MethodSecurityExpressionOperations, при этом SecurityExpressionRoot это класс содержащий
+// некоторые методы, чтобы в него отправить готовый Authentication и использовать this.getPrincipal() и т.д.
+public class CustomMethodSecurityExpressionRoot
+    extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
+    
+    public CustomMethodSecurityExpressionRoot(Authentication authentication) {
+        super(authentication);
+    }
+ 
+    public boolean isMember(Long OrganizationId) {
+        User user = ((MyUserPrincipal) this.getPrincipal()).getUser();
+        return user.getOrganization().getId().longValue() == OrganizationId.longValue();
+    }
+}
+
+// создаем handler выражения
+public class CustomMethodSecurityExpressionHandler 
+  extends DefaultMethodSecurityExpressionHandler {
+    private AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
+ 
+    @Override
+    protected MethodSecurityExpressionOperations createSecurityExpressionRoot(
+      Authentication authentication, MethodInvocation invocation) {
+        CustomMethodSecurityExpressionRoot root = 
+          new CustomMethodSecurityExpressionRoot(authentication);
+        root.setPermissionEvaluator(getPermissionEvaluator());
+        root.setTrustResolver(this.trustResolver);
+        root.setRoleHierarchy(getRoleHierarchy());
+        return root;
+    }
+}
+
+// регистрируем handler выражения
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+    @Override
+    protected MethodSecurityExpressionHandler createExpressionHandler() {
+        CustomMethodSecurityExpressionHandler expressionHandler = 
+          new CustomMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(new CustomPermissionEvaluator());
+        return expressionHandler;
+    }
+}
+
+// используем
+@PreAuthorize("isMember(#id)") public Organization findOrgById(@PathVariable long id) {}
+```
+**3. Пример отключения встроенных Expression** (по сути мы просто переопределяем их и всегда возвращаем из них RuntimeException)
+```java
+// создаем выражение
+public class MySecurityExpressionRoot implements MethodSecurityExpressionOperations {
+    public MySecurityExpressionRoot(Authentication authentication) {
+        if (authentication == null) {
+            throw new IllegalArgumentException("Authentication object cannot be null");
+        }
+        this.authentication = authentication;
+    }
+ 
+    @Override
+    public final boolean hasAuthority(String authority) {
+        throw new RuntimeException("method hasAuthority() not allowed");
+    }
+}
+
+// создаем handler и регистрируем его, как в примере выше
+```
 
 ## AbstractSecurityWebApplicationInitializer и как он работает
 https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#using-literal-abstractsecuritywebapplicationinitializer-literal
