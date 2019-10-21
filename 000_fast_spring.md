@@ -82,6 +82,8 @@
   - [Как работает filter chain (источник)](#Как-работает-filter-chain-источник)
   - [Custom Filter in the Spring Security Filter Chain (источник)](#custom-filter-in-the-spring-security-filter-chain-источник)
   - [Custom Security Expression (источник)](#custom-security-expression-источник)
+  - [Типы аутентификации (интересные примеры из практики)](#Типы-аутентификации-интересные-примеры-из-практики)
+  - [OAUTH2 приминительно к Spring и JWT](#oauth2-приминительно-к-spring-и-jwt)
   - [AbstractSecurityWebApplicationInitializer и как он работает](#abstractsecuritywebapplicationinitializer-и-как-он-работает)
   - [Session Fixation Attack Protection (поведение сессии)](#session-fixation-attack-protection-поведение-сессии)
   - [AOP Alliance (MethodInvocation) Security Interceptor](#aop-alliance-methodinvocation-security-interceptor)
@@ -2363,7 +2365,7 @@ public class AmbiguousInjectFine {
 
 # Spring Security
 ## Как работает Spring Security
-Источник: (допписать) https://spring.io/guides/topicals/spring-security-architecture
+Источники: [легко читаемый источник всего Spring Security в целом](https://ru.wikibooks.org/wiki/Spring_Security/%D0%A2%D0%B5%D1%85%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9_%D0%BE%D0%B1%D0%B7%D0%BE%D1%80_Spring_Security), [официальная документация](https://spring.io/guides/topicals/spring-security-architecture)
 
 **Это Core концепция, которая используется в реализациях таких как те что для Web и основаны на `Servlet Filters`.** Основной интерфейс `AuthenticationManager`, метод `authenticate=true` если аутенцифицироован, exception если нет и null если нельзя определить. `ProviderManager implement AuthenticationManager` делегирует к цепочке состоящей из `AuthenticationProvider` (он как `AuthenticationManager`). ProviderManager может поддерживать отдновременно много разных механизмов. Причем `ProviderManager` может быть родительским для других `ProviderManager` которые тоже указывают на свои версии `AuthenticationProviders` (получатся дерево из `ProviderManager`). Когда user аутенцифицироован дальше происходит авторизация (проверка прав доступа) для этого используется `AccessDecisionManager`, где `ConfigAttribute` это SpEL такие как `hasRole('FOO')`. Чтобы создать свои методы которые можно использовать внутри аннотаций таких как `@PreFilter` нужно **extends** класс `SecurityExpressionRoot` или `SecurityExpressionHandler`.
 
@@ -2631,6 +2633,14 @@ public class MySecurityExpressionRoot implements MethodSecurityExpressionOperati
 
 // создаем handler и регистрируем его, как в примере выше
 ```
+
+## Типы аутентификации ([интересные примеры из практики](https://gist.github.com/inozemtsev32/209d12d197d7c1c32952ff73dba61f95))
+- HTTP BASIC AUTH - логин и пароль передается в каждом  запросе закодированный в base64, нужно использовать https чтобы не перехватили
+- SESSION COOKIE BASED - при логиге формируется сессия и проставляется пользователю в cookies, этот способ плохо масшатабируем
+- SERVER SIGNED TOKENS - как с SESSION COOKIE BASED, но формируется токен
+
+## OAUTH2 приминительно к Spring и JWT
+https://www.baeldung.com/spring-security-oauth-jwt
 
 ## AbstractSecurityWebApplicationInitializer и как он работает
 https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#using-literal-abstractsecuritywebapplicationinitializer-literal
