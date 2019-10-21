@@ -80,6 +80,8 @@
   - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
   - [Spring Security Context Propagation with @Async](#spring-security-context-propagation-with-async)
   - [Как работает filter chain](#Как-работает-filter-chain)
+  - [Custom Filter in the Spring Security Filter Chain](#custom-filter-in-the-spring-security-filter-chain)
+  - [Custom Security Expression](#custom-security-expression)
   - [AbstractSecurityWebApplicationInitializer и как он работает](#abstractsecuritywebapplicationinitializer-и-как-он-работает)
   - [Session Fixation Attack Protection (поведение сессии)](#session-fixation-attack-protection-поведение-сессии)
   - [AOP Alliance (MethodInvocation) Security Interceptor](#aop-alliance-methodinvocation-security-interceptor)
@@ -93,7 +95,6 @@
   - [Annotations](#annotations-1)
   - [Authentication Basic vs Bearer](#authentication-basic-vs-bearer)
   - [Spring Method Security](#spring-method-security)
-  - [Custom Security Expression](#custom-security-expression)
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
@@ -2450,7 +2451,11 @@ https://www.baeldung.com/spring-security-async-principal-propagation
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
 
+## Custom Filter in the Spring Security Filter Chain
 https://www.baeldung.com/spring-security-custom-filter
+
+## Custom Security Expression
+https://www.baeldung.com/spring-security-create-new-custom-security-expression
 
 ## AbstractSecurityWebApplicationInitializer и как он работает
 https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsingle/#using-literal-abstractsecuritywebapplicationinitializer-literal
@@ -2503,9 +2508,6 @@ https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsin
 
 ## Spring Method Security
 https://www.baeldung.com/spring-security-method-security
-
-## Custom Security Expression
-https://www.baeldung.com/spring-security-create-new-custom-security-expression
 
 # Spring Boot
 ## Common
