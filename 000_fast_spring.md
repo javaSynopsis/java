@@ -80,7 +80,7 @@
   - [Ключевые объекты контекста Spring Security](#Ключевые-объекты-контекста-spring-security)
   - [Spring Security Context Propagation with @Async](#spring-security-context-propagation-with-async)
   - [Как работает filter chain](#Как-работает-filter-chain)
-  - [Custom Filter in the Spring Security Filter Chain](#custom-filter-in-the-spring-security-filter-chain)
+  - [Custom Filter in the Spring Security Filter Chain (источник)](#custom-filter-in-the-spring-security-filter-chain-источник)
   - [Custom Security Expression](#custom-security-expression)
   - [AbstractSecurityWebApplicationInitializer и как он работает](#abstractsecuritywebapplicationinitializer-и-как-он-работает)
   - [Session Fixation Attack Protection (поведение сессии)](#session-fixation-attack-protection-поведение-сессии)
@@ -2451,8 +2451,48 @@ https://www.baeldung.com/spring-security-async-principal-propagation
 ## Как работает filter chain
 Источник [тут](https://stackoverflow.com/questions/41480102/how-spring-security-filter-chain-works)
 
-## Custom Filter in the Spring Security Filter Chain
-https://www.baeldung.com/spring-security-custom-filter
+## Custom Filter in the Spring Security Filter Chain ([источник](https://www.baeldung.com/spring-security-custom-filter))
+Создается реализацией `GenericFilterBean` которая наследует `javax.servlet.Filter`, но является Spring aware.
+
+Можно ставить до или после определенно фильтра:
+- `addFilterBefore(filter, class)` – adds a filter before the position of the specified filter class
+- `addFilterAfter(filter, class)` – adds a filter after the position of the specified filter class
+- `addFilterAt(filter, class)` – adds a filter at the location of the specified filter class
+- `addFilter(filter)` – adds a filter that must be an instance of or extend one of the filters provided by Spring Security
+
+```java
+// реализуем
+public class CustomFilter extends GenericFilterBean {
+    @Override
+    public void doFilter(
+      ServletRequest request, 
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException {
+        chain.doFilter(request, response);
+    }
+}
+
+// регистрируем, добавлем в цепочку
+@Configuration
+public class CustomWebSecurityConfigurerAdapter
+  extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.addFilterAfter(new CustomFilter(), BasicAuthenticationFilter.class); // 
+    }
+}
+```
+В xml
+```xml
+<http>
+    <custom-filter after="BASIC_AUTH_FILTER" ref="myFilter" />
+</http>
+<beans:bean id="myFilter" class="org.baeldung.security.filter.CustomFilter"/>
+```
+- `after` – describes the filter immediately after which a custom filter will be placed in the chain
+- `before` – defines the filter before which our filter should be placed in the chain
+- `position` – allows replacing a standard filter in the explicit position by a custom filter
+
 
 ## Custom Security Expression
 https://www.baeldung.com/spring-security-create-new-custom-security-expression
