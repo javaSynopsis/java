@@ -7,7 +7,7 @@ plan2
 4. простые алгоритмы: конечный автомат, плюс те что с собеса, и из common fast
 5. CSRF, CSP, refresh token, docker
 6. базу по Servlet и ServletConfig vs ServletContext
-
+7. составить описание прошлых проектов
 
 
 

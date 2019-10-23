@@ -22,6 +22,7 @@
   - [События](#События)
   - [Spring Aware Interfaces](#spring-aware-interfaces)
   - [Выполнение операций при деплое приложения Spring (метод run())](#Выполнение-операций-при-деплое-приложения-spring-метод-run)
+  - [Поиск зависимостей в Spring, файл spring.factories](#Поиск-зависимостей-в-spring-файл-springfactories)
 - [Spring MVC](#spring-mvc)
   - [Spring MVC Interceptor](#spring-mvc-interceptor)
   - [Обычные Filter из java ee в Spring](#Обычные-filter-из-java-ee-в-spring)
@@ -625,6 +626,8 @@ public class AppRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {}
 }
 ```
+
+## Поиск зависимостей в Spring, файл spring.factories
 
 # Spring MVC
 ## Spring MVC Interceptor
