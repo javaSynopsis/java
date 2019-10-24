@@ -1,4 +1,44 @@
-
+- [Основные](#Основные)
+- [Второстепенные](#Второстепенные)
+- [Полноценные учебники](#Полноценные-учебники)
+- [Regular Expression](#regular-expression)
+- [Список самых частых функций](#Список-самых-частых-функций)
+- [Про Promise и очереди задач](#Про-promise-и-очереди-задач)
+- [MediaStream](#mediastream)
+- [Мои заметки](#Мои-заметки)
+  - [Сложение через битовые операции](#Сложение-через-битовые-операции)
+  - [Деление/умножение через битовые операции](#Делениеумножение-через-битовые-операции)
+  - [Проверка на существование переменной](#Проверка-на-существование-переменной)
+- [Подключение js](#Подключение-js)
+- [В JS на самом деле все выполняется в 1ном потоке, поэтому все отложенные операции типа таймеров выполнятся после обычных](#В-js-на-самом-деле-все-выполняется-в-1ном-потоке-поэтому-все-отложенные-операции-типа-таймеров-выполнятся-после-обычных)
+- [fetch vs XMLHttpRequest](#fetch-vs-xmlhttprequest)
+- [HOC - Hight Order Component](#hoc---hight-order-component)
+- [Навигация в js](#Навигация-в-js)
+- [CSRF token (jwt - JSON Web Token)](#csrf-token-jwt---json-web-token)
+- [JWT token](#jwt-token)
+- [JWT vs CSRF token](#jwt-vs-csrf-token)
+- [XSSI](#xssi)
+- [CSP](#csp)
+- [CORS](#cors)
+- [SOP](#sop)
+- [strict mode](#strict-mode)
+- [Кратко о событиях](#Кратко-о-событиях)
+- [documentFragment - lightweight document](#documentfragment---lightweight-document)
+- [reflow vs repaint](#reflow-vs-repaint)
+- [Типы node (node types)](#Типы-node-node-types)
+- [CDATA - character data](#cdata---character-data)
+- [Entity символы](#entity-символы)
+- [Разные теги html](#Разные-теги-html)
+- [Реализация bind через apply](#Реализация-bind-через-apply)
+- [Техника использования сортировки [].sort()](#Техника-использования-сортировки-sort)
+- [Взять sub property объекта через](#Взять-sub-property-объекта-через)
+- [Взять свойство указанного и переименовать его](#Взять-свойство-указанного-и-переименовать-его)
+- [attribute vs property в js](#attribute-vs-property-в-js)
+- [callstack в js](#callstack-в-js)
+- [oauth (про jwt, access token, refresh token, csrf token)](#oauth-про-jwt-access-token-refresh-token-csrf-token)
+- [mixin в js](#mixin-в-js)
+- [Важные js библиотеки, движки, frameworks](#Важные-js-библиотеки-движки-frameworks)
+- [Раздел про CSS и его некоторые особенности которые нужно запомнить](#Раздел-про-css-и-его-некоторые-особенности-которые-нужно-запомнить)
 
 # Основные
 
@@ -34,14 +74,13 @@
 * методы
   * match, matchAll, exec, search, test
 
-1)
+1) при использовании reg ex в js нужно использовать `//` если используются строки `${}` т.к. один слэш исчезает при вставке
 ```js
-// при использовании reg ex в js нужно использовать // если используются строки `${}` т.к. один слэш исчезает при вставке
 const r3s =   `\\/(${w})*(?![^(]*\\))`;
 const r3 = new RegExp(r3s, 'uig');
 ```
 
-1) паттерны символов различных алфовитов в js т.к. обычное `\w` совпадает только с латинским алфавитом https://stackoverflow.com/a/37668315
+2) паттерны символов различных алфовитов в js т.к. обычное `\w` (слово) совпадает только с латинским алфавитом https://stackoverflow.com/a/37668315
 
 2) генератор unicode наборов символов для regexp чтобы не искать в табл https://apps.timwhitlock.info/js/regex#
 
@@ -231,7 +270,7 @@ const r3 = new RegExp(r3s, 'uig');
 
 # Мои заметки
 
-# Сложение через битовые операции
+## Сложение через битовые операции
 ```javascript
 (function() {
 	const i = 7;
@@ -247,7 +286,7 @@ const r3 = new RegExp(r3s, 'uig');
 })();
 ```
 
-# Деление/умножение через битовые операции
+## Деление/умножение через битовые операции
 ```javascript
 (function() {
 
@@ -264,7 +303,7 @@ const r3 = new RegExp(r3s, 'uig');
 })();
 ```
 
-# Проверка на существование переменной
+## Проверка на существование переменной
 <sub>Если объект существует, то он приравнивается ```y```. Иначе y станет пустым объектом ```{}``` (основано на том, что если выражение перед ```||``` будет ```true```, то оно сразу возвращается как результат операции без проверки выражения после ```||```)  </sub>
 ```javascript
 function (x) {
@@ -273,7 +312,6 @@ function (x) {
 ```
 
 # Подключение js
-<br>
 https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script
 <br>
 https://www.internet-technologies.ru/articles/zhiznennyy-cikl-stranicy.html
@@ -480,7 +518,7 @@ if(csrfCookie) rq.setRequestHeader('x-csrf-token', csrfCookie[1]);
 
 # JWT token
 
-jwt - это стандартизированный toke, состоит из: **Header** . **Payload** . **Signature**
+jwt - это стандартизированный token, состоит из: **Header** . **Payload** . **Signature**
 
 * **Header** - инфа о алгоритмы хэширования токена
 * **Payload** - UserInfo - id, имя, роли и прочее
@@ -500,7 +538,7 @@ const token = base64urlEncoding(header) + '.' + base64urlEncoding(payload) + '.'
 
 # JWT vs CSRF token
 
-JWT можно использовать как CSRF, но это сложно. CSRF в отличии от JWT не должен иметь криптографии или нести информацию.
+JWT можно использовать как CSRF (т.е. jwt может брать на себя роль не только авторизации, но и роль CSRF), но это сложно. CSRF в отличии от JWT не должен иметь криптографии или нести информацию.
 
 CSRF генерируется **каждый** новый **request** и помещают в http header или в параметр запроса (post, put, patch, delete). JWT отправляется с каждым запросом.
 
@@ -576,9 +614,8 @@ https://learn.javascript.ru/event-bubbling
 * `event.target` – это исходный элемент, на котором произошло событие, в процессе всплытия он неизменен.
 * `this` (= `event.currentTarget`): – это текущий элемент, до которого дошло всплытие, на нём сейчас выполняется обработчик.
 
-**14) documentFragment** - lightweight document
-
-documentFragment - пустой элемент, чтобы например добавить туда в цикле элементы, а потом добавить сам этот элемент за один раз через `body.appendChild(dF);`
+# documentFragment - lightweight document
+**documentFragment** - пустой элемент, чтобы например добавить туда в цикле элементы, а потом добавить сам этот элемент за один раз через `body.appendChild(dF);`
 ```js
 fragment = document.createDocumentFragment();
 document.body.appendChild(fragment);
@@ -712,7 +749,7 @@ while (i < array.length) {
 for (var i = 0, len = items.length; i < len; i++) {}
 ```
 
-26) 
+1)  
 ```js
 // аналоги
 Object.assign({}, data);
@@ -797,26 +834,18 @@ whateverElement.dispatchEvent(mouseoverEvent);
 
 **Promise** события как бы прикрепляются сами после ближайшего обычного события в callstack, поэтому они выполняются почти сразу.
 
-**Web Workers** - настоящая многопоточность в js, они именно отдельный потоки со своим callstack
+**Web Workers** - настоящая многопоточность в js, они именно отдельный потоки со своим callstack и код может быть в отдельном файле, обмен данными между потоками через сообщения
 
 # oauth (про jwt, access token, refresh token, csrf token)
 
 # mixin в js
 например DocumentOrShadowRoot
 
-# docker
-```
-docker:
-  образ - образ разных систем
-  контейнер - (mysql, nodejs), использует ядро хост системы
-dockerfile - в нем правила создания образа
-```
-
 # Важные js библиотеки, движки, frameworks
 * **Движки js**
   * **QuickJS** - быстрый js движок от создателя QEMU, умеет компилировать в native исполняемые файлы, без DOM
   * **Hermes** - быстрый движок от facebook, оптимизированный для запуска **React Native**
-* Frameworks
+* **Frameworks**
   * Angular 2+
   * React - на самом деле это библиотека, но ее чаще всего используют с redux, redux-logic, redux-observables, mobx и получается framework; Последние версии React поддерживают hooks - замену HOC, что делает react пригодным для использования без библиотек.
   * React Native - для разработки кросс плотформенных приложений, не использует DOM, исползует средства системы, по сути реализация native приложения вместо использования движка js (на самом деле используется встроенный свой движок)
@@ -825,7 +854,7 @@ dockerfile - в нем правила создания образа
   * [Nunjucks](https://mozilla.github.io/nunjucks/) - от Mozilla
   * [Dust.js](https://www.dustjs.com/) - от LinkedIn, считается одним из самых быстрых
 * [multi.js]() - продвинутый вариант `<select>`
-* [FileSaver.js] - можно сохранять сгенерированные внутри браузера файлы на диск, показывает окошко сохранения и имеет некоторый контроль над процессом сохранения, но из-за ограничений браузера контроль не полный и нельзя сделать нормальный revoke ссылки на файл (по крайней мере пока что)
+* [FileSaver.js]() - можно сохранять сгенерированные внутри браузера файлы на диск, показывает окошко сохранения и имеет некоторый контроль над процессом сохранения, но из-за ограничений браузера контроль не полный и нельзя сделать нормальный revoke ссылки на файл (по крайней мере пока что)
 * [StreamSaver.js](https://github.com/jimmywarting/StreamSaver.js) - как **FileSaver.js**, но работает асинхронно и дает сохранять в виртуальную файловую систему (не в chromes sandboxed file system!)
 * [hyperHTML](https://github.com/WebReflection/hyperHTML) - интересный проект, пока я считаю его сырым, это легкая альтернатива Virtual DOM (т.е. react и прочим рисовальщикам страниц)
 * [jQuery](https://jquery.com/) - популярный плагин для работы с DOM и другими функциями
