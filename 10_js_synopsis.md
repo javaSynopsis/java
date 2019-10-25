@@ -557,7 +557,7 @@ JWT хранится в localStorage, его могут похитить. Поэ
 const token = base64urlEncoding(header) + '.' + base64urlEncoding(payload) + '.' + base64urlEncoding(signature)
 ```
 
-Статья с обзором различных способов, кажется предлагается использовать cookie + доп. механизмы [тут](https://stormpath.com/blog/where-to-store-your-jwts-cookies-vs-html5-web-storage)
+Статья с обзором различных способов, кажется предлагается использовать cookie + доп. механизмы [тут](https://stormpath.com/blog/where-to-store-your-jwts-cookies-vs-html5-web-storage) и [тут](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc)
 
 ## JWT vs CSRF token
 
