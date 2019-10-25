@@ -17,6 +17,7 @@
 - [HOC - Hight Order Component](#hoc---hight-order-component)
 - [Навигация в js (location, history)](#Навигация-в-js-location-history)
 - [Security и все что с ней связано](#security-и-все-что-с-ней-связано)
+  - [Единая точка входа (Single Sign On, SSO)](#Единая-точка-входа-single-sign-on-sso)
   - [CSRF token (jwt - JSON Web Token)](#csrf-token-jwt---json-web-token)
   - [JWT token](#jwt-token)
   - [JWT vs CSRF token](#jwt-vs-csrf-token)
@@ -511,6 +512,7 @@ history.go(-1);
 ```
 
 # Security и все что с ней связано
+## Единая точка входа (Single Sign On, SSO)
 ## CSRF token (jwt - JSON Web Token)
 
 token - защита от CSRF, отправляется в header или cookie, хранится в localStorage (это безопасно не смотря на некоторые статьи и видно только своему домену). Это короткоживущий объект поэтому его кража не так страшна.
