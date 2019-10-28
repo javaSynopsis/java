@@ -16,17 +16,6 @@
 - [fetch vs XMLHttpRequest](#fetch-vs-xmlhttprequest)
 - [HOC - Hight Order Component](#hoc---hight-order-component)
 - [Навигация в js (location, history)](#Навигация-в-js-location-history)
-- [Security и все что с ней связано](#security-и-все-что-с-ней-связано)
-  - [Единая точка входа (Single Sign On, SSO)](#Единая-точка-входа-single-sign-on-sso)
-  - [CSRF token (jwt - JSON Web Token)](#csrf-token-jwt---json-web-token)
-  - [JWT token](#jwt-token)
-  - [JWT vs CSRF token](#jwt-vs-csrf-token)
-  - [XSSI](#xssi)
-  - [CSP](#csp)
-  - [CORS](#cors)
-  - [SOP](#sop)
-  - [oauth (про jwt, access token, refresh token, csrf token)](#oauth-про-jwt-access-token-refresh-token-csrf-token)
-- [strict mode](#strict-mode)
 - [Кратко о событиях](#Кратко-о-событиях)
 - [documentFragment - lightweight document](#documentfragment---lightweight-document)
 - [reflow vs repaint](#reflow-vs-repaint)
@@ -41,6 +30,7 @@
 - [mixin в js](#mixin-в-js)
 - [Важные js библиотеки, движки, frameworks](#Важные-js-библиотеки-движки-frameworks)
 - [Раздел про CSS и его некоторые особенности которые нужно запомнить](#Раздел-про-css-и-его-некоторые-особенности-которые-нужно-запомнить)
+- [strict mode](#strict-mode)
 - [новое на очереди в добавление](#новое-на-очереди-в-добавление)
 - [Tuples (кортежи) в js (они же используются как immutabable структуры данных)](#tuples-кортежи-в-js-они-же-используются-как-immutabable-структуры-данных)
 - [Неочевидные особенности JS с которыми можно столкнуться](#Неочевидные-особенности-js-с-которыми-можно-столкнуться)
@@ -511,114 +501,6 @@ history.forward();
 history.go(-1);
 ```
 
-# Security и все что с ней связано
-## Единая точка входа (Single Sign On, SSO)
-## CSRF token (jwt - JSON Web Token)
-
-token - защита от CSRF, отправляется в header или cookie, хранится в localStorage (это безопасно не смотря на некоторые статьи и видно только своему домену). Это короткоживущий объект поэтому его кража не так страшна.
-
-Т.е. cookie позволяет определить кто вошел, но не кто отправил данные (какой именно сайт). 
-Поэтому используется token для запросов изменяющих данные. (в стандартном rest это все запросы кроме get, в нестандартном rest запросы post могут работать как get)
-
-Как:
-* Сервер ставит куку: csrf-token
-* клиент ставит header
-
-Т.е. уязвимость происходит из того что **cookies отсылаются с каждым запросом.** Атакующий может создать вредоносную ссылку на ваш сайт и т.к. cookie отошлется при любом клике, то переход по ней вызовет операцию на сайте. Чтобы это предотвратить отсылается csrf-token в **http header или параметре запроса**. Альтернативно можно хранить JWT в localStorage и отсылать в http header, это защитит от csrf, но будет уязвимо к XSS.
-
-Фреймворкти типа **Angular** имеют **встроенную** поддержку CSRF token.
-
-**Общая техника (так работает в Angular, это техника из Angular Tutorial):**
-1. сервер генерирует случайный csrf token и сетает в cookie. Эти cookies может читать только js с того же сайта из-за SOP.
-2. js читает этот csrf token и сетает его в http header отправляемый к этому сайту
-3. В Angular при работе с модулем http автоматически читается кука с именем `XSRF-TOKEN` и сетает значение в `X-XSRF-TOKEN`. (имена по умолчанию можно поменять)
-
-CSRF аттака может быть предотвращена проверкой `Referer` и `Origin`, т.к. они содержат URL происхождения запроса и если он отличен от адреса сайта и разрешенных доменов, то это аттака.
-
-```js
-var rq = new XMLHttpRequest();
-var csrfCookie = document.cookie.match(/csrf-token=/); // тут вырезаем куку
-if(csrfCookie) rq.setRequestHeader('x-csrf-token', csrfCookie[1]);
-```
-
-## JWT token
-
-jwt - это стандартизированный token, состоит из: **Header** . **Payload** . **Signature**
-
-* **Header** - инфа о алгоритмы хэширования токена
-* **Payload** - UserInfo - id, имя, роли и прочее
-* **Signature** - крипто подпись, которая проходит через алгоритмы указанные в **Header**
-
-jwt - это self contained token, т.е. его не нужно хранить на сервере в DB, он сам содержит информацию, которая подписана ключом и ее нельзя изменить т.к. подпись станет невалидной, а переподписать может только сервер приватным ключом.
-
-JWT хранится в localStorage, его могут похитить. Поэтому он короткоживущий (short lived). Т.е. он перегенирируется скажем каждые 60 сек и старый перестанет действовать (дата истечения хранится в нем самом, как я понял).
-
-Один из вариантов: хранить JWT вместе с CSRF в cookies с secure и httpOnly атрибутами.
-
-```js
-const token = base64urlEncoding(header) + '.' + base64urlEncoding(payload) + '.' + base64urlEncoding(signature)
-```
-
-Статья с обзором различных способов, кажется предлагается использовать cookie + доп. механизмы [тут](https://stormpath.com/blog/where-to-store-your-jwts-cookies-vs-html5-web-storage) и [тут](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc)
-
-## JWT vs CSRF token
-
-JWT можно использовать как CSRF (т.е. jwt может брать на себя роль не только авторизации, но и роль CSRF), но это сложно. CSRF в отличии от JWT не должен иметь криптографии или нести информацию.
-
-CSRF генерируется **каждый** новый **request** и помещают в http header или в параметр запроса (post, put, patch, delete). JWT отправляется с каждым запросом.
-
-CSRF должен быть непредсказуем для атакующего, т.е. в отличии от JWT каждый раз иметь разные значения.
-
-CSRF token - никогда **не отправляют в cookie**.
-
-**JWT можно отправлять в:**
-1. **cookie** - это stateless вариант (видимо имеется ввиду, что front end не обрабатывает запросы)
-2. **http header**
-3. **в параметрах запросов**
-
-## XSSI
-XSSI - Cross-site script inclusion, др. название: JSON vulnerability
-
-Эта атака работает в старых браузерах путем подмены constructors объектов. (подробности тут: https://angular.io/guide/security#xssi )
-
-## CSP
-
-**Определяет** какие из потенциально опасных функций js можно запускать.
-
-CSP - против XSS (cross site script). Для чего: чтобы запрещать: eval, inline, script src, style src, img src
-
-Пример http headers:
-```
-Content-Security-Policy: default_src 'self'
-```
-
-Эквивалет через `<meta>`
-```html
-<meta http-equiv="Content-Security-Policy" content="default_src 'self'">
-```
-
-## CORS
-CORS - cross origin resource sharing
-
-**Определяет** какие запросы и к каким сайтам можно делать. CORS - это "ослабленный" SOP, который разрешает некоторые запрос к некоторым другим сайтам.
-
-```
-Access-Control-Allow-Origin: www.bla.com
-```
-
-## SOP
-SOP - (Single origin policy)
-
-## oauth (про jwt, access token, refresh token, csrf token)
-
-# strict mode
-
-* Коротко:
-  * Если есть class, то он включен по умолчанию
-  * вместо ничего будут Exception
-  * Меняет поведение на предсказуемое
-  * дает браузеру лучше оптимизировать работу
-
 # Кратко о событиях
 <br>
 https://learn.javascript.ru/event-bubbling
@@ -867,6 +749,14 @@ whateverElement.dispatchEvent(mouseoverEvent);
 # Раздел про CSS и его некоторые особенности которые нужно запомнить
 
 Добавлено CSS-свойство "white-space:break-spaces", определяющее, что любая последовательность пробелов, приводящая к переполнению строки, должна быть разорвана; 
+
+# strict mode
+
+* Коротко:
+  * Если есть class, то он включен по умолчанию
+  * вместо ничего будут Exception
+  * Меняет поведение на предсказуемое
+  * дает браузеру лучше оптимизировать работу
 
 # новое на очереди в добавление
 https://habr.com/ru/company/ruvds/blog/353174/
