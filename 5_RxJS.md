@@ -38,6 +38,8 @@
 # Что такое RxJS
 
 ## Определение
+**Note.** Некоторые определения ниже переведены дословно, чтобы не утерять смысл. Они точны согласно статьям и не смотря на схожесть.
+
 **RxJS** (Reactive Extensions for JavaScript) - Это набор библиотек позволяющих создавать **asynchronous** и **event-based** программы используя **observable sequences** и **fluent query operators**.
 
 Rx использует **теорию монад**.
@@ -500,7 +502,7 @@ of(9).pipe(
 | **asapScheduler**           | Schedules on the micro task queue, which is the same queue used for promises. Basically after the current job, but before the next job. Use this for asynchronous conversions. |
 | **asyncScheduler**          | Schedules work with setInterval. Use this for time-based operations.                                                                                                           |
 | **animationFrameScheduler** | Schedules task that will happen just before next browser content repaint. Can be used to create smooth browser animations.                                                     |
-| **VirtualTimeScheduler**        | Will execute everything synchronous ordered by delay and mainly used in testing |
+| **VirtualTimeScheduler**    | Will execute everything synchronous ordered by delay and mainly used in testing                                                                                                |
 
 # Subjects
 
