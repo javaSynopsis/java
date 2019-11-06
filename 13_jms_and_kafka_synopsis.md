@@ -1,3 +1,6 @@
+Источники:
+* общее о том как сервисы взаимодействуют и некоторые формулы расчета нагрузки [тут](https://dzone.com/articles/tens-of-thousands-of-socket-connections-in-java)
+
 # jms
 Источники: [тут](https://www.javacodegeeks.com/jms-tutorials)
 

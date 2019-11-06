@@ -50,7 +50,7 @@
 * [Closure Compiler](https://closure-compiler.appspot.com/home) - сжимает js заменяя имена на короткие и удаляя лишние отступы, также может оптимизировать
 * [Introduction to Object-Oriented JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript) - пример реализации ООП (классов) на старой распространенной версии js. В новой появился class и ООП, только модификаторов доступа вроде private, protected нету. **Сейчас не используется**, новая версия js автоматически преобразуется в старую.
 * [описание Shadow DOM, Virtual DOM, Style encapsulation](https://stackoverflow.com/questions/36012239/is-shadow-dom-fast-like-virtual-dom-in-react-js)
-* [finished-proposals.md](https://github.com/tc39/proposals/blob/master/finished-proposals.md) - список того нового что добавили в js разбито по годам и версиям ES, версия на русском с инфой которой нет по ссылке от 2018 года [тут](https://habr.com/ru/company/ruvds/blog/353174/)
+* [finished-proposals.md](https://github.com/tc39/proposals/blob/master/finished-proposals.md) - список того нового что добавили в js разбито по годам и версиям ES, версия на русском с инфой которой нет по ссылке от 2018 года [Обзор новшеств ECMAScript 2016, 2017, и 2018 с примерами](https://habr.com/ru/company/ruvds/blog/353174/)
 
 ## Второстепенные
 * [Mastering the Module Pattern](https://ultimatecourses.com/blog/mastering-the-module-pattern#augmenting-modules) - старый, но до сих пор актуальный вариант модулей на js, о том что это и как их писать
@@ -122,7 +122,7 @@ const r3 = new RegExp(r3s, 'uig');
 * циклы
   * **for in** - перебирает свойства объекта, внутри нужно использовать `hasOwnProperty` для проверки, что свойство не принадлежит предку Object
   * **for of** - более новая альтернатива, лучше использовать ее в том числе вместно `for in`
-  * **for-await-of** - итерирует Promise на каждом шаге извлекая значения (работая как `await`)
+  * **for-await-of** - итерирует Promise на каждом шаге извлекая значения (работая как `await`), на самом деле она сделана для мест которые трудно итерировать при асинхронности, например генераторов
     ```js
     for await (const line of readLines(filePath)) {
       console.log(line);

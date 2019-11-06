@@ -13,6 +13,7 @@
   - [CSP](#csp)
   - [CORS](#cors)
   - [SOP](#sop)
+  - [OAuth2](#oauth2)
 - [REST](#rest)
 - [XSS](#xss)
 - [Протокол http](#Протокол-http)
@@ -172,6 +173,9 @@ Access-Control-Allow-Origin: www.bla.com
 
 ## SOP
 SOP - (Single origin policy)
+
+## OAuth2
+Источники: [тут хорошо на русском](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc), [тут](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/) и [тут](http://cryto.net/%7Ejoepie91/blog/2016/06/19/stop-using-jwt-for-sessions-part-2-why-your-solution-doesnt-work/) написано почему jwt для сессий это плохо, [тут на русском и понятно](https://habr.com/ru/post/422765/) и [тут](https://habr.com/ru/company/dataart/blog/311376/) и [тут](https://yourcmc.ru/wiki/%D0%9A%D1%80%D0%B0%D1%82%D0%BA%D0%BE_%D0%BE%D0%B1_SSO_%D1%87%D0%B5%D1%80%D0%B5%D0%B7_OAuth2) и [Зачем нужен Refresh Token, если есть Access Token?](https://habr.com/ru/company/Voximplant/blog/323160/) и [What is the purpose of a “Refresh Token”?](https://stackoverflow.com/questions/38986005/what-is-the-purpose-of-a-refresh-token) и [Про токены, JSON Web Tokens (JWT), аутентификацию и авторизацию. Token-Based Authentication](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc)
 
 # REST
 **REST** - Representational State Transfer (передачи представлений о состоянии) - это архитектурный подход.
