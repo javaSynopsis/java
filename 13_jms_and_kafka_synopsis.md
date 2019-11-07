@@ -29,6 +29,29 @@ Java Message Service (JMS) - это одно из MOM (message-oriented middlewa
   * сообщение не может быть восстановлено
   * сложность работы с ней выше
 
+# Использование JMS
+Сервера приложений Java EE используют одну из реализация JMS (JMS Provider). Чтобы использовать JMS в приложениях развернутых на этих серверах нужно создать через UI или объявить в конфигурации сервера **Queue Factory** или **Topic Factory** с определенным именем. В самом приложении из JNDI по имени получить эту Factory, создать connection из нее, создать **session** из **connection**, создать объект **queue** или **topic** и связать с session. После этого можно отправлять или получать сообщения.
+```java
+InitialContext ctx=new InitialContext();
+QueueConnectionFactory f=(QueueConnectionFactory)ctx.lookup("myQueueConnectionFactory");
+QueueConnection con=f.createQueueConnection();
+con.start();
+QueueSession ses=con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+Queue t=(Queue)ctx.lookup("myQueue");
+
+// во классе receiver
+QueueReceiver receiver=ses.createReceiver(t); 
+receiver.setMessageListener(new MessageListener {
+     public void onMessage(Message m) {
+     }
+});
+
+// во классе sender
+QueueSender sender=ses.createSender(t);
+TextMessage msg=ses.createTextMessage();
+msg.setText("bla");
+```
+
 # Spring JMS
 # kafka
 # jms vs kafka
