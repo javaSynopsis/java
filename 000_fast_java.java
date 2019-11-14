@@ -145,7 +145,7 @@ class C implements A.B {} //использование
  Наследование от внутренних классов
 class A { class Inner {} }
 class B extends A.Inner {
-   // !!! InheritInner() {}  - не скомпилится !!
+   // !!! B() {}  - не скомпилится !!
    B(A a) {
       a.super(); // это обязательно
    }
