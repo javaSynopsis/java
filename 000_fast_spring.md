@@ -1573,7 +1573,7 @@ Both are valid, and neither is deprecated.
     * `@Order(2)` - используется с `@Bean` или `@Component`, чтобы указать какой бин выбрать первым для связывания, чем меньше число тем выше приоритет
       * `@Order(Ordered.LOWEST_PRECEDENCE)`
 * **Context Configuration Annotations** - конфигурирование application context
-  * `@Profile("sportDay")` - отмечаем @Component или @Bean только если хотим, чтобы они создавались при определенном Spring профиле
+  * `@Profile("sportDay")` - отмечаем `@Component` или `@Bean` только если хотим, чтобы они создавались при определенном Spring профиле
   * `@Import(VehiclePartSupplier.class)` - отмечаем `@Configuration` и указываем внутри другой класс `@Configuration` чтобы импортировать один в другой
   * `@ImportResource("classpath:/annotations.xml")` - отмечаем `@Configuration`, импорт xml конфигов
   * `@PropertySource` - отмечаем `@Configuration`, после этого можно использовать property внутри класса и в аннотации `@Value`. Начиная с Java 8 эта аннотация Repeatable и можно над классом ставить несколько таких аннотаций.
@@ -1582,6 +1582,7 @@ Both are valid, and neither is deprecated.
   * `@AutoConfigureBefor` / `@AutoConfigureAfter` - 
   * `@ConditionalOnClass`
   * `@ConditionalOnProperty`
+  * `@EntityScan`
 
 **Spring MVC аннотации**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
