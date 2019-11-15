@@ -102,6 +102,7 @@
   - [Common](#common)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
+  - [Описать HandlerMethodArgumentResolver](#Описать-handlermethodargumentresolver)
 
 # Простое подключение сервлета
 **Создание сервлета**
@@ -1577,6 +1578,10 @@ Both are valid, and neither is deprecated.
   * `@ImportResource("classpath:/annotations.xml")` - отмечаем `@Configuration`, импорт xml конфигов
   * `@PropertySource` - отмечаем `@Configuration`, после этого можно использовать property внутри класса и в аннотации `@Value`. Начиная с Java 8 эта аннотация Repeatable и можно над классом ставить несколько таких аннотаций.
   * `@PropertySources({@PropertySource("classpath:/annotations.properties"), @PropertySource("classpath:vehicle-factory.properties")})` - можно указать массив аннотаций `@PropertySource` внутри `@PropertySources`
+  * `@ConfigurationProperties` - 
+  * `@AutoConfigureBefor` / `@AutoConfigureAfter` - 
+  * `@ConditionalOnClass`
+  * `@ConditionalOnProperty`
 
 **Spring MVC аннотации**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
@@ -2716,3 +2721,5 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSou
 
 ## Способы обработки exceptions
 https://www.baeldung.com/exception-handling-for-rest-with-spring
+
+## Описать HandlerMethodArgumentResolver
