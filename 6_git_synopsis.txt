@@ -534,3 +534,8 @@ git rev-list --left-right --count master...feature/mybranchname
 ############### интерактивный rebase
 В idea и других средах есть режим интерактивного rebase, в нем можно открыть окно где указать какие commits склеить в один или несколько
 чтобы при merge или rebase в истории на ветке куда делается merge или rebase отображались только склеенные несколько commits, а не все
+
+############### hooks
+На некоторых проектах нужно клонировать репозитории специальными командами, чтобы включить hooks иначе работа с git будет некорректна
+например:
+	git clone "http://jone_dou@example.com/a/microservice-client" && (cd "microservice-client" && mkdir -p .git/hooks && curl -Lo `git rev-parse --git-dir`/hooks/commit-msg http://jone_dou@example.com/tools/hooks/commit-msg; chmod +x `git rev-parse --git-dir`/hooks/commit-msg)
