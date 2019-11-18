@@ -37,11 +37,11 @@ Note. В процессе редактирования.
    6. mymicroservice-lib-blabla используется как просто библиотека которая может быть нужна для других микросервисов 
    7. для работы микросервиса под нагрузкой используется стратегия семофор для feign которая обрабатывает запросы в одном потоке (note. как реверс проекси)
    8. для security у каждого сервиса есть пользователь (свой логин/пароль), это называется технический пользователь. Роли каждого микросервиса определяют к каким end points других микросервисов этот микросервис имеет доступ.
-   9. Кроме Eureka можно использовать инструменты kubernetes для discovery client и ribbon, например https://dzone.com/articles/quick-guide-to-microservices-with-kubernetes-sprin и https://github.com/spring-cloud/spring-cloud-kubernetes
+   9. Вместо Eureka + Zuul можно использовать инструменты kubernetes для discovery client и ribbon, например https://dzone.com/articles/quick-guide-to-microservices-with-kubernetes-sprin и https://github.com/spring-cloud/spring-cloud-kubernetes
    10. в проекте находится каталог log куда складываются логи
    11. в корне есть каталог helm с настройками для kubernetes
    12. в корне есть каталог environments с настройками для kubernetes (secrets например) и др.
+   13. Репликация данных как вариант делается вручную через очереди kafka
 4. devops
    1. jira + confluens
    2. kanban доска с полями: ready to do, blocked, in progress, waiting, testing, complete
-   3. 
