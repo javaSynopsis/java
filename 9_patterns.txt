@@ -60,7 +60,7 @@ Other:
         Initial Context - получаем service по его name
         Cache - кэширует сервисы
         Service Locator - содержит Initial Context и Cache. Если Service есть в Cache, то возвращает его, иначе достает из Initial Context. Возвращенные из Initial Context сервисы имеют общий метод execute()
-        
+    Circuit Breaker https://martinfowler.com/bliki/CircuitBreaker.html
 ---
 SOLID
 
