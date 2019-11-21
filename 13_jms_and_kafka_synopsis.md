@@ -58,8 +58,33 @@ msg.setText("bla");
 
 # Spring JMS
 # kafka
+
+**Плюсы kafka:**
+* Decoupling of Data Streams.
+* Real time instead of batch processing. (работа с сообщениями сразу вместо ожидания пока они накопятся, а потом проведение операций сразу с группой)
+
+
+**Note.** kafka также как и JMS называют middle layer.
+
+* **Broker** - сервер или несколько серверов (тогда между ними разделяется нагрузка). Если вы соеденены с одним Broker, то вы соеденены со всеми (со всем кластером, т.е. можно не думать о ручном соединении с каждым сервером и просто работать ними как с одним). Если 1ин Broker падает, то данные **replicated** (будут получены) из другого.
+* **Record**
+* **Topic**
+* **Partition** - каждый topic разбит на Partitions. Копии Partitions разбросаны по разным копиям Brokers (если Brokers несколько). В каждом Broker есть свой **leader** и **ISRs** (in sync replicas), т.е. главный и второстепенные Partitions. Записать в topic идет через **leader**.
+* **Offset** - сообщение в Partition имеет offset относительно чего-то
+* **Producer**
+* **Consumer**
+* **Consumer Group**
+* **Zookeeper**
+
+**Note.** Если данные записаны в Partition они не могут быть изменены (Immutability)
+
+**Note.** Данные в Partition хранятся ограниченный срок (в настройках установлен limit по времени).
+
+**Note.** **leader** это то где лежит файл log (с сообщениями), остальные куда log копируется для надежности. log файл распределенный потому что лежит на нескольких носителях (его копии).
+
+# kafka tool
 # jms vs kafka
 Источник: [тут](https://stackoverflow.com/questions/42664894/jms-vs-kafka-in-specific-conditions), [тут](https://stackoverflow.com/questions/30453882/is-apache-kafka-another-api-for-jms)
 
-kafka отличается от jms (т.е. это не jms provider), kafka имеет меньше features (функционала), использует не jms протокол и она ориентирована на performances. Т.е. код jms и kafka отличается. kafka не использует pont-to-point, только Publish-and-subscribe. kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log. kafka может разделять поток сообщения на группы. Поэтому kafka имеет лучший ACLs (access control). consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
+kafka отличается от jms (т.е. это не jms provider), kafka имеет меньше features (функционала), использует не jms протокол и она ориентирована на performances. Т.е. код jms и kafka отличается. kafka не использует pont-to-point, только Publish-and-subscribe. kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log. kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control). consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
 
