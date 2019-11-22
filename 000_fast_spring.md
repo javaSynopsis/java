@@ -2724,3 +2724,4 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSou
 https://www.baeldung.com/exception-handling-for-rest-with-spring
 
 ## Описать HandlerMethodArgumentResolver
+https://www.baeldung.com/spring-mvc-custom-data-binder

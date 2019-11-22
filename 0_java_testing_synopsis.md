@@ -86,6 +86,8 @@ public class TestRunner {
 
 **Stub** и **Mock** похожи, это подмножество **Mock**, но служащие для разных целей.
 
+# Smoke Testing
+
 # TDD vs BDD
 **TDD vs BDD** - это тесты + документация + примеры в одном месте
 
