@@ -23,18 +23,18 @@ Java Message Service (JMS) - это одно из MOM (message-oriented middlewa
 **JMS broker** - это по сути JMS provider, точнее по сути приложения для управления queue или topic сообщения, можно сказать это процесс содержащий коллекции (topic, queue) сообщений. Если используется конвертер сообщений, то брокер может выполнять и функции конвертации при получении / отправке причем конвертацию можно описывать на разных спец. языках (как SQL например).
 
 **Models**
-* Point-to-point (one to one) - представлен через queue, сообщения обрабатывает только один получатель
+* **Point-to-point** (one to one) - представлен через queue, сообщения обрабатывает только один получатель
   * сообщение может быть восстановлено (вернуто) в очередь
   * только один получатель может получить сообщение
   * сильная coupling между отправителем и получателем
   * сложность работы с ней ниже
-* Publish-and-subscribe (one to many) - представлен через topic, сообщения обрабатывает множество получателей
+* **Publish-and-subscribe** (one to many) - представлен через topic, сообщения обрабатывает множество получателей
   * слабая связанность (Decoupling)
   * сообщение не может быть восстановлено
   * сложность работы с ней выше
 
 # Использование JMS
-Сервера приложений Java EE используют одну из реализация JMS (JMS Provider). Чтобы использовать JMS в приложениях развернутых на этих серверах нужно создать через UI или объявить в конфигурации сервера **Queue Factory** или **Topic Factory** с определенным именем. В самом приложении из JNDI по имени получить эту Factory, создать connection из нее, создать **session** из **connection**, создать объект **queue** или **topic** и связать с session. После этого можно отправлять или получать сообщения.
+Сервера приложений Java EE используют одну из реализация JMS (JMS Provider). Чтобы использовать JMS в приложениях развернутых на этих серверах нужно создать через UI этого сервера или объявить в конфигурации этого сервера **Queue Factory** или **Topic Factory** с определенным именем. В самом приложении из JNDI (из контекста) по имени получить эту Factory, создать connection из нее, создать **session** из **connection**, создать объект **queue** или **topic** и связать с session. После этого можно отправлять или получать сообщения.
 ```java
 InitialContext ctx=new InitialContext();
 QueueConnectionFactory f=(QueueConnectionFactory)ctx.lookup("myQueueConnectionFactory");
@@ -43,14 +43,14 @@ con.start();
 QueueSession ses=con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 Queue t=(Queue)ctx.lookup("myQueue");
 
-// во классе receiver
+// в классе receiver
 QueueReceiver receiver=ses.createReceiver(t); 
 receiver.setMessageListener(new MessageListener {
      public void onMessage(Message m) {
      }
 });
 
-// во классе sender
+// в классе sender
 QueueSender sender=ses.createSender(t);
 TextMessage msg=ses.createTextMessage();
 msg.setText("bla");
@@ -66,11 +66,11 @@ msg.setText("bla");
 
 **Note.** kafka также как и JMS называют middle layer.
 
-* **Broker** - сервер или несколько серверов (тогда между ними разделяется нагрузка). Если вы соеденены с одним Broker, то вы соеденены со всеми (со всем кластером, т.е. можно не думать о ручном соединении с каждым сервером и просто работать ними как с одним). Если 1ин Broker падает, то данные **replicated** (будут получены) из другого.
+* **Broker** - сервер или несколько серверов (тогда между ними разделяется нагрузка). Если вы соеденены с одним Broker, то вы соеденены со всеми (со всем кластером, т.е. можно не думать о ручном соединении с каждым сервером и просто работать с ними как с одним). Если 1ин Broker падает, то данные **replicated** (будут получены) из другого.
 * **Record**
 * **Topic**
 * **Partition** - каждый topic разбит на Partitions. Копии Partitions разбросаны по разным копиям Brokers (если Brokers несколько). В каждом Broker есть свой **leader** и **ISRs** (in sync replicas), т.е. главный и второстепенные Partitions. Записать в topic идет через **leader**.
-* **Offset** - сообщение в Partition имеет offset относительно чего-то
+* **Offset** - сообщение в Partition расположено со смещением (offset) относительно чего-то
 * **Producer**
 * **Consumer**
 * **Consumer Group**
@@ -80,11 +80,11 @@ msg.setText("bla");
 
 **Note.** Данные в Partition хранятся ограниченный срок (в настройках установлен limit по времени).
 
-**Note.** **leader** это то где лежит файл log (с сообщениями), остальные куда log копируется для надежности. log файл распределенный потому что лежит на нескольких носителях (его копии).
+**Note.** **leader** это то (тот Broker) где лежит файл log (с сообщениями), остальные куда log копируется для надежности. log файл распределенный потому что лежит на нескольких носителях (копии log файла).
 
 # kafka tool
 # jms vs kafka
 Источник: [тут](https://stackoverflow.com/questions/42664894/jms-vs-kafka-in-specific-conditions), [тут](https://stackoverflow.com/questions/30453882/is-apache-kafka-another-api-for-jms)
 
-kafka отличается от jms (т.е. это не jms provider), kafka имеет меньше features (функционала), использует не jms протокол и она ориентирована на performances. Т.е. код jms и kafka отличается. kafka не использует pont-to-point, только Publish-and-subscribe. kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log. kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control). consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
+kafka отличается от jms (т.е. это не jms provider), kafka имеет меньше features (функционала), использует не jms протокол и она ориентирована на performances. Т.е. код jms и kafka отличается. kafka не использует pont-to-point, только Publish-and-subscribe. kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log (копии файлов с данными topic разнесены на разные сервера). kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control). consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
 
