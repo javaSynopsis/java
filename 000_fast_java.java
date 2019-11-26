@@ -1214,6 +1214,13 @@ Stream возвращает Optional на котором можно:
 .orElseGet(() -> new Employee( 1L, "", ""));
 
 
+Проверка на null, если сам обьект или одно из выражений в map() будет null, то exception не будет, а вернется то что в orElse()
+(использование map() налогично myObj.prop1.prop2 с проверкой на null каждого свойства)
+	Object myObjOrElse = Optional.ofNullabel(myObj)
+		.map(myObj -> myObj.prop1)
+		.map(myObj -> myObj.prop2)
+		.orElse(new Object());
+
 parallel()
 sequential()
 
