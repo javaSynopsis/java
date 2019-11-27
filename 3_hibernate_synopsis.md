@@ -1297,7 +1297,7 @@ class MyUser extends User {}
 
 ## Inheritance Mapping Strategies
 
-https://www.baeldung.com/hibernate-inheritance
+**Note.** в этом разделе перепутаны стратегии, исправить материалом отсюда https://www.baeldung.com/hibernate-inheritance
 
 - Стратегии - как наследуемые классы Entity будут связаны друг с другом в DB.
   - **MappedSuperclass** – the parent classes, can’t be entities
