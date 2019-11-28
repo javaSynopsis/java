@@ -12,7 +12,7 @@ TDD - это способ разработки (design), в котором ду�
 4. Run all tests
 5. Refactor
 
-**Шаги:**
+**Шаги написание тестов:**
 * Add a test
 * Run all tests and see if the new one fails
 * Write some code
@@ -152,7 +152,7 @@ verifyNoMoreInteractions(mockedList);
 * `@AfterEach tearDown()` (@After в старой) - после каждого теста
 * `@AfterAll tearDownAfterClass()` - 1 раз после тестов класса (старая `@AfterClass`)
 * `@Disabled("Disabled because ...")` - выключает тесты помеченные ей (старая `@Ignore`)
-* `@Test(timeout = 1000, expected = RuntimeException.class)` - если timeout привышен, то fail
+* `@Test(timeout = 1000, expected = RuntimeException.class)` - если timeout превышен, то fail
 * `@RepeatedTest(12)` - повторяет тест N раз
 ***
 **Дополнительные:**
