@@ -15,3 +15,16 @@
     ```
     mysql -u root -ppassword
     ```
+
+# Операции с файлами контейнера
+docker cp 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf ./postgresql.conf
+docker cp ./postgresql.conf 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf
+chown -R postgres:$(id -gn postgres) /var/lib/postgresql/data/postgresql.conf
+ls -la /var/lib/postgresql/data/postgresql.conf
+docker export 6a8151dc5b6b > contents.tar
+SHOW config_file;
+SHOW ALL;
+SELECT * FROM pg_settings;
+
+# docker compose
+https://stackoverflow.com/a/41912295
