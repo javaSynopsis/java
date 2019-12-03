@@ -17,14 +17,15 @@
     ```
 
 # Операции с файлами контейнера
-docker cp 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf ./postgresql.conf
-docker cp ./postgresql.conf 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf
-chown -R postgres:$(id -gn postgres) /var/lib/postgresql/data/postgresql.conf
-ls -la /var/lib/postgresql/data/postgresql.conf
-docker export 6a8151dc5b6b > contents.tar
-SHOW config_file;
-SHOW ALL;
-SELECT * FROM pg_settings;
+**Note.** В Windows некоторые команды не выполняются из bash консоли которая ставится c git клиентом, нужна родная консоль Windows.
+
+* `docker ps` смотрим id контейнера
+* `docker cp 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf ./postgresql.conf` копирование из контейнера с id `6a8151dc5b6b`
+* `docker cp ./postgresql.conf 6a8151dc5b6b:/var/lib/postgresql/data/postgresql.conf` копирование из контейнера
+* **команды в bash внутри самого контейнера**
+  * `chown -R postgres:$(id -gn postgres) /var/lib/postgresql/data/postgresql.conf` меняем права на файл внутри контейнера
+  * `ls -la /var/lib/postgresql/data/postgresql.conf` узнаем права на файл в контейнере чтобы знать на что их поменять
+* `docker export 6a8151dc5b6b > contents.tar` сохраняем всю файловую систему
 
 # docker compose
 https://stackoverflow.com/a/41912295
