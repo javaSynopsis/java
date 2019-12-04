@@ -12,6 +12,8 @@
 **postgresql.conf**
 * `log_statement = 'all'` включаем лог запросов
 
+**обновить postgresql.conf** после изменения нужно специальной SQL командой
+
 **создаем специальную схему для особенных функций SQL**
 ```sql
 create schema extensions;
@@ -30,5 +32,7 @@ alter default privileges in schema extensions grant usage on types to public;
 **включаем спец. табл в которой хранится статистика запросов**
 1. `shared_preload_libraries="pg_stat_statements"` значение в `postgresql.conf`
 2. `CREATE EXTENSION pg_stat_statements` создаем табл
-3. `select calls, rows, query from pg_stat_statements where query like '%from ccy_%' order by calls desc` вытаскиваем значения
+3. `select calls, rows, query from pg_stat_statements where query like '%from ccy_%' order by calls desc` вытаскиваем значения (результат в поле `rows` показывает количество выбранных данных)
 4. когда нужно чистим старые данные командой `select pg_stat_statements_reset()`
+
+**serial vs identity типы id.** есть типы **serial** и **identity** для столбцов id, они создают sequence и привязывают его к столбцу, при этом sequence не нужно указывать при insert. Можно задать начальный индекс в sequence командой SQL `restart with 123` если часть табл. уже заполнена и используется как справочник (т.е. первые несколько id уже заняты и нумерацию нужно начинать с id с большим номером). При этом удалить identity можно через `alter table drop identity`
