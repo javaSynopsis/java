@@ -1,6 +1,31 @@
 JUnit, Mock, Cucumber (или др. новые системы), TDD, BDD, пример тестирования в Spring MVC
 
+- [TDD](#tdd)
+- [Тесты на практике](#Тесты-на-практике)
+- [Dummy vs Fake vs Stub vs Mock](#dummy-vs-fake-vs-stub-vs-mock)
+- [Smoke Testing](#smoke-testing)
+- [TDD vs BDD](#tdd-vs-bdd)
+- [Spy vs Mock](#spy-vs-mock)
+- [verify](#verify)
+- [doReturn.when vs when.thenReturn](#doreturnwhen-vs-whenthenreturn)
+- [integration test (it)](#integration-test-it)
+- [end to end test (e2e)](#end-to-end-test-e2e)
+- [JUnit](#junit)
+- [JUnit. Assert](#junit-assert)
+- [JUnit. Assumptions](#junit-assumptions)
+- [JUnit. @Suite](#junit-suite)
+- [JUnit. @ParameterizedTest](#junit-parameterizedtest)
+- [JUnit. @Interceptor](#junit-interceptor)
+- [JUnit. @ExtendWith и @RegisterExtension](#junit-extendwith-и-registerextension)
+- [JUnit. TestWatcher](#junit-testwatcher)
+- [JUnit. @TestTemplate](#junit-testtemplate)
+- [Mock](#mock)
+- [JUnit и Mock в Spring](#junit-и-mock-в-spring)
+- [Links](#links)
+- [интеграционные тесты с тестовой DB через testcontainer](#интеграционные-тесты-с-тестовой-db-через-testcontainer)
+
 # TDD
+
 **TDD** (Test Driven Development) - подход к тестированию, можно использовать любую библиотеку (JUnit, ...). Сначало пишется тест, потом реализация.
 
 TDD - это способ разработки (design), в котором думают о реализации до написания кода.
@@ -78,6 +103,15 @@ public class TestRunner {
     }
 }
 ```
+# Тесты на практике
+**Unit тесты** - тестируем отдельно каждый метод всех классов. При этом вместо зависимых классов подкладываем Mock объект с ненастоящим метод используемым тестируемым классом. Например если MyService1 используется другой MyService2, то с начала тестируем MyService2. Потом тестируем MyService1 добавляя ему в качестве зависимостей ненастоящий MyService2, т.к. его уже протестировали и знаем что он работает нормально. Получается что-то вроде пирамиды, в классическом понолит проекте с начала тестируем классы Utils (утилиты), потом mappers, потом Services.
+
+Класс и методы класса JUnit тестов должны быть public.
+
+Если метод JUnit теста не возвращает результат, который поэтому мы не может проверить, то проверяем сам факт вызова методы через verify.
+
+**Интеграционные тесты.** Эти тесты запускают реальное приложение, но с тестовыми настройками, например некоторые бины или сервисы могут быть заглушками (и настройки расположены например в TestConfiguration.class), а база тестовая и наполняется только перед тестом, после теста удаляется. Обычно или в отдельном каталоге, или имеют слово Integration в названии класса. Для интеграционных тестов может быть класс предок с настройками для тестов. Эти тесты запускают контекст Spring и становятся доступны тесты контроллеров (эмуляция отправки запросов в controller), repository (сохранение в БД).
+
 # Dummy vs Fake vs Stub vs Mock
 * **Dummy** - просто класс созданный для использования в тестах, он никак не связан с самим приложением, а нужен только чтобы не писать какой-то необязательный для теста код и заменить его этим классом (например много ненужных параметров в constructor можно заменить специально созданным объектом)
 * **Fake** - реализация какого-то класса с подменой методов взаимодействующих с какой-то частью приложения (например базой) и необходимых для теста, например доступ к базе можно заменить переопределенным методом возвращающим коллекцию
@@ -238,3 +272,6 @@ static Stream<String> stringProvider() {
 * best practise https://technologyconversations.com/2013/12/24/test-driven-development-tdd-best-practices-using-java-examples-2/
 * e2e https://medium.com/@giltayar/testing-your-frontend-code-part-iii-e2e-testing-e9261b56475
 * Extensions https://www.baeldung.com/junit-5-extensions
+
+# интеграционные тесты с тестовой DB через testcontainer
+https://www.baeldung.com/spring-boot-testcontainers-integration-test

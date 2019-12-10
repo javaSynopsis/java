@@ -53,7 +53,7 @@
   - [Constructor Dependency Injection](#constructor-dependency-injection)
   - [Scopes](#scopes)
   - [Пример обертки аннотации в свое AOP](#Пример-обертки-аннотации-в-свое-aop)
-  - [Spring Profiles & Maven Profile](#spring-profiles--maven-profile)
+  - [Spring Profiles &amp; Maven Profile](#spring-profiles-amp-maven-profile)
     - [Spring Profile](#spring-profile)
     - [Profiles in Spring Boot](#profiles-in-spring-boot)
     - [Maven Profile](#maven-profile)
@@ -1171,6 +1171,8 @@ configure(WebSecurity) - глобально
 * Spring Data REST
 
 # Spring Data REST
+Почему WebFlux не работает с Spring Data REST и о том что Spring Data REST мало популярен ответ разработчиков [тут](https://jira.spring.io/browse/DATAREST-933) (если коротко его используют <10% и WebFlux нельзя использовать с блокирующим API таким как Spring Data JPA т.к. асинхронных модулей для большинства баз нет и использование реактивности с Spring Data JPA сведет эффект к нулю).
+
 **Принципы:**
 1. **@RequestBody** добавляет авто deserialization HttpRequest body в Java object:
     ```java
