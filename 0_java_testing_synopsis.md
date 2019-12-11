@@ -23,6 +23,7 @@ JUnit, Mock, Cucumber (или др. новые системы), TDD, BDD, при
 - [JUnit и Mock в Spring](#junit-и-mock-в-spring)
 - [Links](#links)
 - [интеграционные тесты с тестовой DB через testcontainer](#интеграционные-тесты-с-тестовой-db-через-testcontainer)
+- [тест jpa слоя](#тест-jpa-слоя)
 
 # TDD
 
@@ -153,7 +154,7 @@ List<String> spyList = Mockito.spy(new ArrayList<String>());
 @Spy List<String> spyList;
 ```
 # verify
-Проверяет были ли вызовы, их количество и прочее.
+Проверяет были ли вызовы, их количество и прочее. Делать `verify` нужно **для mock** обьектов.
 ```java
 List<String> mockedList = mock(MyList.class);
 mockedList.size();
@@ -275,3 +276,6 @@ static Stream<String> stringProvider() {
 
 # интеграционные тесты с тестовой DB через testcontainer
 https://www.baeldung.com/spring-boot-testcontainers-integration-test
+
+# тест jpa слоя
+https://reflectoring.io/spring-boot-data-jpa-test/

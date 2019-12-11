@@ -22,10 +22,14 @@ liquibase - утилита для наката новых изменений Б�
 
 <changeSet id="my_id" author="name">
     <preConditions onFail="MARK_RAN">
-        <changeSetExecuted
-            id="old_id"
-            author="old_name"
-            changeLogFile="db/changelog/v1.0/old_file.xml"/>
+        <!-- если выполнения прошлой версии changelog не было -->
+        <not>
+            <changeSetExecuted
+                id="old_id"
+                author="old_name"
+                changeLogFile="db/changelog/v1.0/old_file.xml"/>
+        </not>
+        
     </preConditions>
     <sql>...</sql>
     <loadUpdateData
@@ -38,7 +42,7 @@ liquibase - утилита для наката новых изменений Б�
 </changeSet>
 ```
 
-Структура каталогов
+Структура каталогов resources в проекте Spring.
 ```
 resources
     db
@@ -51,4 +55,15 @@ resources
                 alter_table.xml
             v2.0
                 alter_smth.xml
+```
+
+**Note.** В liquibase есть особенность указание путей, вместо слэша `/` там можно использовать точку `.` например `db.changelog` тоже самое что и `db/changelog`.
+
+**В тестах.** liquibase скрипты могут накатываться перед запуском интеграционных тестов, если они подключены к тестам. При этом путь к файлу liquibase по умолчанию `db/changelog/db.changelog-master.yaml`. В тестовом `changelog-master.yaml` можно сделать `include` файла `changelog` из `main` каталога проекта (не тестового варианта, а реального скрипта создающего структуру DB), а вторым include сделать дополнительный тестовый `changelog` (например чтобы наполнить DB тестовыми данными).
+```yml
+databaseChangeLog:
+- include:
+    file: ../../main/resources/db/changelog/db.changelog-master.yaml
+- include:
+    file: db/changelog/marketplace/sampleData.yaml
 ```
