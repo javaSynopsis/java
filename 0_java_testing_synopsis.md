@@ -154,7 +154,7 @@ List<String> spyList = Mockito.spy(new ArrayList<String>());
 @Spy List<String> spyList;
 ```
 # verify
-Проверяет были ли вызовы, их количество и прочее. Делать `verify` нужно **для mock** обьектов.
+Проверяет были ли вызовы, их количество и прочее. Делать `verify` нужно **для mock** объектов.
 ```java
 List<String> mockedList = mock(MyList.class);
 mockedList.size();
