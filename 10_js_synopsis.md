@@ -6,6 +6,7 @@
 - [Список самых частых функций](#Список-самых-частых-функций)
 - [Про Promise и очереди задач](#Про-promise-и-очереди-задач)
 - [MediaStream](#mediastream)
+- [WebXR Device API](#webxr-device-api)
 - [Мои заметки](#Мои-заметки)
   - [Сложение через битовые операции](#Сложение-через-битовые-операции)
   - [Деление/умножение через битовые операции](#Делениеумножение-через-битовые-операции)
@@ -129,6 +130,7 @@ const r3 = new RegExp(r3s, 'uig');
     }
     ```
   * **forEach** - stream, в нем нельзя сделать `break`, как и во всех stream
+* [in](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in) - проверка существует ли свойство в объекте, e.g. `'loading' in HTMLImageElement.prototype; // вернет true / false`
 * Ф-ции передачи контекста:
   * [bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind) - передает свой параметр как контекст выполнения объекту: `f1.bind(this); // f1 выполнится в контексте this`. В отличии от call и apply метод bind выполнится _отложено_ (т.е. **bind** создает **ссылку** на ф-цию, которую можно выполнить потом, а **call & apply** сразу in place **выполняют на месте** своего вызова)
   * **call** - передает не только контекст, но и параметры: `f1.call(this, param1, param2);`
@@ -270,10 +272,13 @@ const r3 = new RegExp(r3s, 'uig');
 
 # Про Promise и очереди задач
 
-Тут будет описание Promise, в том числе Promise.all(), Promise.race(), Promise.resolve(value), Promise.reject(), WindowOrWorkerGlobalScope.queueMicrotask()
+Тут будет описание Promise, в том числе Promise.all(), Promise.race(), Promise.resolve(value), Promise.reject, Promise.finally, WindowOrWorkerGlobalScope.queueMicrotask()
 
 # MediaStream
 тут будет про MediaStream
+
+# WebXR Device API
+WebXR Device API - для 3d сцен, e.g. шлемов виртуальной реальности.
 
 # Мои заметки
 
@@ -329,7 +334,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script
 <br>
 https://www.internet-technologies.ru/articles/zhiznennyy-cikl-stranicy.html
 <br>
-По умолчанию подключаемый скирпт **sync,** можно установить **async.** Создаваемый тег `<script>` через `document.createElement()` по умолчанию **async.** (можно установить `async="false"`)
+По умолчанию подключаемый скирпт **sync,** можно установить **async.** Создаваемый тег `<script>` через `document.createElement()` по умолчанию **async.** (можно установить: `async="false"` или прямо в коде перед добавлением через appendChild так: scriptTag.async = false)
 ```html
 <!-- HTML4 -->
 <script type="text/javascript" src="javascript.js"></script>
@@ -502,11 +507,10 @@ history.go(-1);
 ```
 
 # Кратко о событиях
-<br>
-https://learn.javascript.ru/event-bubbling
+Источники: [javascript.ru](https://learn.javascript.ru/event-bubbling)
 
 * Две стадии - стадия захвата и всплытия.
-  * **capturing stage** (Захват): window -> document -> html -> body -> ... -> к элементы в event.target (целевому)
+  * **capturing stage** (захват): window -> document -> html -> body -> ... -> к элементы в event.target (целевому)
   * **target stage:** 
   * **bubbling stage** (всплытия): захват с проверкой ВСЕХ родителей есть ли в них это событие, тогда выполнится
 
@@ -602,7 +606,7 @@ https://learn.javascript.ru/attributes-and-custom-properties
 let arr = [1, 2];
 arr.forEach(e => {console.log(e); arr = null;}); // 1, 2 (т.е. будет работать хотя arr == null)
 ```
-**24) техника использования reduce в качестве map + filter**  
+**24) техника использования одного reduce в качестве двух операторов map + filter**  
 Инициализуем пустым array который на каждой итерации будет наполняться фильтрованными по условию значениями и вернется в конце работы reduce
 ```js
 const filtredArray = arr.reduce((acc, el) => {
@@ -611,7 +615,18 @@ const filtredArray = arr.reduce((acc, el) => {
   }
 
   return acc;
-}, []); // инициализуем пустым array
+}, []); // инициализируем пустым array, который будет содержать отфильтрованные в условии if значения и будет результатом reduce (как map) 
+
+// Используем reduce = map + filter для выбора только уникальных элементов
+const attributeFilter = this.cfg.mutators.reduce((attributeFilter, mutator) => {
+    mutator.attrs.forEach(({name}) => {
+        if (attributeFilter.indexOf(name) < 0) { // если такого же элемента нет в массиве
+            attributeFilter.push(name);
+        }
+    });
+
+    return attributeFilter;
+}, []);
 ```
 **25) длинна массива в js в цикле for(;;) проверяется каждую итерацию, поэтому для микрооптимизации нужно сохранять ее в переменную** [источник](https://stackoverflow.com/a/8452333)
 ```js
@@ -631,9 +646,11 @@ var i = 0; while (i < array.length) { i++; }
 for (var i = 0, len = items.length; i < len; i++) {}
 ```
 
-1)  в js часто может понадобится техника запуска скрипта вроде
+**26) Запуск скрипта только когда страница полностью загрузилась**
 ```js
-// в js часто может понадобится техника запуска скрипта вроде
+// Если страница еще загружается, то устанавливаем запуск по событию loadend, если страница уже успела
+// загрузиться к моменту выполнения, то просто запускаем скрипт. Если событие loadend установлено, то в
+// момент его выполнения удаляем лишний обработчик loadend (т.к. скрипт уже начал выполняться и событие больше не нужно)
 // Примеры: https://stackoverflow.com/questions/39993676/code-inside-domcontentloaded-event-not-working
 'use strict';
 var dclhandler = false;
@@ -649,45 +666,19 @@ function start() {
 }
 ```
 
-28)
+**27) IIFE (Immediately Invoked Function Expression)** - это функция которая вызывается сразу в месте ее объявления
 ```js
-// в js reduce = map + filter только для аникальных элементов
-const attributeFilter = this.cfg.mutators.reduce((attributeFilter, mutator) => {
-    mutator.attrs.forEach(({name}) => {
-        if (attributeFilter.indexOf(name) < 0) {
-            attributeFilter.push(name);
-        }
-    });
-
-    return attributeFilter;
-}, []);
-```
-
-29) в js проверка существует ли свойство в объекте
-```js
-'loading' in HTMLImageElement.prototype; // true / false
-```
-
-30)
-```js
-// В js добавляемый тег <script> создаваемый через сам js по умолчанию async, т.е. другие скрипты не ждут пока он загрузится.
-// Можно поставить ему script.async = false чтобы сделать sync
-```
-
-31)
-```js
-// IIFE (Immediately Invoked Function Expression) - это функция которая вызывается сразу в месте ее объявления
-(function () {
-    statements
+(() => {
+    // код тут
 })();
 
 // async вариант
 (async () => {
-
+  // async код тут
 })();
 ```
 
-32) Способ создания (вызова) своих событий
+**28) Способ создания (вызова) своих событий**
 ```js
 // добавить dispatchEvent и CustomEvent в описание событий js
 // способ trigger события в js
@@ -695,7 +686,7 @@ const mouseoverEvent = new Event('mouseover');
 whateverElement.dispatchEvent(mouseoverEvent);
 ```
 
-33) в js чтобы использовать `<input type=file>` нужно событие change, а не click
+**29)** В js чтобы использовать `<input type=file>` нужно событие change, а не click
 
 # callstack в js
 
