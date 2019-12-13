@@ -22,7 +22,7 @@ Waterfall - старая модель разработки. Делится на:
  3. Test
  4. Review
  5. Deploying
-    
+
 Недостатки Waterfall:
  1. планирование должно быть закончено до того как начнется работа
  2. планирование сделано до того как проект будет понят
@@ -114,6 +114,4 @@ Continuous Deployment - Continuous Delivery, но автоматический (
 
 Git сервера (gitlab, gerrit etc) могут интегрироваться с Jenkins (или другими) и при `git push` запускать сборку и проверки кода (unit tests, SonarLint, CheckStyle)
 
-# CheckStyle
-
-# Lint, SonarLint
+# CheckStyle vs SonarLint (Lint) vs FindBugs
