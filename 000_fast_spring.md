@@ -208,7 +208,7 @@ src/site - site
 
 `getServletContext().getServerInfo()` - инфа о сервере
 
-`request.getRemoteAddr()`
+`request.getRemoteAddr()` - ip
 
 # HttpServletRequestWrapper и HttpServletResponseWrapper
 **HttpServletRequestWrapper** и **HttpServletResponseWrapper** - можно расширить эти классы и переопределить только необходимые методы и получим свои реализации.
@@ -263,7 +263,7 @@ public class DestroyPrototypeBeansPostProcessor implements BeanPostProcessor, Be
 # Spring Core
 ## Общая инфа
 * **Цель** - ослабление связей через DI и AOP и уменьшение количества кода. В качестве компонентов испольует POJO или JavaBean.
-* **DI** - взаимодействие с объектом через интерфейм, не зная о реализации. IoC один из видом DI, реализован через паттерн ServiceLocator.
+* **DI** - взаимодействие с объектом через интерфейc, не зная о реализации. IoC один из видом DI, реализован через паттерн ServiceLocator.
 * Легко тестировать с DI, подставляя фективную реализацию. 
 
 **Типы связывания:**
@@ -274,7 +274,7 @@ public class DestroyPrototypeBeansPostProcessor implements BeanPostProcessor, Be
 1. **BeanFactory** - ядро DI (в т.ч. зависимости и life cycle). Позволяет РАЗДЕЛИТЬ конфиги и код.
 2. **ApplicationContext** - расширение BeanFactory, кроме того содержит сервисы JMS, AOP, i18n, Event listeners, transactions, properties, MessageSource (для i18n) etc; регистрацию в BeanPostProcessor, BeanFactoryPostProcessor
 
-Spring приложение можно создавать на основе **ИНТЕРФЕСОВ** и **БИНОВ** (в Spring Bean, не обязательно следовать JavaBean, особенно если DI через конструктор, т.к. не надо знать set/get)
+Spring приложение можно создавать на основе **ИНТЕРФЕСОВ** и **БИНОВ** (в Spring Bean, не обязательно следовать JavaBean, особенно если DI через конструктор, т.к. не надо знать set/get методы)
 
 **Spring Context** - конфигурационный файл о среде для Spring.
 <br>
@@ -376,7 +376,7 @@ person.setCar(car); // устанавливаем там где инициали
 **BeanPostProcessor** - то место где бины связываются (напр @Autowired через AutowiredAnnotationBeanPostProcessor)
 
 **BeanPostProcessor vs BeanFactoryPostProcessor**
-1. **BeanFactoryPostProcessor** - вызывает переопределенный метод postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory), когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста. Предустановленные BeanFactoryPostProcessor **меняют** само BeanDefinition, например устанавливает значение в `@Value`.
+1. **BeanFactoryPostProcessor** - вызывает переопределенный метод `postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)`, когда все определения бина загружены, но сам он не создан. Можно перезаписывать properties бина даже если бин eager-initializing. В этом случае есть доступ ко все бинам из контекста. Предустановленные BeanFactoryPostProcessor **меняют** само BeanDefinition, например устанавливает значение в `@Value`.
 2. **BeanPostProcessor** - вызывается когда все определения бина уже загружены и сам бин только что создан Spring IoC -ом. (он наследуется самим классом бина???). Предустановленные BeanPostProcessor **меняют** уже созданные бины.
 
 Пример
@@ -590,6 +590,8 @@ public class AnnotationDrivenContextStartedListener {
 
 Существует много готовых событий: ContextRefreshedEvent, ContextStartedEvent, RequestHandledEvent etc
 
+Событие Spring - `RefreshContext` используется для того чтобы сделать что-то после инициализации всех сервисов Spring, но перед стартом context.
+
 **Пример:**
 ```java
 public class ContextRefreshedListener 
@@ -672,7 +674,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 ```
 
 ## Обычные Filter из java ee в Spring
-Кроме Interceptor в Spring Boot можно регестрировать обычные фильтры
+Кроме Interceptor в Spring Boot можно регистрировать обычные фильтры
 
 ```java
 @Component
@@ -804,10 +806,10 @@ public class AppConfig implements WebMvcConfigurer{
 **Аннотации:**
 1. `@ModelAttribute` - доступ к элементу который УЖЕ в model в @Controller
     1. НАД методом @Controller и тогда return значение попадает в model
-        @ModelAttribute("vehicle") Vehicle getVehicle() {}
-    2. Перед ПАРАМЕТРОМ метода @Controller, если у него кастомное имя
-        void post(@ModelAttribute("vehicle") Vehicle vehicleInModel) {}
-2. @`CrossOrigin` - для настройки CORS
+        * `@ModelAttribute("vehicle") Vehicle getVehicle() {}`
+    1. Перед ПАРАМЕТРОМ метода @Controller, если у него кастомное имя
+        * `void post(@ModelAttribute("vehicle") Vehicle vehicleInModel) {}`
+1. `@CrossOrigin` - для настройки CORS
 
 **ModelAndView** использует ModelMap, которая использует Map.
 <br>
@@ -1158,9 +1160,9 @@ public SpringSessionBackedSessionRegistry<S> sessionRegistry() {
 
 ## AuthenticationManagerBuilder vs HttpSecurity vs WebSecurity
 
-configure(AuthenticationManagerBuilder) - можно добавить users и их пароли в in memory БД
-configure(HttpSecurity) - для http
-configure(WebSecurity) - глобально
+* configure(AuthenticationManagerBuilder) - можно добавить users и их пароли в in memory БД
+* configure(HttpSecurity) - для http
+* configure(WebSecurity) - глобально
 
 # Spring Data
 Это проект содержащий разные модули. Слой доступа к данным с шаблонным кодом. Облегчает разработку.
@@ -1276,7 +1278,7 @@ ResponseEntity<?> createBatch(
 ) {}
 ```
 
-В старой версии Spring Data JPA названия методов были другими
+**Инфа в табл. скорее всего ОШИБОЧНАЯ.** В старой версии Spring Data JPA названия методов были другими
 ```
 ╔═════════════════════╦═══════════════════════╗
 ║      Old name       ║       New name        ║

@@ -18,7 +18,7 @@
   - [Описание](#Описание)
   - [optimistic lock](#optimistic-lock)
   - [pessimistic lock](#pessimistic-lock)
-  - [Атрибуты `@Version` для **optimistic lock**](#Атрибуты-version-для-optimistic-lock)
+  - [Атрибуты @Version для optimistic lock](#Атрибуты-version-для-optimistic-lock)
   - [Lock в SQL](#lock-в-sql)
 - [Transaction vs Lock](#transaction-vs-lock)
 - [Cache](#cache)
@@ -32,10 +32,10 @@
 - [Naming strategies](#naming-strategies)
 - [AttributeConverter](#attributeconverter)
 - [Generated properties](#generated-properties)
-- [`@GeneratorType` annotation](#generatortype-annotation)
+- [@GeneratorType annotation](#generatortype-annotation)
 - [Сложные структуры](#Сложные-структуры)
-  - [`@Embeddable`](#embeddable)
-  - [`@ElementCollection`](#elementcollection)
+  - [@Embeddable](#embeddable)
+  - [@ElementCollection](#elementcollection)
   - [Типы связей Entity](#Типы-связей-entity)
     - [Примеры типов связей Entity](#Примеры-типов-связей-entity)
   - [Mapped Superclass](#mapped-superclass)
@@ -47,14 +47,14 @@
   - [JOIN FETCH (решение проблемы N + 1 selects)](#join-fetch-решение-проблемы-n--1-selects)
   - [List vs Set](#list-vs-set)
   - [Entity Graph (решение проблемы N + 1 selects)](#entity-graph-решение-проблемы-n--1-selects)
-  - [Hibernate fetch стратегии, отличие от JPA: `FetchMode`, `SUBSELECT`, `@BatchSize`](#hibernate-fetch-стратегии-отличие-от-jpa-fetchmode-subselect-batchsize)
-    - [`@BatchSize` c `FetchMode.SELECT`](#batchsize-c-fetchmodeselect)
-    - [`FetchMode.SUBSELECT`](#fetchmodesubselect)
+  - [Hibernate fetch стратегии, отличие от JPA: FetchMode, SUBSELECT, @BatchSize](#hibernate-fetch-стратегии-отличие-от-jpa-fetchmode-subselect-batchsize)
+    - [@BatchSize c FetchMode.SELECT](#batchsize-c-fetchmodeselect)
+    - [FetchMode.SUBSELECT](#fetchmodesubselect)
   - [@LazyCollection](#lazycollection)
 - [Mapping](#mapping)
   - [Mapping annotations](#mapping-annotations)
   - [Типы Collection в связях](#Типы-collection-в-связях)
-  - [`AttributeOverride`](#attributeoverride)
+  - [AttributeOverride](#attributeoverride)
 - [Persistence Context](#persistence-context)
   - [Hibernate Entity Lifecycle](#hibernate-entity-lifecycle)
   - [Методы Session (включая JPA vs Hibernate методы)](#Методы-session-включая-jpa-vs-hibernate-методы)
@@ -63,7 +63,7 @@
 - [Настройка Hibernate и Spring](#Настройка-hibernate-и-spring)
   - [Как Transaction работает внутри](#Как-transaction-работает-внутри)
   - [Старый вариант с HibernateUtil](#Старый-вариант-с-hibernateutil)
-  - [Вариант с ручным созданием разных Bean в `@Configuration` для Hibernate + Spring](#Вариант-с-ручным-созданием-разных-bean-в-configuration-для-hibernate--spring)
+  - [Вариант с ручным созданием разных Bean в @Configuration для Hibernate + Spring](#Вариант-с-ручным-созданием-разных-bean-в-configuration-для-hibernate--spring)
   - [Конфигурация в Spring Boot через файл настроек](#Конфигурация-в-spring-boot-через-файл-настроек)
 - [Misc](#misc)
   - [Кавычки в именах Entity, использование зарезервированных имен](#Кавычки-в-именах-entity-использование-зарезервированных-имен)
@@ -124,6 +124,7 @@
   - [про сброс кэша](#про-сброс-кэша)
   - [пошаговая настройка](#пошаговая-настройка)
   - [Query Cache](#query-cache)
+- [Примитивный тип vs Обертки примитивных типов в качестве id для Entity](#Примитивный-тип-vs-Обертки-примитивных-типов-в-качестве-id-для-entity)
 
 # Hibernate
 
@@ -2616,8 +2617,7 @@ https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/
 
 # Про equals и @NaturalId
 
-https://vladmihalcea.com/the-best-way-to-implement-equals-hashcode-and-tostring-with-jpa-and-hibernate/
-https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+Источники: [тут](https://vladmihalcea.com/the-best-way-to-implement-equals-hashcode-and-tostring-with-jpa-and-hibernate/), [тут](https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/)
 
 Использовать `@NaturalId` поле в equals и hashCode. Если их нет, то нужно реализовать сравнение на основе id, но при этом добавить проверку `if(id != null)` т.к. пока Entity не начиталась id может быть `null`
 
@@ -2653,6 +2653,27 @@ public class Book implements Identifiable<Long> {
     }
 
     //Getters and setters omitted for brevity
+}
+
+// реализация для @NaturalId (раз есть NaturalId, то id не используем)
+@Entity
+public class Book {
+    @Id @GeneratedValue private Long id;
+    private String title;
+    @NaturalId private String isbn;
+ 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Book)) return false;
+        Book book = (Book) o;
+        return Objects.equals(getIsbn(), book.getIsbn());
+    }
+ 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIsbn());
+    } 
 }
 ```
 
@@ -3236,3 +3257,6 @@ nativeQuery.executeUpdate();
 * entities которые часто меняются не рекомендуется кэшировать, т.к. кэш будет invalidate как только поменяется даже просто что-то связанное с ними, при этом не важно что поменяется только часть данных, invalidate будет весь кэш
 * по умолчанию **query cache** результаты хранятся в `org.hibernate.cache.internal.StandardQueryCache`
 * для всех query cache результатов в org.hibernate.cache.spi.UpdateTimestampsCache хранятся last update timestamps (время последнего обновления кэша). Пока идет работа с query cache этот конкретный кэш с timestamps не должен быть evicted/expired. Рекомендуется отключить **automatic eviction and expiration**, т.к. это не потребляет много памяти. **Note.** этот пункт выглядит слегка странным, возможно я что-то не допонял
+
+# Примитивный тип vs Обертки примитивных типов в качестве id для Entity
+Статьи еще нет. Note. Скорее всего лучше использовать обертки
