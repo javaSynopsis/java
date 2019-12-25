@@ -121,8 +121,8 @@
 - [JPA vs Hibernate](#jpa-vs-hibernate)
 - [Second-Level Cache](#second-level-cache)
   - [common, Cache Concurrency Strategy](#common-cache-concurrency-strategy)
-  - [про сброс кэша](#про-сброс-кэша)
-  - [пошаговая настройка](#пошаговая-настройка)
+  - [Про сброс Second-Level Cache](#Про-сброс-second-level-cache)
+  - [Пошаговая настройка Second-Level Cache](#Пошаговая-настройка-second-level-cache)
   - [Query Cache](#query-cache)
 - [Примитивный тип vs Обертки примитивных типов в качестве id для Entity](#Примитивный-тип-vs-Обертки-примитивных-типов-в-качестве-id-для-entity)
 
@@ -3126,7 +3126,7 @@ private Date modifyDate;
 # @Size, @Length, and @Column(length=value)
 * `@Size(min = 3, max = 15)` - из JPA
 * `@Length(min = 3, max = 15)` - аналог @Size из Hibernate
-* `@Column(length=5)` - используется для задания физической длинны строки столбца при DDL (генерации схемы столбца табл.) и преобразуется в `varchar(5)`, т.е. валидации на уровне Java приложения не будет, при вставке большего размера появится SQL exception. Ее можно использовать совмесно с `@Size` для валидации на уровне Java приложения
+* `@Column(length=5)` (по умолчанию длина `255`, тип `int`) - используется для задания физической длинны строки столбца при DDL (генерации схемы столбца табл.) и преобразуется в `varchar(5)`, т.е. валидации на уровне Java приложения не будет, при вставке большего размера появится SQL exception. Ее можно использовать совмесно с `@Size` для валидации на уровне Java приложения
 
 # @Immutable
 https://www.baeldung.com/hibernate-immutable
@@ -3170,7 +3170,7 @@ https://stackoverflow.com/a/26825931
 * Non-association property values are stored in their original form
 * Only id (foreign key) is stored for ToOne associations
 
-## про сброс кэша
+## Про сброс Second-Level Cache
 При использовании HQL кэш сбрасывается только для Entity к которой обращается запрос. При native query кэш сбрасывается целиком (т.к. hibernate не может определить что именно изменилось в DB и на всякий случай сбрасывает весь кэш). Чтобы сброса кэша не произошло нужно указать Hibernate что выкинуть из кэша, остальное не указанное он не тронет.
 ```java
 // кэш для Foo сбросится сам
@@ -3185,7 +3185,7 @@ nativeQuery.unwrap(org.hibernate.SQLQuery.class).addSynchronizedEntityClass(Foo.
 nativeQuery.executeUpdate();
 ```
 
-## пошаговая настройка
+## Пошаговая настройка Second-Level Cache
 1. Включаем кэш и указываем его реализацию
     ```properties
     hibernate.cache.use_second_level_cache=true
