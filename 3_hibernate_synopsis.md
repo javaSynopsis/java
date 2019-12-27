@@ -80,6 +80,7 @@
 - [Еще про транзакции (из блога Vlad Mihalcea)](#Еще-про-транзакции-из-блога-vlad-mihalcea)
   - [Блокировки и то как они относятся к транзакциям](#Блокировки-и-то-как-они-относятся-к-транзакциям)
   - [optimistic locking, Version-less optimistic locking и @Source](#optimistic-locking-version-less-optimistic-locking-и-source)
+  - [О том что изменение Optimistic lock version в child entity не увеличивает version в root entity и как решить эту проблему](#О-том-что-изменение-optimistic-lock-version-в-child-entity-не-увеличивает-version-в-root-entity-и-как-решить-эту-проблему)
   - [detached entities anomaly при Version-less optimistic locking](#detached-entities-anomaly-при-version-less-optimistic-locking)
   - [работа с OptimisticLockException и о том что detached entities могут](#работа-с-optimisticlockexception-и-о-том-что-detached-entities-могут)
   - [Lock Scope](#lock-scope)
@@ -2288,6 +2289,9 @@ class MyEntity {
 ```
 
 **Version-less optimistic locking** - 
+
+## О том что изменение Optimistic lock version в child entity не увеличивает version в root entity и как решить эту проблему
+https://vladmihalcea.com/how-to-increment-the-parent-entity-version-whenever-a-child-entity-gets-modified-with-jpa-and-hibernate/
 
 ## detached entities anomaly при Version-less optimistic locking
 
