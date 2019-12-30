@@ -2146,6 +2146,8 @@ public class NonSingleToolFactory extends AbstractFactoryBean<Tool> {
 
 abstract класс не component-scanned, его нужно наследовать чтобы использовать (т.е. над ним не нужно ставить `@Component`)
 
+**Note.** Т.е. если есть класс наследуемый классами `@Component`, то его нужно сделать **abstract** чтобы Spring не пытался сделать inject обьектов в его конструктор.
+
 ## Autowiring of Generic Types
 Начиная с версии 4 используется ResolvableType, инкапсулирует java типы, чтобы потом обработать, возвращает обьект Class нужного класса.
 
@@ -2172,11 +2174,11 @@ private List<Vehicle> vehicles;
 
 public class CustomConfiguration {
     @Bean
-    @CarQualifier // 2)
+    @CarQualifier // 2) вот это попадет в List<Vehicle>
     public Car getMercedes() {}
 }
 ```
-2. С Spring 4.0
+2. Начиная с Spring 4.0
 ```java
 public class Motorcycle extends Vehicle {}
 

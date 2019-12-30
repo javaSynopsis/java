@@ -1680,9 +1680,9 @@ Unit of Work - еше называют "business transaction".
 
 - **Состояния Entity:**
   - **transient** - id обычно не назначен, объект ВНЕ (ДО открытия) сессии (объект никогда не был связан с сессией). В transient переходят и объекты после удаления delete() внутри сессии (потому что они уже не в БД)
-  - managed, or **persistent** - id назначен, связан с сессией (ВНУТРИ неё), в том числе если он взят из базы через get().
+  - **persistent** (managed) - id назначен, связан с сессией (ВНУТРИ неё), в том числе если он взят из базы через get().
     - **Переходит в этот state после методов:** save()/persist(), saveOrUpdate(), update()/merge(), lock(), get(), load()
-  - **detached** - id назначен, объект ПОСЛЕ session.close() или evict() (hibernate больше не связан с сессией)
+  - **detached** - id назначен, объект ПОСЛЕ session.close() или evict() (entity больше не связан с сессией)
   - **removed** - id назначен, связан с сессией, но в очереди на удаление из DB
 
 ```java
@@ -1714,7 +1714,6 @@ session.getTransaction().commit();
 - **delete** - удаляет объект из БД, иными словами, преобразует persistent в transient. Object может быть в любом статусе, главное, чтобы был установлен Id.
 - **save** — сохраняет объект в БД, генерируя новый Id, даже если он установлен. Object может быть в статусе transient или detached
 - **update** — обновляет объект в БД, преобразуя его в persistent (Object в статусе detached)
-- **refresh**
 - **get** - получает из БД объект класса-сущности с определённым Id в статусе persistent
 - **scroll**
 - **list**
@@ -2519,38 +2518,47 @@ https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/
 
 3. **@Transactional read-only flag pitfalls.** **Note!** Начиная с версии Spring 5.1 исправлен баг с пробросом **readOnly** флага в Session. До этого только устанавливался `FlushType.MANUAL` и поэтому **только** отключался **automatic dirty checking mechanism**. Сама операция чтения данных это извлечение данных из `ResultSet` (наз. hydration и она нужна для dirty checking mechanism), она нужна чтобы сравнить текущее состояние Entity (snapshot) чтобы знать нужно ли делать `UPDATE` во время flush-time. Также detached state (видимо имеется ввиду оригинал Entity в кэше, который используется для сравнения) используется механизмом **versionless optimistic locking** (тут речь видимо о механизме optimistic locking, который не использует поле version, а реализован как-то иначе) для построения `WHERE`. Поэтому detached state хранится в Hibernate `Session` если только не использован **read-only** mode. Как результат экномится много памяти, т.к. состояние entity не хранится все время жизни Persistence Context (кэша L1). **Другими словами**, инфа ниже о **readOnly** может быть неактуальная. При этом **read only** означает только **загрузку Entities в read only** режиме, и их **можно удалять** через методы session из JPA.
    1. При `readOnly = true` и `Propagation.SUPPORTS` транзакция все равно выполнится без ошибок. Т.к. при `SUPPORTS` транзакция не будет запущена и выполнится local (database) transaction (т.е. на уровне DB, а не logic), `readOnly = true` применяется только если транзакция стартовала, а раз она не стартовала, то он проигнорирован.
-   2. В этом же случае, но при `REQUIRED` транзакция стартует и поэтому будет `Exception` при попытке изменения данных внутри запущенной с флагом `readOnly` транзакции. **Note!** В примере ниже  в транзакции Spring выполняется JDBC код, не JPA.
+        ```java
+        // 1. выполнится без ошибок, т.к. траназкция будет запущена на уровне DB, а не приложения и readOnly будет проигнорирован
+        @Transactional(readOnly = true, propagation=Propagation.SUPPORTS)
+        public long insertTrade(TradeData trade) throws Exception {
+            //JDBC Code...
+        }
+        ```
+   2. При `REQUIRED` транзакция стартует и поэтому будет `Exception` при попытке изменения данных внутри запущенной с флагом `readOnly` транзакции. **Note!** В примере ниже  в транзакции Spring выполняется JDBC код, не JPA.
+        ```java
+        // 2. будет Exception т.к. попытка выполнить update внутри транзакции с readOnly
+        @Transactional(readOnly = true, propagation=Propagation.REQUIRED)
+        public long insertTrade(TradeData trade) throws Exception {
+            //JDBC code...
+        }
+        ```
    3. Т.к. внутри `@Transactional` выполняется JDBC код, а не JPA, то **транзакция** тут не нужен вообще для выполнения **readOnly** операций. Он может вызвать overhead и ненужный shared read locks (в зависимости от того какой isolation level стоит по умолчанию).
+        ```java
+        // 3. При этом для readOnly если внутри транзакции JDBC code транзакцию не нужно стартовать, т.к. это overhead и ненужный shared read locks
+        @Transactional(readOnly = true, propagation=Propagation.REQUIRED)
+        public long insertTrade(TradeData trade) throws Exception {
+            //JDBC code...
+        }
+        ```
    4. Если внутри `@Transactional` с **readOnly** выполнится JPA код, то этот флаг может быть или проигнорирован и запрос выполнится (TopLink), или флаг проигнорирован и ошибки не будет, но запрос не выполнится (Hibernate). Для Hibernate будет установлен flush mode == `MANUAL` и insert не произойдет. Суть в том, что JPA не гарантирует строгое поведение флага **readOnly** 
+        ```java
+        // 4. В JPA при readOnly нет гарантий конкретного поведения
+        @Transactional(readOnly = true, propagation=Propagation.REQUIRED)
+        public long insertTrade(TradeData trade) throws Exception {
+            em.persist(trade);
+            return trade.getTradeId();
+        }
+        ```
    5. При использовании JPA предлагается выполнять запрос вне транзакции таким образом `@Transactional(readOnly = true, propagation=Propagation.SUPPORTS)`, т.е. выставив `SUPPORTS`. Или вообще не использовать `@Transactional` аннотацию
+        ```java
+        // 5. SUPPORTS или отсутствие @Transactional выключает транзакции, рекомендуется для readOnly операций
+        @Transactional(readOnly = true, propagation=Propagation.SUPPORTS)
+        public TradeData getTrade(long tradeId) throws Exception {
+            return em.find(TradeData.class, tradeId);
+        }
+        ```
    6. Противоречие с предыдущей инфой о том, что использовать транзакцию с **readOnly** нужно. Ответ Vlad Mihalcea [тут](https://stackoverflow.com/a/26327536). Далее неточная инфа, уточнить! Использование `@Transactional` использует `TransactionalInterceptor` для правильной привязки Session (т.е. Session будет видна в методе пока не закончит работу метод) к методу для использования`OpenSessionInViewFilter` и поэтому предотвращает lazy loading exceptions. Также использование транзакции создает всего 1 изолированный connection к DB вместо отдельного connection на время всей транзакции, а если такой аннотации не будет, то создастся отдельный connection на каждый запрос (и это плохо). Это происходит в том числе, потому что любая операция выполняется **внутри transaction** и если аннотация `@Transactional` не проставлена включится **autocommit**.
-       ```java
-       // 1. выполнится без ошибок, т.к. траназкция будет запущена на уровне DB, а не приложения и readOnly будет проигнорирован
-       @Transactional(readOnly = true, propagation=Propagation.SUPPORTS)
-       public long insertTrade(TradeData trade) throws Exception {
-          //JDBC Code...
-       }
-
-       // 2. будет Exception т.к. попытка выполнить update внутри транзакции с readOnly
-       // 3. При этом для readOnly если внутри транзакции JDBC code транзакцию не нужно стартовать, т.к. это overhead и ненужный shared read locks
-       @Transactional(readOnly = true, propagation=Propagation.REQUIRED)
-       public long insertTrade(TradeData trade) throws Exception {
-          //JDBC code...
-       }
-
-       // 4. В JPA при readOnly нет гарантий конкретного поведения
-       @Transactional(readOnly = true, propagation=Propagation.REQUIRED)
-       public long insertTrade(TradeData trade) throws Exception {
-          em.persist(trade);
-          return trade.getTradeId();
-       }
-
-       // 5. SUPPORTS или отсутствие @Transactional выключает транзакции, рекомендуется для readOnly операций
-       @Transactional(readOnly = true, propagation=Propagation.SUPPORTS)
-       public TradeData getTrade(long tradeId) throws Exception {
-          return em.find(TradeData.class, tradeId);
-       }
-       ```
 
 4. **REQUIRES_NEW transaction attribute pitfalls**. REQUIRES_NEW всегда стартует новую транзакцию независимо от того есть существующая или нет. Если `updateAcct` выполнится до rollback, то откат `insertTrade` не приведет к откату `updateAcct` и связные данные будут иметь разные значения.
 
