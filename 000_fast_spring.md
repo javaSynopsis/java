@@ -103,6 +103,7 @@
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
   - [Описать HandlerMethodArgumentResolver](#Описать-handlermethodargumentresolver)
+  - [data.sql и schema.sql и @Sql](#datasql-и-schemasql-и-sql)
 
 # Простое подключение сервлета
 **Создание сервлета**
@@ -2731,3 +2732,6 @@ https://www.baeldung.com/exception-handling-for-rest-with-spring
 
 ## Описать HandlerMethodArgumentResolver
 https://www.baeldung.com/spring-mvc-custom-data-binder
+
+## data.sql и schema.sql и @Sql
+https://www.baeldung.com/spring-boot-data-sql-and-schema-sql
