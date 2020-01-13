@@ -639,6 +639,7 @@ while( spl1.tryAdvance( (n) -> System.out.println(n) ) ); // hasNext() + next()
 Spliterator<A> spl2 = spl1.trySplit(); // получим 2ую половину
 spl1.forEachRemaining((n) -> System.out.println(n)); // forEachRemaining() многопоточный и только из spliterator
 spl2.forEachRemaining((n) -> System.out.println(n));
+forEachRemaining(); // на самом деле не только для splitterator и начинает беребор с того места куда дошел указатель iterator когда next() использовался в коде до места вызова этой ф-ции
 --
 		cunsumer - то что принимает значения (потребляет) и НЕ ВОЗВРАЩАЕТ результат
 			DoubleConsumer: void accept(double d)
