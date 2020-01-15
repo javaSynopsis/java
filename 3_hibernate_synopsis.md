@@ -2066,7 +2066,7 @@ Example example = Example.create(exampleUser).enableLike("%van");
 
 # Specification (и ее связь с Criteria API), использование с find методом из Spring Data JPA
 
-**Specification** - это interface который получает как параметры **Root**, **CriteriaQuery**, **CriteriaBuilder** внутри метода реальзуется алгоритм Criteria API и метод возвращает predicate, который используется какой-либо функцией в запросе. Основное метод это **toPredicate()** и возвращает **Predicate**
+**Specification** - это interface из **Spring Data JPA** который получает как параметры **Root**, **CriteriaQuery**, **CriteriaBuilder** внутри метода реальзуется алгоритм Criteria API и метод возвращает predicate, который используется какой-либо функцией в запросе. Основное метод это **toPredicate()** и возвращает **Predicate**
 
 Например в Spring можно передавать объект **Specification** в метод `find(Specification s)`. Т.е. сами методы `find(Predicate p)` принимают predicate, который возвращается методом `toPredicate()`
 
@@ -2083,7 +2083,7 @@ public interface Specification<T> {
 public interface PersonRepository extends CrudRepository<Person, Long>, JpaSpecificationExecutor<Person> { }
 ```
 
-На практике в коде приложения можно выделить отдельный package для **Specification** который использовать для реализации разных алгоритмов поиска для REST API разных сущностей.
+На практике в коде приложения можно выделить отдельный package для классов реализующих **Specification**, например использовать эти классы для реализации разных алгоритмов поиска для REST API разных сущностей.
 
 **Полный пример Specification**
 
@@ -2114,6 +2114,18 @@ public class AccessTemplateSearchSpecification implements Specification<AccessTe
         return predicate;
     }
 }
+```
+**Specifications** - класс работает как Utils (служебный) класс для `Specification`, реализует utils методы и может работать как builder разных выражений
+```java
+Specification<MyEntity> spec = Specifications // работает как builder
+    .where(specification)
+    .and(Specifications.where(Specifications.<MyEntity>where(
+            justAfuncThatWillReturnASpec(
+                    RequestParams.PARAM1, PARAM1, 'field1_name',
+                    RequestParams.PARAM2, PARAM2, 'field2_name'
+            )
+        )
+    );
 ```
 
 # specification-arg-resolver
