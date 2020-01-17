@@ -53,7 +53,7 @@
   - [Constructor Dependency Injection](#constructor-dependency-injection)
   - [Scopes](#scopes)
   - [Пример обертки аннотации в свое AOP](#Пример-обертки-аннотации-в-свое-aop)
-  - [Spring Profiles &amp; Maven Profile](#spring-profiles-amp-maven-profile)
+  - [Spring Profiles & Maven Profile](#spring-profiles--maven-profile)
     - [Spring Profile](#spring-profile)
     - [Profiles in Spring Boot](#profiles-in-spring-boot)
     - [Maven Profile](#maven-profile)
@@ -100,6 +100,8 @@
   - [Spring Method Security](#spring-method-security)
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
+- [Spring Cloud](#spring-cloud)
+  - [@RefreshScope](#refreshscope)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
   - [Описать HandlerMethodArgumentResolver](#Описать-handlermethodargumentresolver)
@@ -2713,6 +2715,9 @@ https://www.baeldung.com/spring-security-method-security
 # Spring Boot
 ## Common
 **starter** - это пакет у которого в зависимостях другие пакеты, чтобы подключать зависимости можно было несколькими строчками
+
+# Spring Cloud
+## @RefreshScope
 
 ## Отключение авто конфигурации
 Через аннотации
