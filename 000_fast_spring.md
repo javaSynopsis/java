@@ -101,7 +101,6 @@
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
 - [Spring Cloud](#spring-cloud)
-  - [@RefreshScope](#refreshscope)
   - [Отключение авто конфигурации](#Отключение-авто-конфигурации)
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
   - [Описать HandlerMethodArgumentResolver](#Описать-handlermethodargumentresolver)
@@ -1585,11 +1584,13 @@ Both are valid, and neither is deprecated.
   * `@ImportResource("classpath:/annotations.xml")` - отмечаем `@Configuration`, импорт xml конфигов
   * `@PropertySource` - отмечаем `@Configuration`, после этого можно использовать property внутри класса и в аннотации `@Value`. Начиная с Java 8 эта аннотация Repeatable и можно над классом ставить несколько таких аннотаций.
   * `@PropertySources({@PropertySource("classpath:/annotations.properties"), @PropertySource("classpath:vehicle-factory.properties")})` - можно указать массив аннотаций `@PropertySource` внутри `@PropertySources`
-  * `@ConfigurationProperties` - 
+  * `@ConfigurationProperties` - https://www.baeldung.com/configuration-properties-in-spring-boot
   * `@AutoConfigureBefor` / `@AutoConfigureAfter` - 
   * `@ConditionalOnClass`
   * `@ConditionalOnProperty`
   * `@EntityScan`
+* **Test**
+  * `@TestConfiguration` - https://stackoverflow.com/a/50643036
 
 **Spring MVC аннотации**
 * `@RequestParam` - извлекает **parameters**, файлы etc из request
@@ -2717,7 +2718,7 @@ https://www.baeldung.com/spring-security-method-security
 **starter** - это пакет у которого в зависимостях другие пакеты, чтобы подключать зависимости можно было несколькими строчками
 
 # Spring Cloud
-## @RefreshScope
+* `@RefreshScope` - 
 
 ## Отключение авто конфигурации
 Через аннотации
