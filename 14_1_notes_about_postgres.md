@@ -36,3 +36,6 @@ alter default privileges in schema extensions grant usage on types to public;
 4. когда нужно чистим старые данные командой `select pg_stat_statements_reset()`
 
 **serial vs identity типы id.** есть типы **serial** и **identity** для столбцов id, они создают sequence и привязывают его к столбцу, при этом sequence не нужно указывать при insert. Можно задать начальный индекс в sequence командой SQL `restart with 123` если часть табл. уже заполнена и используется как справочник (т.е. первые несколько id уже заняты и нумерацию нужно начинать с id с большим номером). При этом удалить identity можно через `alter table drop identity`
+
+# Инструменты
+Список инструментов [Awesome Postgres](https://github.com/dhamaniasad/awesome-postgres)
