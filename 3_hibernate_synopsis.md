@@ -18,7 +18,7 @@
   - [Описание](#Описание)
   - [optimistic lock](#optimistic-lock)
   - [pessimistic lock](#pessimistic-lock)
-  - [Атрибуты @Version для optimistic lock](#Атрибуты-version-для-optimistic-lock)
+  - [Атрибуты `@Version` для **optimistic lock**](#Атрибуты-version-для-optimistic-lock)
   - [Lock в SQL](#lock-в-sql)
 - [Transaction vs Lock](#transaction-vs-lock)
 - [Cache](#cache)
@@ -32,10 +32,10 @@
 - [Naming strategies](#naming-strategies)
 - [AttributeConverter](#attributeconverter)
 - [Generated properties](#generated-properties)
-- [@GeneratorType annotation](#generatortype-annotation)
+- [`@GeneratorType` annotation](#generatortype-annotation)
 - [Сложные структуры](#Сложные-структуры)
-  - [@Embeddable](#embeddable)
-  - [@ElementCollection](#elementcollection)
+  - [`@Embeddable`](#embeddable)
+  - [`@ElementCollection`](#elementcollection)
   - [Типы связей Entity](#Типы-связей-entity)
     - [Примеры типов связей Entity](#Примеры-типов-связей-entity)
   - [Mapped Superclass](#mapped-superclass)
@@ -47,14 +47,14 @@
   - [JOIN FETCH (решение проблемы N + 1 selects)](#join-fetch-решение-проблемы-n--1-selects)
   - [List vs Set](#list-vs-set)
   - [Entity Graph (решение проблемы N + 1 selects)](#entity-graph-решение-проблемы-n--1-selects)
-  - [Hibernate fetch стратегии, отличие от JPA: FetchMode, SUBSELECT, @BatchSize](#hibernate-fetch-стратегии-отличие-от-jpa-fetchmode-subselect-batchsize)
-    - [@BatchSize c FetchMode.SELECT](#batchsize-c-fetchmodeselect)
-    - [FetchMode.SUBSELECT](#fetchmodesubselect)
+  - [Hibernate fetch стратегии, отличие от JPA: `FetchMode`, `SUBSELECT`, `@BatchSize`](#hibernate-fetch-стратегии-отличие-от-jpa-fetchmode-subselect-batchsize)
+    - [`@BatchSize` c `FetchMode.SELECT`](#batchsize-c-fetchmodeselect)
+    - [`FetchMode.SUBSELECT`](#fetchmodesubselect)
   - [@LazyCollection](#lazycollection)
 - [Mapping](#mapping)
   - [Mapping annotations](#mapping-annotations)
   - [Типы Collection в связях](#Типы-collection-в-связях)
-  - [AttributeOverride](#attributeoverride)
+  - [`AttributeOverride`](#attributeoverride)
 - [Persistence Context](#persistence-context)
   - [Hibernate Entity Lifecycle](#hibernate-entity-lifecycle)
   - [Методы Session (включая JPA vs Hibernate методы)](#Методы-session-включая-jpa-vs-hibernate-методы)
@@ -63,7 +63,7 @@
 - [Настройка Hibernate и Spring](#Настройка-hibernate-и-spring)
   - [Как Transaction работает внутри](#Как-transaction-работает-внутри)
   - [Старый вариант с HibernateUtil](#Старый-вариант-с-hibernateutil)
-  - [Вариант с ручным созданием разных Bean в @Configuration для Hibernate + Spring](#Вариант-с-ручным-созданием-разных-bean-в-configuration-для-hibernate--spring)
+  - [Вариант с ручным созданием разных Bean в `@Configuration` для Hibernate + Spring](#Вариант-с-ручным-созданием-разных-bean-в-configuration-для-hibernate--spring)
   - [Конфигурация в Spring Boot через файл настроек](#Конфигурация-в-spring-boot-через-файл-настроек)
 - [Misc](#misc)
   - [Кавычки в именах Entity, использование зарезервированных имен](#Кавычки-в-именах-entity-использование-зарезервированных-имен)
@@ -126,6 +126,7 @@
   - [Пошаговая настройка Second-Level Cache](#Пошаговая-настройка-second-level-cache)
   - [Query Cache](#query-cache)
 - [Примитивный тип vs Обертки примитивных типов в качестве id для Entity](#Примитивный-тип-vs-Обертки-примитивных-типов-в-качестве-id-для-entity)
+- [@PrePersist, @PreUpdate etc](#prepersist-preupdate-etc)
 
 # Hibernate
 
@@ -3284,3 +3285,5 @@ nativeQuery.executeUpdate();
 
 # Примитивный тип vs Обертки примитивных типов в качестве id для Entity
 Статьи еще нет. Note. Скорее всего лучше использовать обертки
+
+# @PrePersist, @PreUpdate etc
