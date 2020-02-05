@@ -53,6 +53,7 @@ Structural patterns (Структурные)
 	Flyweight
 
 Enterprise patterns
+	The Outbox Pattern - используется в распределенных транзакций, например микросервисах чтобы обернуть в транзакцию системы, которые не поддерживают распределенные транзакции (kafka)
 
 Other:
     Service Locator - состоит из:

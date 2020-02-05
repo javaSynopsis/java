@@ -102,3 +102,19 @@ liquibase:
 <!-- ... -->
 </project>
 ```
+Если запуск liquibase будет на нескольких разных DB и есть специфичные SQL запросы, то можно указать на какой выполнять какие `changeSet` (например можно указать специфичные SQL для h2 для тестов).
+```xml
+<!-- Выполнится только если DB будет h2 (например для unit тестов в приложении) -->
+<changeSet author="user1" id="h2_id" dbms="h2">
+    <sql>...</sql>
+</changeSet>
+
+<!-- Выполнится только если DB будет postgresql -->
+<changeSet author="user2" id="postgresql_id" dbms="postgresql">
+    <sql>...</sql>
+</changeSet>
+```
+В liquibase можно указывать [context](https://www.liquibase.org/documentation/contexts.html) к которому относится `changeSet`
+```xml
+<changeSet id="00000000000001" author="jhipster" context="DEV">...</changeSet>
+```

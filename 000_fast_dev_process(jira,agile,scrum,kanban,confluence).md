@@ -42,7 +42,7 @@ Waterfall - старая модель разработки. Делится на:
  3. Типы документации (artefacts):
      1. Product Backlog - задачи, описание фич которые должны быть реализованы и их приоритеты
      2. User stories - описание фич пользователями. Пользователи как бы говорят: As a ... , I need ... , So that ...
-     3. Spring backlog - список User stories с высоким приоритетом (т.е. то что должно быть сделано раньше). Каждая добавленная фича оценивается
+     3. Sprint backlog - список User stories с высоким приоритетом (т.е. то что должно быть сделано раньше). Каждая добавленная фича оценивается
      4. Burndown chart - график завершенности задач из Spring backlog, когда все закончено == 0
  4. Типы meetings (ceremonies, discussions):
      1. Spring Planning - Product Owner, Scrum Master и Development Team обсуждают User stories и оценивают их

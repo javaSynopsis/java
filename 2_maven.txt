@@ -370,3 +370,6 @@ settings.xml
 	</proxy>
   </proxies>
 </settings>
+-----------
+BOM
+https://www.baeldung.com/spring-maven-bom
