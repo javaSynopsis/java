@@ -5,6 +5,7 @@
 - [Regular Expression](#regular-expression)
 - [Список самых частых функций](#Список-самых-частых-функций)
 - [Про Promise и очереди задач](#Про-promise-и-очереди-задач)
+- [Работа с cookies](#Работа-с-cookies)
 - [MediaStream](#mediastream)
 - [WebXR Device API](#webxr-device-api)
 - [Мои заметки](#Мои-заметки)
@@ -269,10 +270,20 @@ const r3 = new RegExp(r3s, 'uig');
 * [Media events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) - список событий тега `<video>`
 * [ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver) - API позволяющее отслеживать изменения размера элементов. Ключевое отличие нового API от **window.onresize** и **CSS Media Queries**, заключается в том, что можно определить факт изменения конкретного элемента на странице, а не всей видимой области, что позволяет отреагировать изменением только этого элемента без изменения всего видимого содержимого; 
 * [Page Visibility API](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API) - api для определения режимов браузера: полный экран, минимизировано ли окно etc
+* `const foo = bar ?? 'default string'` - если bar равен null, вернёт стоку или значение bar в противном случае, в том числе, когда bar равен 0 и ' ', в отличие от оператора "||"
+* `db?.user?.name?.length` и `db?.user?.preferences?.[optionName].length` и `db?.user?.grow(++age);` и `delete db?.user;` - называется "Optional chaining" или "Elvis Operator (aka Safe Navigation)", проверяет существует ли property прямо на лету и если нет, то возвращает `undefined`. **Note.** Это аналогично проверке `if (db && db.user && db.user.name)`
+* [CompressionStream и DecompressionStream](https://docs.google.com/document/d/1TovyqqeC3HoO0A4UUBKiCyhZlQSl7jM_F7KbWjK2Gcs/edit) - 
 
 # Про Promise и очереди задач
 
 Тут будет описание Promise, в том числе Promise.all(), Promise.race(), Promise.resolve(value), Promise.reject, Promise.finally, WindowOrWorkerGlobalScope.queueMicrotask()
+
+# Работа с cookies
+* Видна ли кука при установке с sub domain в domain
+* Видна ли кука при установке с domain в sub domain
+* Какие заголовки получить чтобы куку можно было устанавливать с других доменов и можно ли это сделать
+* SameSite=Lax, SameSite=None, httpOnly и другие атрибуты кук
+
 
 # MediaStream
 тут будет про MediaStream

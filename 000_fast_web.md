@@ -13,6 +13,7 @@
   - [CSP](#csp)
   - [CORS](#cors)
   - [SOP](#sop)
+  - [Заголовки Sec-Fetch-Dest, Set-Cookie и другие](#Заголовки-sec-fetch-dest-set-cookie-и-другие)
 - [REST](#rest)
 - [XSS](#xss)
 - [Про сеть](#Про-сеть)
@@ -181,6 +182,9 @@ Access-Control-Allow-Origin: www.bla.com
 
 ## SOP
 SOP - (Single origin policy)
+
+## Заголовки Sec-Fetch-Dest, Set-Cookie и другие
+
 
 # REST
 **REST** - Representational State Transfer (передачи представлений о состоянии) - это архитектурный подход.
