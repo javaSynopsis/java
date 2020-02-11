@@ -2704,6 +2704,8 @@ public class Book {
 
 При этом будут использованы множества buckets в HashSet or HashMap (что в теории плохо). Но подразумевается что при работе с Hibernate число entities ограничивается (разработчиком). И **никогда нельзя** (имеется ввиду вообще, а не только этот случай) загружать тысячи entities `@OneToMany` **Set** т.к. performance penalty on the database side is multiple orders of magnitude higher than using a single hashed bucket.
 
+**Note.** (Не проверено!) equals и hashCode имеет смысл реализовывать если используются коллекции типа `Set` (и др.) и при этом там могут быть объекты в разных состояниях (detached и пр.). При использовании Spring Data JPA разных состояний нет и поэтому реализовывать equals и hashCode не нужно. При этом в официальной документации написано, что equals и hashCode унаследованные от Object обычно достаточно для уникальности. А в статье Vlad Mihalcen написано, что при использовании evict() и merge() стандартных equals и hashCode недостаточно (но их используют не всегда).
+
 # Кэширование и регионы кэша
 Тут будет описание
 
