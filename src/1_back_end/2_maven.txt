@@ -373,3 +373,6 @@ settings.xml
 -----------
 BOM
 https://www.baeldung.com/spring-maven-bom
+-----------
+    <build>
+        <pluginManagement>

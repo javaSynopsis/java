@@ -105,6 +105,8 @@
   - [Способы обработки exceptions](#Способы-обработки-exceptions)
   - [Описать HandlerMethodArgumentResolver](#Описать-handlermethodargumentresolver)
   - [data.sql и schema.sql и @Sql](#datasql-и-schemasql-и-sql)
+- [Spring Statemachine](#spring-statemachine)
+- [Ссылки](#Ссылки)
 
 # Простое подключение сервлета
 **Создание сервлета**
@@ -2352,6 +2354,8 @@ public MyPrototypeBean prototypeBean () {
     }
     ```
 
+**Note.** SonarLint (и другие анализаторы) можгут ругаться на circular dependencies даже в Spring оно работает, ругается просто на плохой код. И еще circular dependencies может быть не связано с inject зависимостей в самом Spring, а просто быть случаем когда Class1 зависит от Class2, а Class2 зависит от Class1 (точнее их объекты), например они передаются в конструкторы друг другу. Наприме даже если при использовании `@Autowired` для fields в Spring все работает, но SonarLint всеравно может ругаться на это как на circular dependencies.
+
 ## Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию
 Можно внедрить все созданные бины приложения определенного типа в коллекцию, например если имя не известно.
 ```java
@@ -2741,3 +2745,9 @@ https://www.baeldung.com/spring-mvc-custom-data-binder
 
 ## data.sql и schema.sql и @Sql
 https://www.baeldung.com/spring-boot-data-sql-and-schema-sql
+
+# Spring Statemachine
+Написать тут несколько простых заметок, т.к. может использоваться в реальных проектах
+
+# Ссылки
+* [Полный и удобный список ссылок на все проекты Spring](https://spring.io/projects/spring-boot)
