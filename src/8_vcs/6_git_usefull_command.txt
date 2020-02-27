@@ -39,6 +39,9 @@ Commands:
     git config --global --add diff.guitool kdiff3
     git config --global --add difftool.kdiff3.trustExitCode false
 ------------------
+На некоторых системах чтобы поддерживала длинные пути выполнить, иначе некоторые репозитории будут работать неправильно (например на Windows 10):
+git config --system core.longpaths true
+------------------
 очистить всю историю комитов
 
 -- Remove the history from 
