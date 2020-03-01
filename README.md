@@ -11,7 +11,7 @@
 * [Liquibase для подготовки к собеседованию](src/1_back_end/9_liquibase_synopsis.md)
 
 # Общее
-* [Конспект по Паттерны](src/3_common/9_patterns.txt) (краткий)
+* [Конспект по Паттерны](src/3_common/9_patterns.md) (краткий)
 
 # Базы данных
 * [Конспект по SQL и базам данных](src/4_db/0_DB_&_Sql_synopsis.md) (не закончено)
