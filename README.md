@@ -1,13 +1,14 @@
 Список статей и их состояние, в основном Java, JavaScript. В основном для подготовки к собеседованиям.
 
 # Front end
-* [Конспект для подготовки к собеседованию по JavaScript](src/0_front_end/10_js_synopsis.md)
-* [Конспект для подготовки к собеседованию по RxJs](src/0_front_end/5_RxJS.md)
+* [JavaScript для подготовки к собеседованию](src/0_front_end/10_js_synopsis.md)
+* [RxJs для подготовки к собеседованию](src/0_front_end/5_RxJS.md)
 
 # Back end
-* [Конспект для подготовки к собеседованию по Java](src/1_back_end/000_fast_java.java) (краткий)
-* [Конспект для подготовки к собеседованию по Spring](src/1_back_end/000_fast_spring.md) (не закончено)
-* [Конспект для подготовки к собеседованию по Hibernate ORM](src/1_back_end/3_hibernate_synopsis.md) (не закончено)
+* [Java для подготовки к собеседованию](src/1_back_end/000_fast_java.java) (краткий)
+* [Spring для подготовки к собеседованию](src/1_back_end/000_fast_spring.md) (не закончено)
+* [Hibernate ORM для подготовки к собеседованию](src/1_back_end/3_hibernate_synopsis.md) (не закончено)
+* [Liquibase для подготовки к собеседованию](src/1_back_end/9_liquibase_synopsis.md)
 
 # Общее
 * [Конспект по Паттерны](src/3_common/9_patterns.txt) (краткий)
