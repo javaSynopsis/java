@@ -255,8 +255,16 @@ const r3 = new RegExp(r3s, 'uig');
   request.send(formData);
   ```
 * [form.requestSubmit()](https://www.chromestatus.com/feature/6097749495775232) - инициирует программную отправку данных формы по аналогии с кликом на кнопку отправки данных. Функция может применяться при разработке собственных кнопок отправки формы, для которых вызова form.submit() недостаточно из-за того, что он не приводит к интерактивной проверке параметров, генерации события 'submit' и передаче привязанных к кнопке отправки данных;
-* [String.prototype.localeCompare()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare) - сравнивает строки и возвращает число -1, 0, 1 для использования в функции сортировки, может сравнивать с учетом языка (locale), регистра символов и прочего
-  * ```js
+* **Node**
+  * cloneNode()
+  * contains()
+  * normalize()
+  * isSameNode()
+  * isEqualNode()
+  * getRootNode()
+* **String**
+  * [String.prototype.localeCompare()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare) - сравнивает строки и возвращает число -1, 0, 1 для использования в функции сортировки, может сравнивать с учетом языка (locale), регистра символов и прочего
+  ```js
     var a = 'réservé'; // with accents, lowercase
     var b = 'RESERVE'; // no accents, uppercase
 
@@ -264,7 +272,12 @@ const r3 = new RegExp(r3s, 'uig');
     // expected output: 1
     console.log(a.localeCompare(b, 'en', {sensitivity: 'base'}));
     // expected output: 0
-    ```
+  ```
+  * [String.prototype.normalize()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
+    * NFC
+    * NFD
+    * NFKC
+    * NFKD
 * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) - через функцию можно открывать новое окно или вкладку `var window = window.open(url, windowName, [windowFeatures]);` при этом родительское окно по ссылке будет иметь доступ к открытому (возможно с некоторыми ограничениями в зависимости от браузера и его функций безопасности)
 * [HTMLIFrameElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement) - класс iframe, отличается от обычного окна в основном тем, что доступ к **document** и **window** нужно получать через свойства **contentDocument** и **contentWindow**
 * [Media events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) - список событий тега `<video>`
