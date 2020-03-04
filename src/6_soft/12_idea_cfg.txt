@@ -17,6 +17,9 @@ FindBugs
 
 Gerrit - опционально, если используется gerrit
 
+Maven Helper - показывает конфликты зависимостей, Dependency Analyzer
+	появится вкладка Dependency Analyzer в pom.xml файлах
+
 # управление
 ctrl + f - поиск по стр.
 ctrl + r - поиск и замена по стр.
