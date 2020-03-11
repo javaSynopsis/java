@@ -13,6 +13,7 @@
 - [is A и Has A](#is-a-и-has-a)
 - [Cohesion и Coupling](#cohesion-и-coupling)
 - [immutable объект, Создание immutable объекта](#immutable-объект-Создание-immutable-объекта)
+- [Dependency Injection](#dependency-injection)
 - [SAM Pattern](#sam-pattern)
 - [Список ООП vs functional концепций:](#Список-ООП-vs-functional-концепций)
 
@@ -20,10 +21,13 @@
 
 ## behavioral patterns (Поведенческие)
 
-* **Observer** - получает оповещения от других объектов (Observables) о изменении их состояния (наблюдает за ними)
+**Observer** - получает оповещения от других объектов (Observables) о изменении их состояния (наблюдает за ними)
 
-* **Iterator** - может обходить связанные объекты не раскрывая их структуры (разные List, Set, Map etc). Выносит методы для обхода коллекций в отдельный класс с методами: hasNext(), next(), previouse() etc.
-  * **Пример Iterable** (с `next()` и `hasNext()` ) и **Пример Iterator** (с `iterator()`):
+* **Iterator** - может обходить связанные объекты не раскрывая их структуры (разные List, Set, Map etc). Выносит методы для обхода коллекций в отдельный класс с методами: `hasNext()`, `next()`, `previous()` etc.  
+  * <details>
+    <summary>Example</summary>
+
+    **Пример Iterable** (с методами `next()` и `hasNext()` ) и **Пример Iterator** (с методом `iterator()`):
     ```java
     class MySet implements Iterable {
         Iterator iterator() { return new MySetIterator(); }
@@ -34,6 +38,7 @@
         }
     }
     ```
+    </details>
 
 * **Command** - объект команды содержит само действие (вызов методов других классов) и параметры. Команды в этом паттерне не методы, а сам объект целиком - это команда.
 
@@ -54,7 +59,9 @@
 ## Creational patterns (Порождающие)
 
 * **Singleton** - один экзепляр объекта на все приложение
-    * **Реализации Singleton:**
+  * <details>
+    <summary>Типы реализации Singleton (ВАЖНО!)</summary>
+
       1. **Eager Singleton**
           ```java
           public class EagerSingleton {
@@ -119,6 +126,7 @@
                 }
             }
             ```
+    </details>
 
 * **Builder** - создает сложный объект пошагово (инициализируя его). Может использовать один и тот же код для строительства разных объектов (с общим предком).
 
@@ -136,33 +144,38 @@
 ## Structural patterns (Структурные)
 
 * **Proxy** - прокси между объектом к которому нужно получить доступ. Перехватывает вызовы методов объекта изменяет их. (e.g. реализацию отложенной инициализации затратных ресурсов при первом обращении)
-    * **Note.** В AOP, если связывание (weaving) сделано через method invocation, то вызов метода proxy внутри другого метода того же proxy не вызовет сквозную задачу, это следствие паттерна proxy. Так работает Spring AOP, но не AspectJ при использовании weaving во время компиляции компилятором AspectJ (для него вызов метода proxy из другого метода proxy тоже будет проксирован).
-    * **Пример Proxy:**
-        ```java
-        public class Math implements IMath {
-            public double add(double x, double y) {
-                return x + y;
-            }
-        }
+  * **Note.** В AOP, если связывание (weaving) сделано через method invocation, то вызов метода proxy внутри другого метода того же proxy не вызовет сквозную задачу, это следствие паттерна proxy. Так работает Spring AOP, но не AspectJ при использовании weaving во время компиляции компилятором AspectJ (для него вызов метода proxy из другого метода proxy тоже будет проксирован).
+  * <details>
+    <summary>Пример Proxy</summary>
 
-        public class MathProxy implements IMath {
-            private Math math;
-            public double add(double x, double y) {
-                if(math == null) {
-                    math = new Math(); // отложенная инициализация для экономии ресурсов
-                }
-                return math.add(x, y);
-            }
+    ```java
+    public class Math implements IMath {
+        public double add(double x, double y) {
+            return x + y;
         }
+    }
 
-        IMath p = new MathProxy();
-        ```
+    public class MathProxy implements IMath {
+        private Math math;
+        public double add(double x, double y) {
+            if(math == null) {
+                math = new Math(); // отложенная инициализация для экономии ресурсов
+            }
+            return math.add(x, y);
+        }
+    }
+
+    IMath p = new MathProxy();
+    ```
+    </details>
 
 * **Adapter (Wrapper)** - оборачивает вызов метода в свой метод и перед передачей параметров в обернутый метод "адаптирует" их (меняет формат, напр. xml в json). Может "оборачивать" object или class.  
 Имеет общий interface со всеми необходимыми методами РАЗНЫХ объектов, так что наследовать Adapter может любой из них, а не нужный метод интерфейса можно просто не использовать.
 
 * **Decorator** - подключает поведение к целевому объекту. альтернатива наследованию классов. Класс-обертка получающая ссылку на классы того же типа что и он сам (т.е. все получаемые декоратором классы и сам декоратор наследуют общий интерфейс). Вызывает какие-то другие методы "до, во время или после" вызова "обернутого" метода.
-  * **Пример decorator**
+  * <details>
+    <summary>Пример decorator</summary>
+
     ```java
     public interface InterfaceComponent {
         void doOperation();
@@ -212,6 +225,7 @@
     // использование
     Decorator c = new DecoratorHello(new DecoratorComma(new DecoratorSpace(new MainComponent())));
     ```
+    </details>
 
 * **Facade** - скрывает сложность. содержит ссылки на несколько разных объектов. Его метод скрывает вызов нескольких методов этих разных объектов.
 
@@ -222,6 +236,8 @@
 * **Flyweight** - 
 
 # Enterprise Integration Patterns
+
+* **Guarantee Delivery** - 
 
 * **The Outbox Pattern** - используется в распределенных транзакций, например микросервисах чтобы обернуть в транзакцию системы, которые не поддерживают распределенные транзакции (kafka)
 
@@ -241,6 +257,8 @@
 
 Service Locator - содержит Initial Context и Cache. Если Service есть в Cache, то возвращает его, иначе достает из Initial Context. Возвращенные из Initial Context сервисы имеют общий метод execute()
 
+**Dependency Injection vs Service Locator** - 
+
 # Distributed (Cloud)
 
 Circuit Breaker https://martinfowler.com/bliki/CircuitBreaker.html 
@@ -251,7 +269,7 @@ https://medium.com/@kirill.sereda/%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%
 
 # SOLID
 
-principles:
+principles (принципы):
 1. **Single responsibility** - каждый класс должен отвечать за ОДНУ обязанность
 2. **Open-closed** - открыты для расширения, закрыты для изменения (наследование)
 3. L**iskov substitution** - ссылка базового может указывать на наследника
@@ -286,6 +304,10 @@ principles:
 **Плюсы:**
 * могут использоваться в кэшах, работа с кэшированными объектами может быть быстрее (e.g пулы в Java основанные на Flyweight);
 * в многопоточности параллельные потоки не могут случайно изменить такие объекты.
+
+# Dependency Injection
+
+
 
 # SAM Pattern
 

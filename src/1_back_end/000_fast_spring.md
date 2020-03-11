@@ -98,6 +98,7 @@
   - [Annotations](#annotations-1)
   - [Authentication Basic vs Bearer](#authentication-basic-vs-bearer)
   - [Spring Method Security](#spring-method-security)
+- [Exception handle](#exception-handle)
 - [Spring Boot](#spring-boot-1)
   - [Common](#common)
 - [Spring Cloud](#spring-cloud)
@@ -2716,6 +2717,10 @@ https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsin
 
 ## Spring Method Security
 https://www.baeldung.com/spring-security-method-security
+
+# Exception handle
+
+https://www.baeldung.com/exception-handling-for-rest-with-spring
 
 # Spring Boot
 ## Common
