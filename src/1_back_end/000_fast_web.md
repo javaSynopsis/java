@@ -1,28 +1,28 @@
 Про веб в целом.
 
-- [Аутентификация vs Авторизация](#Аутентификация-vs-Авторизация)
-- [Cookies](#cookies)
-- [Salt](#salt)
-- [Security и все что с ней связано](#security-и-все-что-с-ней-связано)
-  - [CSRF / XSRF](#csrf--xsrf)
-  - [CSRF token](#csrf-token)
-  - [JWT (JSON Web Token) токен](#jwt-json-web-token-токен)
-  - [JWT vs CSRF token](#jwt-vs-csrf-token)
-  - [Единая точка входа (Single Sign On, SSO)](#Единая-точка-входа-single-sign-on-sso)
-  - [XSSI](#xssi)
-  - [CSP](#csp)
-  - [CORS](#cors)
-  - [SOP](#sop)
-  - [Заголовки Sec-Fetch-Dest, Set-Cookie и другие](#Заголовки-sec-fetch-dest-set-cookie-и-другие)
-- [REST](#rest)
-- [XSS](#xss)
-- [Про сеть](#Про-сеть)
-  - [Разное](#Разное)
-  - [Протокол http](#Протокол-http)
-  - [Модель OSI](#Модель-osi)
-- [блокирующие vs неблокирующие обработки запросов в серверах (на пример Java)](#блокирующие-vs-неблокирующие-обработки-запросов-в-серверах-на-пример-java)
-- [Load balancing](#load-balancing)
-- [Reverse proxy (nginx, zuul etc) и модели обработки запросов серверами](#reverse-proxy-nginx-zuul-etc-и-модели-обработки-запросов-серверами)
+1. [Аутентификация vs Авторизация](#Аутентификация-vs-Авторизация)
+2. [Cookies](#cookies)
+3. [Salt](#salt)
+4. [Security и все что с ней связано](#security-и-все-что-с-ней-связано)
+   1. [CSRF / XSRF](#csrf--xsrf)
+   2. [CSRF token](#csrf-token)
+   3. [JWT (JSON Web Token) токен](#jwt-json-web-token-токен)
+   4. [JWT vs CSRF token](#jwt-vs-csrf-token)
+   5. [Единая точка входа (Single Sign On, SSO), OAuth](#Единая-точка-входа-single-sign-on-sso-oauth)
+   6. [XSSI](#xssi)
+   7. [CSP](#csp)
+   8. [CORS](#cors)
+   9. [SOP](#sop)
+   10. [Заголовки Sec-Fetch-Dest, Set-Cookie и другие](#Заголовки-sec-fetch-dest-set-cookie-и-другие)
+5. [REST](#rest)
+6. [XSS](#xss)
+7. [Про сеть](#Про-сеть)
+   1. [Разное](#Разное)
+   2. [Протокол http](#Протокол-http)
+   3. [Модель OSI](#Модель-osi)
+8. [блокирующие vs неблокирующие обработки запросов в серверах (на пример Java)](#блокирующие-vs-неблокирующие-обработки-запросов-в-серверах-на-пример-java)
+9. [Load balancing](#load-balancing)
+10. [Reverse proxy (nginx, zuul etc) и модели обработки запросов серверами](#reverse-proxy-nginx-zuul-etc-и-модели-обработки-запросов-серверами)
 
 # Аутентификация vs Авторизация
 **Аутентификация** - это проверка соответствия субъекта и того, за кого он пытается себя выдать, с помощью некой уникальной информации (отпечатки пальцев, цвет радужки, голос и тд.), в простейшем случае - с помощью имени входа и пароля.
@@ -132,8 +132,8 @@ CSRF token - никогда **не отправляют в cookie**.
 2. **http header**
 3. **в параметрах запросов**
 
-## Единая точка входа (Single Sign On, SSO)
-Источники про SSO: [тут хорошо на русском](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc), [тут](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/) и [тут](http://cryto.net/%7Ejoepie91/blog/2016/06/19/stop-using-jwt-for-sessions-part-2-why-your-solution-doesnt-work/) написано почему jwt для сессий это плохо, [тут на русском и понятно](https://habr.com/ru/post/422765/) и [тут](https://habr.com/ru/company/dataart/blog/311376/) и [тут](https://yourcmc.ru/wiki/%D0%9A%D1%80%D0%B0%D1%82%D0%BA%D0%BE_%D0%BE%D0%B1_SSO_%D1%87%D0%B5%D1%80%D0%B5%D0%B7_OAuth2) и [Зачем нужен Refresh Token, если есть Access Token?](https://habr.com/ru/company/Voximplant/blog/323160/) и [What is the purpose of a “Refresh Token”?](https://stackoverflow.com/questions/38986005/what-is-the-purpose-of-a-refresh-token) и [Про токены, JSON Web Tokens (JWT), аутентификацию и авторизацию. Token-Based Authentication](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc)
+## Единая точка входа (Single Sign On, SSO), OAuth
+Источники про SSO: [тут хорошо на русском](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc), [тут](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/) и [тут](http://cryto.net/%7Ejoepie91/blog/2016/06/19/stop-using-jwt-for-sessions-part-2-why-your-solution-doesnt-work/) написано почему jwt для сессий это плохо, [тут на русском и понятно](https://habr.com/ru/post/422765/) и [тут](https://habr.com/ru/company/dataart/blog/311376/) и [тут](https://yourcmc.ru/wiki/%D0%9A%D1%80%D0%B0%D1%82%D0%BA%D0%BE_%D0%BE%D0%B1_SSO_%D1%87%D0%B5%D1%80%D0%B5%D0%B7_OAuth2) и [Зачем нужен Refresh Token, если есть Access Token?](https://habr.com/ru/company/Voximplant/blog/323160/) и [What is the purpose of a “Refresh Token”?](https://stackoverflow.com/questions/38986005/what-is-the-purpose-of-a-refresh-token) и [Про токены, JSON Web Tokens (JWT), аутентификацию и авторизацию. Token-Based Authentication](https://gist.github.com/zmts/802dc9c3510d79fd40f9dc38a12bccfc); [по ностаящему понятное описание OAuth](https://www.digitalocean.com/community/tutorials/oauth-2-ru)
 
 Это протоколы для доступа к ресурсам через единый вход на какой-то сервис.
 
