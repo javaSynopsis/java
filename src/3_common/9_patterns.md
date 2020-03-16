@@ -21,7 +21,7 @@
 
 ## behavioral patterns (Поведенческие)
 
-**Observer** - получает оповещения от других объектов (Observables) о изменении их состояния (наблюдает за ними)
+* **Observer** - получает оповещения от других объектов (Observables) о изменении их состояния (наблюдает за ними)
 
 * **Iterator** - может обходить связанные объекты не раскрывая их структуры (разные List, Set, Map etc). Выносит методы для обхода коллекций в отдельный класс с методами: `hasNext()`, `next()`, `previous()` etc.  
   * <details>
@@ -266,6 +266,9 @@ Circuit Breaker https://martinfowler.com/bliki/CircuitBreaker.html
 https://medium.com/@kirill.sereda/%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%B8%D0%B8-%D0%BE%D0%B1%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B8-%D0%BE%D1%88%D0%B8%D0%B1%D0%BE%D0%BA-circuit-breaker-pattern-650232944e37
 
 # Other patterns
+
+* **Delegate** - принимает ссылку на объект, оборачивает вызов методов полученного объекта в свои методы, может наследовать интерфейс с методами. Делегирует свою работу другому объекту.
+  * **Delegate vs Facade** - Delegate имеет ссылку только на один объект и он принимает ссылку на целевой объект **при создании Delegate**. А 
 
 # SOLID
 
