@@ -127,6 +127,7 @@
   - [Query Cache](#query-cache)
 - [Примитивный тип vs Обертки примитивных типов в качестве id для Entity](#Примитивный-тип-vs-Обертки-примитивных-типов-в-качестве-id-для-entity)
 - [@PrePersist, @PreUpdate etc](#prepersist-preupdate-etc)
+- [Hibernate Envers](#hibernate-envers)
 
 # Hibernate
 
@@ -3286,6 +3287,12 @@ nativeQuery.executeUpdate();
 * для всех query cache результатов в org.hibernate.cache.spi.UpdateTimestampsCache хранятся last update timestamps (время последнего обновления кэша). Пока идет работа с query cache этот конкретный кэш с timestamps не должен быть evicted/expired. Рекомендуется отключить **automatic eviction and expiration**, т.к. это не потребляет много памяти. **Note.** этот пункт выглядит слегка странным, возможно я что-то не допонял
 
 # Примитивный тип vs Обертки примитивных типов в качестве id для Entity
-Статьи еще нет. Note. Скорее всего лучше использовать обертки
+Статьи еще нет. Note. Скорее всего лучше использовать обертки т.к. примитивный тип не может быть null, а может быть только значениями для типов в java по умолчанию и нельзя определить null поле в БД или нет
 
 # @PrePersist, @PreUpdate etc
+пока пусто
+
+# Hibernate Envers
+Источник: [тут](https://vladmihalcea.com/the-best-way-to-implement-an-audit-log-using-hibernate-envers/)
+
+пока пусто
