@@ -128,6 +128,7 @@
 - [Примитивный тип vs Обертки примитивных типов в качестве id для Entity](#Примитивный-тип-vs-Обертки-примитивных-типов-в-качестве-id-для-entity)
 - [@PrePersist, @PreUpdate etc](#prepersist-preupdate-etc)
 - [Hibernate Envers](#hibernate-envers)
+- [Hibernate Search](#hibernate-search)
 
 # Hibernate
 
@@ -3294,5 +3295,10 @@ nativeQuery.executeUpdate();
 
 # Hibernate Envers
 Источник: [тут](https://vladmihalcea.com/the-best-way-to-implement-an-audit-log-using-hibernate-envers/)
+
+пока пусто
+
+# Hibernate Search
+Источник: [тут](https://github.com/hibernate/hibernate-search)
 
 пока пусто
