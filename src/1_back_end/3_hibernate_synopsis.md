@@ -117,7 +117,7 @@
 - [Custom Types and @Type](#custom-types-and-type)
 - [Hibernate Interceptors](#hibernate-interceptors)
 - [Hibernate Second-Level Cache](#hibernate-second-level-cache)
-- [3 Common Hibernate Performance Issues and How to Find Them in Your Log File](#3-common-hibernate-performance-issues-and-how-to-find-them-in-your-log-file)
+- [Логирование и план запроса calculated plan, оптимизации (частый вопрос на собеседовании)](#Логирование-и-план-запроса-calculated-plan-оптимизации-частый-вопрос-на-собеседовании)
 - [Hibernate Pagination](#hibernate-pagination)
 - [Способы создания query в одном разделе, могут спросить на собеседовании](#Способы-создания-query-в-одном-разделе-могут-спросить-на-собеседовании)
 - [JPA vs Hibernate](#jpa-vs-hibernate)
@@ -3176,13 +3176,22 @@ https://www.baeldung.com/hibernate-interceptor
 # Hibernate Second-Level Cache
 https://www.baeldung.com/hibernate-second-level-cache
 
-# 3 Common Hibernate Performance Issues and How to Find Them in Your Log File
+# Логирование и план запроса calculated plan, оптимизации (частый вопрос на собеседовании)
 https://www.baeldung.com/hibernate-common-performance-problems-in-logs
+
+https://www.youtube.com/watch?v=b52Qz6qlic0
+
+https://vladmihalcea.com/the-best-way-to-log-jdbc-statements/
+
+https://vladmihalcea.com/hibernate-performance-tuning-tips/
+
+https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html#best-practices
 
 # Hibernate Pagination
 https://www.baeldung.com/hibernate-pagination
 
 # Способы создания query в одном разделе, могут спросить на собеседовании
+пока пусто
 
 # JPA vs Hibernate
 https://stackoverflow.com/a/26825931
