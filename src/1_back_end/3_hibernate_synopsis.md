@@ -99,6 +99,7 @@
   - [One-To-Many](#one-to-many)
   - [One-To-One](#one-to-one)
   - [Many-To-Many](#many-to-many)
+- [CascadeType](#cascadetype)
 - [Как правильно делать merge](#Как-правильно-делать-merge)
 - [ResultTransformer и про то что он делает SQL запросы эффективнее](#resulttransformer-и-про-то-что-он-делает-sql-запросы-эффективнее)
 - [DTO projections и Tuple](#dto-projections-и-tuple)
@@ -2895,6 +2896,12 @@ post1.addTag(tag1); // или post1.removeTag(javaTag);
 entityManager.persist(post1);
 // post1.removeTag(javaTag); может удалить связь
 ```
+
+# CascadeType
+
+Источник: [тут](https://vladmihalcea.com/a-beginners-guide-to-jpa-and-hibernate-cascade-types/)
+
+**Note.** `CascadeType` имеет смысл проставлять только с той стороны с который имеет смысл делать сохранение (или др.). Например если есть таблицы **Tag** и **Post** с `@ManyToMany`, то при создании **Tag** мы не устанавливаем ему новые записи **Post** (т.к. это не имеет смысла) и значит для **Tag** не нужно устанавливать `Cascade.PERSIST` and `Cascade.MERGE`.
 
 # Как правильно делать merge
 
