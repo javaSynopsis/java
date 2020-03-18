@@ -3093,7 +3093,7 @@ public class Post {}
 
 # Collection vs Bag vs List vs Map vs Set
 
-https://thoughts-on-java.org/association-mappings-bag-list-set/
+Источник: [тут](https://thoughts-on-java.org/association-mappings-bag-list-set/), [тут](https://vladmihalcea.com/the-best-way-to-use-the-manytomany-annotation-with-jpa-and-hibernate/)
 
 **Допустимые типы коллекция в Hibernate:**
 
@@ -3121,12 +3121,12 @@ class User {
     // внутри используется Comparable
     @OneToMany(cascade = CascadeType.ALL)
     @SortNatural
-    // @SortComparator(ReverseComparator.class) - или кстомный Comparator
+    // @SortComparator(ReverseComparator.class) - или кастомный Comparator
     private SortedSet<Phone> phones = new TreeSet<>();
 }
 ```
 
-Внутри Hibernate использует не стандартные коллекции, а модифицированные классы коллекций, т.е. `new HashSet()` на самом деле будет не `HashSet`, а объектом другого класса, прокси. В документации написано, что-то про то, что hibernate не может различить коллекцию инициализированную `null` или инициализированную `пустой` коллекцией. На практике в коллекции был `null`, поэтому лучше инициализировать пустой коллекцией явно. 
+Внутри Hibernate использует не стандартные коллекции, а модифицированные классы коллекций, т.е. `new HashSet()` на самом деле будет не `HashSet`, а объектом другого класса, прокси. В документации написано, что-то про то, что hibernate не может различить коллекцию инициализированную `null` или инициализированную `пустой` коллекцией. На практике в коллекции был `null`, поэтому лучше инициализировать пустой коллекцией явно через `= new ArrayList()`. 
 
 # Sorting vs Ordering
 
@@ -3141,7 +3141,7 @@ https://thoughts-on-java.org/ordering-vs-sorting-hibernate-use/
 * `GenerationType.TABLE` - редко используется, медленная, эмулирует SEQUENCE, использует pessimistic locks.
 
 **Другие типы:**
-* UUID
+* UUID - 
 
 # Использование дат в Entity
 тут будет описание
