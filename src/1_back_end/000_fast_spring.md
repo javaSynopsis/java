@@ -75,6 +75,7 @@
   - [Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию](#Внедрение-сразу-всех-бинов-определенного-типа-которые-есть-в-приложении-в-коллекцию)
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
   - [static бины помеченные @Bean](#static-бины-помеченные-bean)
+  - [Про @Bean Lite Mode etc](#Про-bean-lite-mode-etc)
 - [Spring MVC](#spring-mvc-3)
 - [Spring Security](#spring-security-1)
   - [Как работает Spring Security](#Как-работает-spring-security)
@@ -2059,6 +2060,8 @@ Spring рекомендует чтобы `@Transactional` проставляли
 
 Если метод помеченный `@Transactional` класса вызывает другой такой же метод этого же класса, то новая транзакция **не запустится** (и вообще во всех подобных случаях AOP не сработает) даже с `REQUIRES_NEW` уровнем изоляции, это осбенность работы proxy паттерна в Spring AOP, т.к. вызов метода прокси будет из того же прокси и следовательно вызовется не прокси метод, а настоящий без AOP обертки. Чтобы решить эту проблему можно использовать вместо Spring AOP например AspectJ и связывание AOP на этапе компиляции (а не на этапе вызова как это делается по умолчанию).
 
+**Note.** Дописать про @Cacheable
+
 # Spring DI
 ## FactoryBean
 Есть два типа бинов в Spring bean container, обычные бины и **factory beans**. **factory beans** могут создаваться сами, а не автоматически Spring фреймворком. Создать такие бины можно реализуя `org.springframework.beans.factory.FactoryBean`. **Используется** чтобы инкапсулировать сложную логику создания объекта. 
@@ -2384,6 +2387,11 @@ public class AmbiguousInjectFine {
 ```
 
 ## static бины помеченные @Bean
+пока пусто
+
+## Про @Bean Lite Mode etc
+
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/Bean.html
 
 # Spring MVC
 
