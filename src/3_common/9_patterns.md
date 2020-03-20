@@ -1,21 +1,22 @@
-- [Software design pattern (паттерны Gang of Four (GoF)](#software-design-pattern-паттерны-gang-of-four-gof)
-  - [behavioral patterns (Поведенческие)](#behavioral-patterns-Поведенческие)
-  - [Creational patterns (Порождающие)](#creational-patterns-Порождающие)
-  - [Structural patterns (Структурные)](#structural-patterns-Структурные)
-- [Enterprise Integration Patterns](#enterprise-integration-patterns)
-- [Functional](#functional)
-- [Concurrency](#concurrency)
-- [Architectural](#architectural)
-  - [Service Locator](#service-locator)
-- [Distributed (Cloud)](#distributed-cloud)
-- [Other patterns](#other-patterns)
-- [SOLID](#solid)
-- [is A и Has A](#is-a-и-has-a)
-- [Cohesion и Coupling](#cohesion-и-coupling)
-- [immutable объект, Создание immutable объекта](#immutable-объект-Создание-immutable-объекта)
-- [Dependency Injection](#dependency-injection)
-- [SAM Pattern](#sam-pattern)
-- [Список ООП vs functional концепций:](#Список-ООП-vs-functional-концепций)
+1. [Software design pattern (паттерны Gang of Four (GoF)](#software-design-pattern-паттерны-gang-of-four-gof)
+   1. [behavioral patterns (Поведенческие)](#behavioral-patterns-Поведенческие)
+   2. [Creational patterns (Порождающие)](#creational-patterns-Порождающие)
+   3. [Structural patterns (Структурные)](#structural-patterns-Структурные)
+2. [Enterprise Integration Patterns](#enterprise-integration-patterns)
+3. [Functional](#functional)
+4. [Concurrency](#concurrency)
+5. [Architectural](#architectural)
+   1. [Service Locator](#service-locator)
+6. [Distributed (Cloud)](#distributed-cloud)
+7. [Other patterns](#other-patterns)
+8. [SOLID](#solid)
+9. [is A и Has A](#is-a-и-has-a)
+10. [Cohesion и Coupling](#cohesion-и-coupling)
+11. [immutable объект, Создание immutable объекта](#immutable-объект-Создание-immutable-объекта)
+12. [Dependency Injection](#dependency-injection)
+13. [SAM Pattern](#sam-pattern)
+14. [Гексагональная архитектура](#Гексагональная-архитектура)
+15. [Список ООП vs functional концепций:](#Список-ООП-vs-functional-концепций)
 
 # Software design pattern (паттерны Gang of Four (GoF)
 
@@ -316,6 +317,9 @@ principles (принципы):
 
 SAM паттерн (не один из основных, возможно относит к функциональному программированию)
     https://github.com/jeffbski/redux-logic#implementing-sampal-pattern
+
+# Гексагональная архитектура
+https://www.google.com/search?q=гексоганальная+архитектура&hl=ru
 
 # Список ООП vs functional концепций:
 
