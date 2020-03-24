@@ -8,7 +8,8 @@
 
 # Back end
 * [Java для подготовки к собеседованию](src/1_back_end/000_fast_java.java) (краткий)
-* [Spring для подготовки к собеседованию](src/1_back_end/000_fast_spring.md) (не закончено)
+* [Spring для подготовки к собеседованию](src/1_back_end/0_spring_synopsis.md) (не закончено)
+* [Spring Security для подготовки к собеседованию](src/1_back_end/0_spring_security_synopsis.md) (создание только началось)
 * [Hibernate ORM для подготовки к собеседованию](src/1_back_end/3_hibernate_synopsis.md) (не закончено)
 * [Liquibase для подготовки к собеседованию](src/1_back_end/9_liquibase_synopsis.md)
 * [ESB (enterprise service bus) для подготовки к собеседованию ](src/1_back_end/12_esb_synopsis.md)(создание только началось) - Сервисная шина предприятия
