@@ -73,7 +73,8 @@
   - [Circular Dependencies](#circular-dependencies)
   - [Внедрение сразу всех бинов определенного типа которые есть в приложении в коллекцию](#Внедрение-сразу-всех-бинов-определенного-типа-которые-есть-в-приложении-в-коллекцию)
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
-  - [static бины помеченные @Bean](#static-бины-помеченные-bean)
+  - [static методы помеченные @Bean](#static-методы-помеченные-bean)
+  - [static классы помеченные @Configuration](#static-классы-помеченные-configuration)
   - [@Bean Lite Mode etc](#bean-lite-mode-etc)
 - [Spring MVC](#spring-mvc-3)
 - [Exception handle](#exception-handle)
@@ -2269,14 +2270,15 @@ public class AmbiguousInjectFine {
 }
 ```
 
-## static бины помеченные @Bean
+## static методы помеченные @Bean
+пока пусто
+
+## static классы помеченные @Configuration
 пока пусто
 
 ## @Bean Lite Mode etc
 
 Источник: [тут](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/Bean.html)
-
-
 
 # Spring MVC
 
