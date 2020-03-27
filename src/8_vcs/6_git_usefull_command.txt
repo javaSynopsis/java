@@ -18,7 +18,7 @@ Commands:
 
 	git fetch origin
 	git reset --hard origin/master
-	одой стракой: git fetch origin && git reset --hard origin/master
+	одой строкой: git fetch origin && git reset --hard origin/master
 	
 	Если перед сбросом нужно сохранить изменения
 		git commit -a -m "Saving my work, just in case"
