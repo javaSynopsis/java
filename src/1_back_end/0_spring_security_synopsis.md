@@ -434,3 +434,9 @@ https://docs.spring.io/spring-security/site/docs/5.2.0.RELEASE/reference/htmlsin
 
 ## Spring Method Security
 https://www.baeldung.com/spring-security-method-security
+
+## AuthenticationManagerBuilder vs HttpSecurity vs WebSecurity
+
+* configure(AuthenticationManagerBuilder) - можно добавить users и их пароли в in memory БД
+* configure(HttpSecurity) - для http
+* configure(WebSecurity) - глобально

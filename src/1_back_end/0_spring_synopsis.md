@@ -34,7 +34,6 @@
 - [Spring Boot](#spring-boot)
 - [Spring Annotations](#spring-annotations)
   - [Общее](#Общее-1)
-  - [AuthenticationManagerBuilder vs HttpSecurity vs WebSecurity](#authenticationmanagerbuilder-vs-httpsecurity-vs-websecurity)
 - [Spring Data](#spring-data)
 - [Spring Data REST](#spring-data-rest)
 - [Spring Data JPA + REST](#spring-data-jpa--rest)
@@ -75,6 +74,7 @@
   - [Создание своего варианта @Qualifier](#Создание-своего-варианта-qualifier)
   - [static методы помеченные @Bean](#static-методы-помеченные-bean)
   - [static классы помеченные @Configuration](#static-классы-помеченные-configuration)
+  - [@Import классов с factory методами помеченными @Bean при том что эти классы не помечены @Configuration](#import-классов-с-factory-методами-помеченными-bean-при-том-что-эти-классы-не-помечены-configuration)
   - [@Bean Lite Mode etc](#bean-lite-mode-etc)
 - [Spring MVC](#spring-mvc-3)
 - [Exception handle](#exception-handle)
@@ -1035,13 +1035,7 @@ public class Application {
 * `@ExceptionHandler(SQLException.class)` - метод из @ControllerAdvice или @Controller для конкретного типа ошибок
 * **Note.** В некоторых случаях рекомендуется возвращать @ResponseStatus(404) вместо прямого перехвата исключения (эта аннотация для метода контроллера).
 
-Аннотации @Autowired, @Inject, @Resource и @Value обрабатываются Spring реализацией BeanPostProcessor, поэтому вы не можете их применять в своих собственных BeanPostProcessor и BeanFactoryPostProcessor, а только лишь явной инициализацией через XML или @Bean метод. 
-
-## AuthenticationManagerBuilder vs HttpSecurity vs WebSecurity
-
-* configure(AuthenticationManagerBuilder) - можно добавить users и их пароли в in memory БД
-* configure(HttpSecurity) - для http
-* configure(WebSecurity) - глобально
+Аннотации @Autowired, @Inject, @Resource и @Value обрабатываются Spring реализацией BeanPostProcessor, поэтому вы не можете их применять в своих собственных BeanPostProcessor и BeanFactoryPostProcessor, а только лишь явной инициализацией через XML или @Bean метод.
 
 # Spring Data
 Это проект содержащий разные модули. Слой доступа к данным с шаблонным кодом. Облегчает разработку.
@@ -2274,6 +2268,9 @@ public class AmbiguousInjectFine {
 пока пусто
 
 ## static классы помеченные @Configuration
+пока пусто
+
+## @Import классов с factory методами помеченными @Bean при том что эти классы не помечены @Configuration
 пока пусто
 
 ## @Bean Lite Mode etc
