@@ -1,22 +1,22 @@
-1. [Software design pattern (паттерны Gang of Four (GoF)](#software-design-pattern-паттерны-gang-of-four-gof)
-   1. [behavioral patterns (Поведенческие)](#behavioral-patterns-Поведенческие)
-   2. [Creational patterns (Порождающие)](#creational-patterns-Порождающие)
-   3. [Structural patterns (Структурные)](#structural-patterns-Структурные)
-2. [Enterprise Integration Patterns](#enterprise-integration-patterns)
-3. [Functional](#functional)
-4. [Concurrency](#concurrency)
-5. [Architectural](#architectural)
-   1. [Service Locator](#service-locator)
-6. [Distributed (Cloud)](#distributed-cloud)
-7. [Other patterns](#other-patterns)
-8. [SOLID](#solid)
-9. [is A и Has A](#is-a-и-has-a)
-10. [Cohesion и Coupling](#cohesion-и-coupling)
-11. [immutable объект, Создание immutable объекта](#immutable-объект-Создание-immutable-объекта)
-12. [Dependency Injection](#dependency-injection)
-13. [SAM Pattern](#sam-pattern)
-14. [Гексагональная архитектура](#Гексагональная-архитектура)
-15. [Список ООП vs functional концепций:](#Список-ООП-vs-functional-концепций)
+- [Software design pattern (паттерны Gang of Four (GoF)](#software-design-pattern-паттерны-gang-of-four-gof)
+  - [behavioral patterns (Поведенческие)](#behavioral-patterns-Поведенческие)
+  - [Creational patterns (Порождающие)](#creational-patterns-Порождающие)
+  - [Structural patterns (Структурные)](#structural-patterns-Структурные)
+- [Enterprise Integration Patterns](#enterprise-integration-patterns)
+- [Functional](#functional)
+- [Concurrency](#concurrency)
+- [Architectural](#architectural)
+  - [Service Locator](#service-locator)
+- [Distributed (Cloud)](#distributed-cloud)
+- [Other patterns](#other-patterns)
+- [SOLID](#solid)
+- [is A и Has A](#is-a-и-has-a)
+- [Cohesion и Coupling](#cohesion-и-coupling)
+- [immutable объект, Создание immutable объекта](#immutable-объект-Создание-immutable-объекта)
+- [Dependency Injection](#dependency-injection)
+- [SAM Pattern](#sam-pattern)
+- [Гексагональная архитектура](#Гексагональная-архитектура)
+- [Список ООП vs functional концепций:](#Список-ООП-vs-functional-концепций)
 
 # Software design pattern (паттерны Gang of Four (GoF)
 
@@ -134,7 +134,7 @@
 * **Factory** - еще называют "smart constructor", т.е. просто создает сложный объект, аналог конструктора.  
 Самая простая Factory: `class A { make() { return new A(); } }`
 
-* **Abstract Factory** - есть общий интерфес для всех наследников, они его переопределяют и создают каждый разные типы объектов, хотя имя метода тоже. Используется в dependency injection/strategy.
+* **Abstract Factory** - есть общий интерфес для всех наследников, они его переопределяют и создают каждый разные типы объектов, хотя имя метода то же. Используется в dependency injection/strategy.
 
 * **Factory Method (Virtual Constructor)** - как Factory, только метод фабрики абстрактный и может быть переопределен в наследниках
 
@@ -244,7 +244,7 @@
 
 # Functional
 
-* **Pure function** - функция которая возвращает одни и те же значения для одних и тех же переменных. Т.е. ее состояние не меняется (например через ссылки на объекты, которые в ней содержатся и влияют на ее работу). И ее выполнение не имеет "side effect" (не изменяются local static variables, non-local variables. references. Это аналог математической функции.
+* **Pure function** - функция которая возвращает одни и те же значения для одних и тех же переменных. Т.е. ее состояние не меняется (например через ссылки на объекты, которые в ней содержатся и влияют на ее работу). И ее выполнение не имеет "side effect" (не изменяются local static variables, non-local variables. references). Это аналог математической функции.
 
 # Concurrency
 
@@ -276,7 +276,7 @@ https://medium.com/@kirill.sereda/%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%
 principles (принципы):
 1. **Single responsibility** - каждый класс должен отвечать за ОДНУ обязанность
 2. **Open-closed** - открыты для расширения, закрыты для изменения (наследование)
-3. L**iskov substitution** - ссылка базового может указывать на наследника
+3. **Liskov substitution** - ссылка базового может указывать на наследника
 4. **Interface segregation** (разделения) - разделять универсальные метод на много спец. методов (с меньшим количеством параметров)
 5. **Dependency inversion** - модули верхних уровней не зависит от модулей нижнего,
    * т.к. система строится на основе абстракций (Абстракции не должны зависеть от деталей. Детали должны зависеть от абстракций)
@@ -308,6 +308,8 @@ principles (принципы):
 **Плюсы:**
 * могут использоваться в кэшах, работа с кэшированными объектами может быть быстрее (e.g пулы в Java основанные на Flyweight);
 * в многопоточности параллельные потоки не могут случайно изменить такие объекты.
+
+**Note.** В некоторых коллекциях (например Set в java) где используется hash code добавленного обьекта изменение полей этого обьекта "испортит" hash code (он перестанет быть таким как при добавлении) и т.к. первоначально поиск идет по hash code, то работа такой коллекции сломается. Чтобы такого не случилось можно добавлять в коллекции immutable объекты.
 
 # Dependency Injection
 
