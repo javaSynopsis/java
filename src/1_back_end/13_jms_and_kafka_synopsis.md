@@ -1,3 +1,15 @@
+- [JMS](#jms)
+- [Использование JMS](#Использование-jms)
+- [Spring JMS](#spring-jms)
+- [kafka](#kafka)
+  - [Общее](#Общее)
+  - [Interceptor](#interceptor)
+  - [Kafka Streams](#kafka-streams)
+  - [Connector API](#connector-api)
+- [kafka tool](#kafka-tool)
+- [jms vs kafka](#jms-vs-kafka)
+- [Apache Kafka vs. Integration Middleware (MQ, ETL, ESB)](#apache-kafka-vs-integration-middleware-mq-etl-esb)
+
 Источники:
 * общее о том как сервисы взаимодействуют и некоторые формулы расчета нагрузки [тут](https://dzone.com/articles/tens-of-thousands-of-socket-connections-in-java)
 * общий состав элементов jms [тут](https://www.javacodegeeks.com/jms-tutorials)
@@ -10,7 +22,7 @@ Java Message Service (JMS) - это одно из MOM (message-oriented middlewa
 Начиная с Java EE 1.4 JMS provider должен быть реализован всеми Java EE application servers (серверами приложений), реализованы через Java EE Connector Architecture.
 
 **Elements**
-* **JMS provider** - реализация JMS **или** реализация в виде адаптера (прослойки) если реализация не на Java (т.е. это ActiveMQ, RabbitMQ, Kafka etc)
+* **JMS provider** - реализация JMS **или** реализация в виде адаптера (прослойки) если реализация не на Java (т.е. это ActiveMQ, RabbitMQ etc)
 * **JMS client** - приложение или процесс, которые делают publisher и/или subscriber
 * **JMS producer/publisher** - клиент который отсылает сообщения (тут видимо имеется ввиду в том числе и просто функции-отправители в рамках одного приложения)
 * **JMS consumer/subscriber** - клиент который получает сообщения (тут видимо имеется ввиду в том числе и просто функции-получатели в рамках одного приложения)
@@ -59,8 +71,10 @@ msg.setText("bla");
 ```
 
 # Spring JMS
-# kafka
+пока пусто
 
+# kafka
+## Общее
 **Плюсы kafka:**
 * Decoupling of Data Streams.
 * Real time instead of batch processing. (работа с сообщениями сразу вместо ожидания пока они накопятся, а потом проведение операций сразу с группой)
@@ -84,9 +98,23 @@ msg.setText("bla");
 
 **Note.** **leader** это то (тот Broker) где лежит файл log (с сообщениями), остальные куда log копируется для надежности. log файл распределенный потому что лежит на нескольких носителях (копии log файла).
 
+## Interceptor
+пока пусто
+
+## Kafka Streams
+https://kafka.apache.org/documentation/streams/
+
+## Connector API
+http://kafka.apache.org/documentation.html#connect
+
+The Connector API allows building and running reusable producers or consumers that connect Kafka topics to existing applications or data systems. For example, a connector to a relational database might capture every change to a table.
+
+
 # kafka tool
 # jms vs kafka
 Источник: [тут](https://stackoverflow.com/questions/42664894/jms-vs-kafka-in-specific-conditions), [тут](https://stackoverflow.com/questions/30453882/is-apache-kafka-another-api-for-jms)
 
 kafka отличается от jms (т.е. это не jms provider), kafka имеет меньше features (функционала), использует не jms протокол и она ориентирована на performances. Т.е. код jms и kafka отличается. kafka не использует pont-to-point, только Publish-and-subscribe. kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log (копии файлов с данными topic разнесены на разные сервера). kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control). consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
 
+# Apache Kafka vs. Integration Middleware (MQ, ETL, ESB)
+https://medium.com/@megachucky/apache-kafka-vs-integration-middleware-mq-etl-esb-friends-enemies-or-frenemies-ab02f6f2617b
