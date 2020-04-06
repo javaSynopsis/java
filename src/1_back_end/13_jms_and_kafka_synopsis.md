@@ -3,7 +3,7 @@
   - [Фильтры в JMS (с примером)](#Фильтры-в-jms-с-примером)
   - [Interceptor в JMS (с примером)](#interceptor-в-jms-с-примером)
   - [Spring JMS](#spring-jms)
-- [kafka](#kafka)
+- [Kafka](#kafka)
   - [Общее](#Общее)
   - [Пример использования](#Пример-использования)
   - [Interceptor](#interceptor)
@@ -54,11 +54,11 @@
 Сервера приложений Java EE используют одну из реализация JMS (JMS Provider). Чтобы использовать JMS в приложениях развернутых на этих серверах нужно создать через UI этого сервера или объявить в конфигурации этого сервера **Queue Factory** или **Topic Factory** с определенным именем. В самом приложении из JNDI (из контекста) по имени получить эту Factory, создать connection из нее, создать **session** из **connection**, создать объект **queue** или **topic** и связать с session. После этого можно отправлять или получать сообщения.
 ```java
 InitialContext ctx=new InitialContext();
-QueueConnectionFactory f=(QueueConnectionFactory)ctx.lookup("myQueueConnectionFactory");
-QueueConnection con=f.createQueueConnection();
+QueueConnectionFactory f=(QueueConnectionFactory)ctx.lookup("myQueueConnectionFactory"); // достаем Factory по имени
+QueueConnection con=f.createQueueConnection(); // connection
 con.start();
-QueueSession ses=con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-Queue t=(Queue)ctx.lookup("myQueue");
+QueueSession ses=con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE); // session
+Queue t=(Queue)ctx.lookup("myQueue"); // queue или topic
 
 // в классе receiver
 QueueReceiver receiver=ses.createReceiver(t); 
@@ -82,28 +82,46 @@ msg.setText("bla");
 ## Spring JMS
 пока пусто
 
-# kafka
+# Kafka
 ## Общее
+Источники: [понятное введение на рус.](https://habr.com/ru/company/piter/blog/352978/)
+
+Kafka был разработан в компании LinkedIn в 2011 году.
+
+**Note.** Kafka иногда называют (можно запомнить к собеседованию) распределенный горизонтально масштабируемый отказоустойчивый журнал коммитов.
+
 **Плюсы kafka:**
 * Decoupling of Data Streams.
 * Real time instead of batch processing. (работа с сообщениями сразу вместо ожидания пока они накопятся, а потом проведение операций сразу с группой)
 
-**Note.** kafka также как и JMS называют middle layer.
+**Note.** kafka также как и JMS называют middle layer (но будет ли она им зависит от того как ее использовать)
 
 * **Broker** - сервер или несколько серверов (тогда между ними разделяется нагрузка). Если вы соеденены с одним Broker, то вы соеденены со всеми (со всем кластером, т.е. можно не думать о ручном соединении с каждым сервером и просто работать с ними как с одним). Если 1ин Broker падает, то данные **replicated** (будут получены) из другого.
 * **Record**
-* **Topic**
-* **Partition** - каждый topic разбит на Partitions. Копии Partitions разбросаны по разным копиям Brokers (если Brokers несколько). В каждом Broker есть свой **leader** и **ISRs** (in sync replicas), т.е. главный и второстепенные Partitions. Записать в topic идет через **leader**.
+* **Topic** (log) - место где хранятся сообщения
+* **Partition** - каждый topic разбит на Partitions. Копии Partitions разбросаны по разным копиям Brokers (если Brokers несколько). В каждом Broker есть свой **leader** (лидер) и **ISRs** (in sync replicas, ведомые), т.е. главный и второстепенные Partitions. Записать в **topic** идет через **leader**.
 * **Offset** - сообщение в Partition расположено со смещением (offset) относительно чего-то
-* **Producer**
-* **Consumer**
+* **Producer** - приложение или кусок приложения посылающий сообщения в Kafka (в брокер(ы)) **Note.** (неважная инфа) Producer иногда называют **генератором**.
+* **Consumer** - приложение или кусок приложения слушающий сообщения. **Note.** (неважная инфа) Producer иногда называют **потребителями**.
 * **Consumer Group**
-* **Zookeeper**
+* **Zookeeper** - это DB, которая работает как Map (ключ-значение), оптимизировано для чтения и медленнее для записи. Она нужна для работы Kafka как зависимость и ее нужно разворачивать как отдельный сервер. Брокеры Kafka подписываются на события изменения данных в **Zookeeper** (в том числе на событие изменения **leader** брокера на другого **leader**). Zookeeper **отказоустойчив**.
+  * **Он используется для хранения всевозможных метаданных, в частности:**
+    * Смещение групп потребителей в рамках секции (хотя, современные клиенты хранят смещения в отдельной теме Kafka)
+    * ACL (списки контроля доступа) — используются для ограничения доступа /авторизации
+    * Квоты генераторов и потребителей — максимальные предельные количества сообщений в секунду 
+    * Ведущие секций и уровень их работоспособности
+
+**Журнал коммитов** («журнал опережающей записи», «журнал транзакций») – это долговременная упорядоченная структура данных, причем, данные в такую структуру можно только добавлять. Записи из этого журнала нельзя ни изменять, ни удалять. Информация считывается слева направо; таким образом гарантируется правильный порядок элементов.  
+**Note.** Т.е. это что-то вроде stack структуры, но удалять из нее нельзя.  
+**Note.** `o(1)` (если известен ID записи) - временная сложность для чтения и записи (быстрее чем у структуры дерево).  
+**Note.** Операции считывания и записи не влияют друг на друга (операция считывания не блокирует операцию записи и наоборот, чего не скажешь об операциях со сбалансированными деревьями).
 
 **Особенности**
 * Если данные записаны в Partition они не могут быть изменены (Immutability)
 * Данные в Partition хранятся ограниченный срок (в настройках установлен limit по времени).
 * **leader** это тот Broker где лежит файл log (с сообщениями), остальные серверы это те куда log копируется для надежности. log файл распределенный т.к. лежит на нескольких носителях (там лежат копии log файла).
+
+**Note.** Разнесения Brokers по разным компьютерам называют горизонтальным маштабированием. А сами брокеры иногда называют узлами.
 
 ## Пример использования
 Источники: [тут пример по шагам на русском](https://habr.com/ru/post/440400/), [тут разные примеры](https://github.com/confluentinc/kafka-streams-examples#examples-apps)
@@ -124,12 +142,12 @@ The Connector API allows building and running reusable producers or consumers th
 # jms vs kafka
 Источник: [тут](https://stackoverflow.com/questions/42664894/jms-vs-kafka-in-specific-conditions), [тут](https://stackoverflow.com/questions/30453882/is-apache-kafka-another-api-for-jms)
 
-* kafka отличается от jms (т.е. это не jms provider).  Т.е. код jms и kafka отличается.
+* kafka отличается от jms (т.е. это не jms provider).  Т.е. код и спецификации jms и kafka отличается.
 * kafka имеет меньше features (функционала) чем jms
 * использует не jms протокол и она ориентирована на performances.
 * kafka не использует pont-to-point, только Publish-and-subscribe. 
-* kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log (копии файлов с данными topic разнесены на разные сервера). 
-* kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control).
+* kafka лучше для scalability (разнесения по разным узлам) потому что она разработана как partitioned topic log (копии файлов с содержимым topic могут быть разнесены на разные сервера). 
+* kafka может разделять поток сообщений на группы. Поэтому kafka имеет лучший ACLs (access control level, установку прав доступа на данные).
 * consumer решает какое сообщений потребить на основе offset (смещения в topic относительно чего-то), это снижает сложность написания producer.
 
 # Apache Kafka vs. Integration Middleware (MQ, ETL, ESB)
