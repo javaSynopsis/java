@@ -2671,7 +2671,8 @@ removed (as long as the object is marked to be removed and it still living on th
 
 **Пример:**
 ```java
-// правильная реализация
+// правильная реализация,
+// чтобы можно было использовать в Set и делать re attach к new persistence context
 @Entity
 public class Book implements Identifiable<Long> {
 
@@ -2690,14 +2691,16 @@ public class Book implements Identifiable<Long> {
 
         Book other = (Book) o;
 
-        // проверяем на null, когда оба id еще null, то для entity1.id == entity2.id обязано вернуть false
+        // проверяем на null, когда оба id еще null,
+        // то для entity1.id == entity2.id обязано вернуть false
         return id != null &&
                id.equals(other.getId());
     }
 
     @Override
     public int hashCode() {
-        return 31; // обязано быть константой
+        return 31; // обязано быть константой,
+        // чтобы все попало в один и тот же backet при id == null и при id == число
     }
 
     //Getters and setters omitted for brevity
