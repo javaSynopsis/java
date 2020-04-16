@@ -2645,12 +2645,31 @@ https://vladmihalcea.com/the-anatomy-of-hibernate-dirty-checking/
 
 # Про equals и @NaturalId
 
-Источники: [тут](https://vladmihalcea.com/the-best-way-to-implement-equals-hashcode-and-tostring-with-jpa-and-hibernate/), [тут](https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/)
+Источники: [тут](https://vladmihalcea.com/the-best-way-to-implement-equals-hashcode-and-tostring-with-jpa-and-hibernate/), [тут](https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/), [официальная документация](https://docs.jboss.org/hibernate/orm/5.4/userguide/html_single/Hibernate_User_Guide.html#mapping-model-pojo-equalshashcode)
 
-Использовать `@NaturalId` поле в equals и hashCode. Если их нет, то нужно реализовать сравнение на основе id, но при этом добавить проверку `if(id != null)` т.к. пока Entity не начиталась id может быть `null`
+Использовать `@NaturalId` (как unique ключ) поле в `equals / hashCode`. Если их нет, то нужно реализовать сравнение на основе id, но при этом добавить проверку `if(id != null)` т.к. пока Entity не начиталась id может быть `null`
 
-Правильная реализация equals и hashCode для Entity не имеющей `@NaturalId`, ключевая особенность это проверка id != null в реализации, т.к. id может быть null пока данные не загружены (31 выбрано как число не делящееся на 2 и поэтому удобнее для хэшей, операции с 31 быстрее на некоторых CPU, занимает 8 бит и нужен только 1 сдвиг для изменения чего-то там. При этом hashCode постоянная, потому что сравнения по id в данном случае достаточно, а когда id == null му можем положиться на сравнение с ссылкой на сам объект):
+Правильная реализация equals и hashCode для Entity не имеющей `@NaturalId`, ключевая особенность это проверка id != null в реализации, т.к. id может быть null пока данные не загружены (31 выбрано как число не делящееся на 2 и поэтому удобнее для хэшей, операции с 31 быстрее на некоторых CPU, занимает 8 бит и нужен только 1 сдвиг для изменения чего-то там. При этом hashCode постоянная, потому что сравнения по id в данном случае достаточно, а когда id == null мы можем положиться на сравнение с ссылкой на сам объект):
 
+**Note.**
+* При сравнении по id метод hashCode должен возвращать константу **обязательно**, т.к. иначе из-за того что до загрузки Entity в память id == null, то hashCode == 0 (хэш от null == 0) и Entity попадет в 1ин бакет (в HashSet или HashMap), а после загрузки id изменится и hashCode будет указывать уже на другой бакет. В итоге операции с Set такие как remove() просто не найдут Entity. **Другими словами:** hashCode не должен меняться **до** и **после** того как Entity будет **flushed**.
+* Или id должны сравниваться только для non-transient entities
+
+**Note.** Из этого следует, что если id у двух одинаковых Entity еще null (до загрузки Entity и назначения настоящего id), то equals для entity1.id == entity2.id **обязано** вернуть **false**, в стандартной реализации (e.g. через IDE или lombok) оно вернет **true**.
+
+**Для чего нужны** `equals / hashCode`:
+1. Чтобы можно было работать с `Set` (например при `@ManyToMany`)
+2. Чтобы можно было делать re attach какой-либо Entity из одно persistence context в другой (в `new persistence context`)
+
+hashCode т.е. для использования equals/hashCode они должны выполняться для состояний: 
+```
+transient
+attached
+detached
+removed (as long as the object is marked to be removed and it still living on the Heap)
+```
+
+**Пример:**
 ```java
 // правильная реализация
 @Entity
@@ -2671,13 +2690,14 @@ public class Book implements Identifiable<Long> {
 
         Book other = (Book) o;
 
+        // проверяем на null, когда оба id еще null, то для entity1.id == entity2.id обязано вернуть false
         return id != null &&
                id.equals(other.getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        return 31; // обязано быть константой
     }
 
     //Getters and setters omitted for brevity
@@ -2705,9 +2725,11 @@ public class Book {
 }
 ```
 
-При этом будут использованы множества buckets в HashSet or HashMap (что в теории плохо). Но подразумевается что при работе с Hibernate число entities ограничивается (разработчиком). И **никогда нельзя** (имеется ввиду вообще, а не только этот случай) загружать тысячи entities `@OneToMany` **Set** т.к. performance penalty on the database side is multiple orders of magnitude higher than using a single hashed bucket.
+При этом будут использованы множества buckets в HashSet or HashMap (что в теории плохо). Но подразумевается что при работе с Hibernate число entities ограничивается (разработчиком), т.е. обычно мы не загружаем в память слишком много Entities. И **никогда нельзя** (имеется ввиду вообще, а не только этот случай) загружать тысячи entities `@OneToMany` **Set** т.к. performance penalty on the database side is multiple orders of magnitude higher than using a single hashed bucket.
 
 **Note.** (Не проверено!) equals и hashCode имеет смысл реализовывать если используются коллекции типа `Set` (и др.) и при этом там могут быть объекты в разных состояниях (detached и пр.). При использовании Spring Data JPA разных состояний нет и поэтому реализовывать equals и hashCode не нужно. При этом в официальной документации написано, что equals и hashCode унаследованные от Object обычно достаточно для уникальности. А в статье Vlad Mihalcen написано, что при использовании evict() и merge() стандартных equals и hashCode недостаточно (но их используют не всегда).
+
+**Note.** (Исследовать) как влияют (помагают ли) реализации equals/hashCode в Cascade операциях.
 
 # Кэширование и регионы кэша
 Тут будет описание
