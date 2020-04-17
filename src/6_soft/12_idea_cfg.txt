@@ -11,7 +11,7 @@ mapstruct - для поддержки генератора мапперов MapS
 
 gerrit - для gerrit
 
-SonarLint
+SonarLint - объединяет возможности FindBugs, CheckStyle, PWD etc
 
 FindBugs
 
@@ -19,6 +19,7 @@ Gerrit - опционально, если используется gerrit
 
 Maven Helper - показывает конфликты зависимостей, Dependency Analyzer
 	появится вкладка Dependency Analyzer в pom.xml файлах
+	для exclude конфликтов: правой кнопкой мыши по красной надписи конфликты -> exclude
 
 liquibase - может делать changeSet из существующей БД (прим. на практике нужно проверить нет ли проблем, возможно неправильно работает)
 
