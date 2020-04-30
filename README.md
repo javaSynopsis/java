@@ -15,6 +15,7 @@
 * [ESB (enterprise service bus) для подготовки к собеседованию ](src/1_back_end/12_esb_synopsis.md)(создание только началось) - Сервисная шина предприятия
 * [jms & kafka, для подготовки к собеседованию](src/1_back_end/13_jms_and_kafka_synopsis.md)(создание только началось)
 * [Redis & MemCached, для подготовки к собеседованию](src/1_back_end/10_redis_&_MemCached_synopsis.md)(создание только началось)
+* [Hibernate Validator](src/1_back_end/15_hibernateValidator_synopsis.md) - кратко (на собеседовании обычно не спрашивают, создание только началось)
 
 # Общее
 * [Конспект по Паттерны](src/3_common/9_patterns.md) (краткий)
